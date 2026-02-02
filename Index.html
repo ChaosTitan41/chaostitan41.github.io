@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaosTitan41 Live-Alarm</title>
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "35ed215d-7fbf-457a-ac7e-e3eed92f758c",
+          notifyButton: {
+            enable: true, 
+          },
+        });
+      });
+    </script>
+    <style>
+        body { background: #111; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
+        .btn { display: inline-block; margin-top: 20px; background: #00e701; color: black; padding: 15px 30px; border-radius: 5px; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>ChaosTitan41 Live-Alarm</h1>
+    <p>Aktiviere die Glocke unten rechts, um den Stream nie zu verpassen!</p>
+    <p><i>ChaosTitan41 Yayında bi sen eksiksin!</i></p>
+    <br>
+    <a href="https://kick.com/chaostitan41" class="btn">Zum Kick-Channel</a>
+</body>
+</html>
