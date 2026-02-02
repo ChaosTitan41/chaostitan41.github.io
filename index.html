@@ -10,31 +10,46 @@
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
           appId: "f3841ef4-c111-4374-bf4e-6d1b9a5d8580",
+          safari_web_id: "web.onesignal.auto.10091379-3739-4467-854e-6e8321946006", // Falls vorhanden
           notifyButton: {
             enable: true,
+            displayPredicate: null, // Sorgt dafür, dass die Glocke SOFORT erscheint
             position: 'bottom-right',
             size: 'medium',
+            text: {
+                'tip.state.unsubscribed': 'Bildirimleri Aç',
+                'tip.state.subscribed': 'Bildirimler Aktif',
+                'tip.state.blocked': 'Bildirimler Engellendi',
+                'message.prenotify': 'Yayına girdiğimde haber verelim mi?',
+                'action.subscribe': 'EVET, HABER VER',
+                'action.resubscribe': 'TEKRAR AKTİF ET',
+                'action.unsubscribe': 'KAPAT'
+            },
             colors: { 
-                'circle.background': '#8B0000', /* Dunkelrot für die Glocke */
+                'circle.background': '#8B0000', 
                 'circle.foreground': 'white',
                 'badge.background': '#8B0000',
                 'badge.foreground': 'white',
                 'badge.bordercolor': 'white'
             }
           },
+          allowLocalhostAsSecureOrigin: true
         });
+        
+        // Erzwingt das Abo-Fenster, wenn die Glocke geklickt wird
+        OneSignal.Notifications.requestPermission();
       });
     </script>
     <style>
         body { 
-            background: #000000; /* Tiefschwarz */
+            background: #000000; 
             color: #ffffff; 
             font-family: 'Impact', 'Arial Black', sans-serif; 
             text-align: center; 
             padding: 50px 20px; 
         }
         h1 { 
-            color: #8B0000; /* Dunkelrot */
+            color: #8B0000; 
             font-size: 4rem; 
             text-transform: uppercase; 
             letter-spacing: 3px;
@@ -49,7 +64,7 @@
         }
         .main-btn { 
             display: inline-block; 
-            background: #8B0000; /* Dunkelrot */
+            background: #8B0000; 
             color: white; 
             padding: 18px 45px; 
             border-radius: 4px; 
