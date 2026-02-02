@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaosTitan41</title>
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "f3841ef4-c111-4374-bf4e-6d1b9a5d8580",
+          notifyButton: {
+            enable: true,
+            position: 'bottom-right',
+            size: 'medium',
+            colors: { 
+                'circle.background': '#8B0000', /* Dunkelrot für die Glocke */
+                'circle.foreground': 'white',
+                'badge.background': '#8B0000',
+                'badge.foreground': 'white',
+                'badge.bordercolor': 'white'
+            }
+          },
+        });
+      });
+    </script>
+    <style>
+        body { 
+            background: #000000; /* Tiefschwarz */
+            color: #ffffff; 
+            font-family: 'Impact', 'Arial Black', sans-serif; 
+            text-align: center; 
+            padding: 50px 20px; 
+        }
+        h1 { 
+            color: #8B0000; /* Dunkelrot */
+            font-size: 4rem; 
+            text-transform: uppercase; 
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .sub-text { 
+            font-family: 'Arial', sans-serif;
+            color: #aaaaaa; 
+            margin-bottom: 40px; 
+            font-size: 1.1rem;
+        }
+        .main-btn { 
+            display: inline-block; 
+            background: #8B0000; /* Dunkelrot */
+            color: white; 
+            padding: 18px 45px; 
+            border-radius: 4px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            font-size: 1.4rem; 
+            border: 1px solid #5a0000;
+            transition: 0.3s;
+            margin-bottom: 50px;
+        }
+        .main-btn:hover { 
+            background: #a50000; 
+            transform: scale(1.05); 
+        }
+        .link-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 320px;
+            margin: 0 auto;
+            font-family: 'Arial', sans-serif;
+        }
+        .tree-btn { 
+            background: #1a1a1a; 
+            color: white; 
+            padding: 15px; 
+            border-radius: 5px; 
+            text-decoration: none; 
+            border: 1px solid #333;
+            transition: 0.3s;
+        }
+        .tree-btn:hover { 
+            border-color: #8B0000; 
+            background: #252525;
+        }
+        .footer-quote {
+            margin-top: 60px;
+            font-family: 'Arial', sans-serif;
+            font-style: italic;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+    <h1>CHAOSTITAN41</h1>
+    <p class="sub-text">Yayını kaçırmamak için sağ alttaki zile tıklayıp bildirimleri aç!</p>
+    
+    <a href="https://kick.com/chaostitan41" class="main-btn">KICK KANALINA GİT</a>
+
+    <div class="link-container">
+        <p style="color: #666; font-size: 0.8rem; text-transform: uppercase;">Sosyal Medya</p>
+        <a href="https://www.instagram.com/chaostitan41" target="_blank" class="tree-btn">Instagram</a>
+        <a href="https://www.tiktok.com/@chaostitan41" target="_blank" class="tree-btn">TikTok</a>
+    </div>
+
+    <p class="footer-quote">"ChaosTitan41 Yayında bi sen eksiksin!"</p>
+</body>
+</html>
