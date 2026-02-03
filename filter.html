@@ -20,34 +20,21 @@
 
     <p id="status">Bereit...</p>
 
-   <script>
+  <script>
     function sendToBot(filterName) {
-        // Deine URL
-        const ngrokUrl = "wss://aditya-unfeudal-brock.ngrok-free.dev";
-        const socket = new WebSocket(ngrokUrl);
+        const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
 
         socket.onopen = () => {
-            // Wir bauen das Paket EXAKT so, wie der Bot es sehen will
+            // Wir schicken den Namen einfach als 'rawInput'
             const payload = {
                 "request": "ExecuteAction",
-                "id": "123", // Eine ID ist Pflicht
+                "id": "1",
                 "actionName": "Web_Filter_Handler",
-                "args": {
-                    "meinFilter": filterName 
-                }
+                "rawInput": filterName // Hier schicken wir einfach nur das Wort
             };
-
-            // WICHTIG: Wir loggen in die Browser-Konsole, was wir schicken
-            console.log("Sende an Bot:", JSON.stringify(payload));
             
             socket.send(JSON.stringify(payload));
-            
-            // Etwas länger warten, damit der Bot Zeit zum Lesen hat
-            setTimeout(() => socket.close(), 250);
-        };
-
-        socket.onerror = (err) => {
-            console.error("Websocket Fehler!", err);
+            setTimeout(() => socket.close(), 200);
         };
     }
 </script>
