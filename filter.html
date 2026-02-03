@@ -19,7 +19,7 @@
 <body>
 
     <h1>🎭 Face Control</h1>
-    <p>Wähle einen Filter für den Stream:</p>
+    <p>Wähle einen Filter aus:</p>
 
     <div class="container">
         <div class="card">
@@ -36,22 +36,32 @@
     </div>
 
     <script>
-        // Deine Localtonet URL (bleibt gleich, solange der Tunnel aktiv ist)
+        // Deine Konfiguration
         const API_URL = "https://fzsgur0wc.localto.net";
+        const ACTION_NAME = "Web_Filter_Handler"; // <--- Muss EXAKT so im Bot heißen!
 
         function triggerBot(filterValue, btn) {
             const originalText = btn.innerText;
 
-            // Der Trigger: Schickt die Variable 'filter' mit dem Wert (z.B. 'alien')
-            fetch(`${API_URL}/execute-code?filter=${filterValue}`, {
+            // Wir senden den Namen der Action und den Filter-Wert direkt an die API
+            fetch(`${API_URL}/DoAction?actionName=${ACTION_NAME}&filter=${filterValue}`, {
                 method: 'GET',
                 mode: 'no-cors'
             })
             .then(() => {
-                // Visuelles Feedback auf der Webseite
                 btn.disabled = true;
                 btn.innerText = "GESENDET!";
                 
-                // Cooldown von 5 Sekunden
+                // 5 Sekunden Cooldown
                 setTimeout(() => { 
-                    btn.disabled =
+                    btn.disabled = false; 
+                    btn.innerText = originalText; 
+                }, 5000); 
+            })
+            .catch(err => {
+                console.error("Verbindungsfehler:", err);
+            });
+        }
+    </script>
+</body>
+</html>
