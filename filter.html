@@ -2,41 +2,45 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Streamer.bot Filter Panel</title>
+    <title>Filter Panel</title>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
-        .btn { padding: 15px 30px; font-size: 20px; margin: 10px; cursor: pointer; border-radius: 8px; border: none; font-weight: bold; }
+        .btn { padding: 20px 40px; font-size: 22px; margin: 15px; cursor: pointer; border-radius: 12px; border: none; font-weight: bold; transition: 0.2s; }
+        .btn:active { transform: scale(0.9); }
         .alien { background-color: #4CAF50; color: white; }
         .ghost { background-color: #f1f1f1; color: #333; }
-        #status { margin-top: 20px; color: #888; }
     </style>
 </head>
 <body>
 
-    <h1>Filter Steuerung</h1>
+    <h1>Stream Control</h1>
 
-    <button class="btn alien" onclick="sendToBot('alien')">ALIEN FILTER</button>
-    <button class="btn ghost" onclick="sendToBot('ghost')">GHOST FILTER</button>
+    <button class="btn alien" onclick="sendToBot('alien')">ALIEN</button>
+    <button class="btn ghost" onclick="sendToBot('ghost')">GHOST</button>
 
-    <p id="status">Bereit...</p>
+    <script>
+        function sendToBot(commandName) {
+            const url = "wss://aditya-unfeudal-brock.ngrok-free.dev";
+            const socket = new WebSocket(url);
 
-  <script>
-    function sendToBot(filterName) {
-        const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
-
-        socket.onopen = () => {
-            // Wir schicken den Namen einfach als 'rawInput'
-            const payload = {
-                "request": "ExecuteAction",
-                "id": "1",
-                "actionName": "Web_Filter_Handler",
-                "rawInput": filterName // Hier schicken wir einfach nur das Wort
+            socket.onopen = () => {
+                const payload = {
+                    "request": "DoCommand",
+                    "id": "web-button",
+                    "command": commandName
+                };
+                
+                socket.send(JSON.stringify(payload));
+                console.log("Command gesendet: " + commandName);
+                
+                // Kurz warten und schließen
+                setTimeout(() => socket.close(), 200);
             };
-            
-            socket.send(JSON.stringify(payload));
-            setTimeout(() => socket.close(), 200);
-        };
-    }
-</script>
+
+            socket.onerror = (err) => {
+                console.error("Verbindung fehlgeschlagen. Ngrok prüfen!");
+            };
+        }
+    </script>
 </body>
 </html>
