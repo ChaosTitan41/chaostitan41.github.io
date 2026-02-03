@@ -1,85 +1,40 @@
 <!DOCTYPE html>
-<html lang="de">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamer.bot Filter Panel</title>
+    <title>Filter Panel</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #1a1a1a;
-            color: white;
-            padding-top: 50px;
-        }
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        button {
-            padding: 20px 40px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            border-radius: 10px;
-            transition: transform 0.1s, background-color 0.2s;
-        }
-        button:active {
-            transform: scale(0.95);
-        }
-        .btn-alien { background-color: #4CAF50; color: white; }
-        .btn-ghost { background-color: #f1f1f1; color: #333; }
-        .status { margin-top: 20px; font-size: 14px; color: #888; }
+        button { padding: 20px; margin: 10px; font-size: 18px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h1>Filter Trigger</h1>
-
-    <div class="container">
-        <button class="btn-alien" onclick="triggerFilter('alien')">ALIEN</button>
-        <button class="btn-ghost" onclick="triggerFilter('ghost')">GHOST</button>
-    </div>
-
-    <p id="log" class="status">Bereit...</p>
+    <button onclick="triggerCommand('alien')">Trigger Alien Command</button>
+    <button onclick="triggerCommand('ghost')">Trigger Ghost Command</button>
 
     <script>
-        function triggerFilter(filterName) {
-            // --- HIER DEINE AKTUELLE NGROK URL EINTRAGEN ---
-            const url = "https://aditya-unfeudal-brock.ngrok-free.dev";
-            // ----------------------------------------------
-
-            const logElement = document.getElementById('log');
+        // Das ist das JavaScript
+        function triggerCommand(cmdName) {
+            // 1. Die Adresse deines Bots (Ngrok leitet das an deinen PC weiter)
+            const url = "wss://aditya-unfeudal-brock.ngrok-free.dev";
             const socket = new WebSocket(url);
 
             socket.onopen = () => {
-                const request = {
-                    "request": "ExecuteAction",
-                    "id": "html-trigger",
-                    "actionName": "Web_Filter_Handler",
-                    "args": {
-                        "meinFilter": filterName // Deine eigene Variable
-                    }
+                // 2. Das Paket, das den Command im Bot auslöst
+                const payload = {
+                    "request": "DoCommand",
+                    "id": "web-request",
+                    "command": cmdName 
                 };
 
-                socket.send(JSON.stringify(request));
-                logElement.innerText = "Gesendet: " + filterName;
+                // 3. Hier "fliegt" die Nachricht los zum Bot
+                socket.send(JSON.stringify(payload));
                 
-                // Verbindung kurz offen halten und dann schließen
-                setTimeout(() => socket.close(), 150);
+                console.log("Befehl gesendet: " + cmdName);
+                setTimeout(() => socket.close(), 100);
             };
 
-            socket.onerror = (error) => {
-                logElement.innerText = "Fehler: Verbindung fehlgeschlagen";
-                console.error("Websocket Error:", error);
-            };
-
-            socket.onclose = () => {
-                console.log("Verbindung geschlossen.");
+            socket.onerror = (err) => {
+                console.error("Verbindung fehlgeschlagen! Läuft Ngrok?");
             };
         }
     </script>
