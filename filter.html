@@ -3,72 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChaosTitan - TCP Control</title>
+    <title>ChaosTitan - Face Control</title>
     <style>
         body { background: #0a0a0a; color: #ffffff; font-family: sans-serif; text-align: center; padding: 20px; }
-        h1 { color: #8B0000; text-transform: uppercase; }
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 30px; }
-        .card { background: #151515; border: 2px solid #8B0000; border-radius: 15px; padding: 20px; width: 180px; }
-        button { background: #8B0000; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
-        button:hover { background: #ff0000; }
-        .status { margin-top: 20px; color: #555; font-size: 0.8em; }
+        h1 { color: #8B0000; text-transform: uppercase; margin-bottom: 20px; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        .card { background: #151515; border: 2px solid #8B0000; border-radius: 15px; padding: 20px; width: 200px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        button { background: #8B0000; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; font-size: 1rem; }
+        button:hover { background: #ff0000; transform: scale(1.05); }
+        button:disabled { background: #444; }
+        #status-box { margin-top: 30px; padding: 10px; border-radius: 5px; background: #222; display: inline-block; min-width: 300px; font-size: 0.9em; }
+        .error { color: #ff4444; }
+        .success { color: #44ff44; }
     </style>
 </head>
 <body>
 
-    <h1>🎭 Face Control (TCP)</h1>
+    <h1>🎭 Face Control</h1>
+    
     <div class="container">
         <div class="card">
-            <h3>Alien</h3>
-            <button onclick="sendAction('alien', this)">AKTIVIEREN</button>
+            <img src="https://img.icons8.com/color/96/alien.png" style="width:60px" alt="Alien"><br><br>
+            <button id="btn-alien" onclick="triggerEffect('alien')">ALIEN FILTER</button>
         </div>
         <div class="card">
-            <h3>Ghost</h3>
-            <button onclick="sendAction('ghost', this)">AKTIVIEREN</button>
+            <img src="https://img.icons8.com/color/96/skull.png" style="width:60px" alt="Ghost"><br><br>
+            <button id="btn-ghost" onclick="triggerEffect('ghost')">GHOST FILTER</button>
         </div>
     </div>
-    <div id="log" class="status">Bereit...</div>
+
+    <div id="status-box">Status: Bereit</div>
 
     <script>
-        // DEINE TCP ADRESSE
-        const WS_URL = "ws://ejlkf6oa2.localto.net:1530"; 
+        // DEINE ADRESSE (WICHTIG: Port 1530 muss in Localtonet auf Local Port 8081 zeigen)
+        const WS_URL = "ws://ejlkf6oa2.localto.net:1530";
 
-        function sendAction(filterName, btn) {
-            const logDiv = document.getElementById('log');
-            const socket = new WebSocket(WS_URL);
+        function updateStatus(msg, isError = false) {
+            const box = document.getElementById('status-box');
+            box.innerText = "Status: " + msg;
+            box.className = isError ? "error" : "success";
+        }
+
+        function triggerEffect(effectName) {
+            const btn = document.getElementById('btn-' + effectName);
             const originalText = btn.innerText;
+            
+            updateStatus("Verbinde zum Bot...");
+            
+            const socket = new WebSocket(WS_URL);
+
+            // Timeout nach 5 Sekunden, falls gar nichts passiert
+            const timeout = setTimeout(() => {
+                if (socket.readyState !== WebSocket.OPEN) {
+                    socket.close();
+                    updateStatus("Zeitüberschreitung! Localtonet prüfen.", true);
+                }
+            }, 5000);
 
             socket.onopen = () => {
-                logDiv.innerText = "Verbunden... sende " + filterName;
+                clearTimeout(timeout);
+                updateStatus("Verbunden! Sende Befehl...");
                 
-                // Wir schicken das JSON-Paket an den Streamer.bot
                 const payload = {
                     "request": "ExecuteAction",
                     "actionName": "Web_Filter_Handler",
                     "args": {
-                        "filter": filterName
+                        "filter": effectName
                     },
-                    "id": "web_req"
+                    "id": "web-ui-" + Date.now()
                 };
-                
+
                 socket.send(JSON.stringify(payload));
                 
-                btn.innerText = "GESENDET!";
-                btn.style.background = "green";
-                
-                // Verbindung sauber schließen
-                setTimeout(() => { 
-                    socket.close(); 
+                btn.innerText = "AKTIVIERT!";
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    socket.close();
                     btn.innerText = originalText;
-                    btn.style.background = "#8B0000";
-                    logDiv.innerText = "Befehl erfolgreich übertragen.";
+                    btn.disabled = false;
+                    updateStatus("Befehl gesendet.");
                 }, 1000);
             };
 
-            socket.onerror = (error) => {
-                console.error("Fehler:", error);
-                logDiv.innerText = "Fehler: Verbindung fehlgeschlagen.";
-                alert("Konnte keine Verbindung zum Bot aufbauen. Läuft der WebSocket Server auf Port 8081?");
+            socket.onerror = (err) => {
+                updateStatus("Verbindung fehlgeschlagen! (Check: WebSocket Server an? Port 1530 -> 8081?)", true);
+                console.error("WS Error:", err);
+            };
+
+            socket.onclose = () => {
+                console.log("Verbindung geschlossen.");
             };
         }
     </script>
