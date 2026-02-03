@@ -5,94 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChaosTitan - Face Control</title>
     <style>
-        body { background: #0a0a0a; color: #ffffff; font-family: sans-serif; text-align: center; padding: 20px; }
-        
-        /* Türkische Warnung ganz oben */
-        #turkish-warning { 
-            background: #4a0000; 
-            border: 2px solid #ff0000; 
-            color: white; 
-            padding: 15px; 
-            margin-bottom: 30px; 
-            border-radius: 10px; 
-            text-align: left; 
-            line-height: 1.5;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
+        body { background: #0a0a0a; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; }
+        h1 { color: #ff0000; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; }
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-        .card { background: #151515; border: 2px solid #8B0000; border-radius: 15px; padding: 20px; width: 180px; }
-        h1 { color: #8B0000; text-transform: uppercase; }
-        button { 
-            background: #8B0000; color: white; border: none; padding: 15px; 
-            border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; 
-            transition: 0.3s;
+        .filter-btn { 
+            background: linear-gradient(135deg, #8B0000 0%, #4a0000 100%); 
+            color: white; border: 2px solid #ff0000; padding: 25px; 
+            width: 200px; border-radius: 15px; font-weight: bold; cursor: pointer; 
+            font-size: 1.1rem; transition: 0.3s; box-shadow: 0 5px 15px rgba(255,0,0,0.2);
         }
-        button:hover { background: #ff0000; }
-        #status { margin-top: 20px; font-size: 0.8em; color: #777; }
+        .filter-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255,0,0,0.4); }
+        .filter-btn:disabled { background: #222; border-color: #444; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
+        #status { margin-top: 40px; font-family: 'Courier New', Courier, monospace; font-size: 1.2rem; color: #ff0000; }
+        .info-text { margin-top: 20px; font-size: 0.8rem; color: #888; }
     </style>
 </head>
 <body>
 
-    <div id="turkish-warning">
-        <strong>⚠️ BAĞLANTI HATASI / ENGELLEME!</strong><br><br>
-        Eğer butona bastığınızda hiçbir şey olmuyorsa, tarayıcınız bu bağlantıyı engelliyor demektir.<br><br>
-        <strong>Çözüm:</strong><br>
-        1. Adres çubuğunun solundaki <strong>kilit veya ayar simgesine</strong> tıklayın.<br>
-        2. <strong>"Site Ayarları"</strong> (Site Settings) seçeneğine gidin.<br>
-        3. Listeden <strong>"Güvensiz içerik"</strong> (Insecure content) seçeneğini bulun ve <strong>"İzin ver"</strong> (Allow) olarak değiştirin.<br>
-        4. Sayfayı yenileyip tekrar deneyin.
-    </div>
-
     <h1>🎭 FACE CONTROL</h1>
 
     <div class="container">
-        <div class="card">
-            <h3>ALIEN</h3>
-            <button onclick="triggerEffect('alien')">AKTİF ET</button>
-        </div>
-        <div class="card">
-            <h3>GHOST</h3>
-            <button onclick="triggerEffect('ghost')">AKTİF ET</button>
-        </div>
+        <button class="filter-btn" onclick="sendAction('alien')">👽 ALIEN</button>
+        <button class="filter-btn" onclick="sendAction('ghost')">💀 GHOST</button>
     </div>
 
-    <div id="status">Hazır...</div>
+    <div id="status">DURUM: HAZIR</div>
+    
+    <p class="info-text">Filtreyi seçin ve yayını değiştirin!</p>
 
     <script>
-        // DEINE NEUE TCP ADRESSE
-        const WS_URL = "ws://j67hybwk3.localto.net:4320";
+        // Deine Ngrok-Adresse mit wss:// (Sicherer WebSocket)
+        const WS_URL = "wss://aditya-unfeudal-brock.ngrok-free.dev"; 
+        const COOLDOWN_TIME = 30; // 30 Sekunden Wartezeit
 
-        function triggerEffect(effectName) {
+        function sendAction(actionName) {
             const statusBox = document.getElementById('status');
-            statusBox.innerText = "Bağlanıyor...";
-
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            // Verbindung aufbauen
             const socket = new WebSocket(WS_URL);
 
             socket.onopen = () => {
-                statusBox.innerText = "Gönderiliyor...";
                 const payload = {
                     "request": "ExecuteAction",
                     "actionName": "Web_Filter_Handler",
-                    "args": {
-                        "filter": effectName
-                    },
-                    "id": "web-ui"
+                    "args": { "filter": actionName },
+                    "id": "web-request"
                 };
                 socket.send(JSON.stringify(payload));
                 
-                setTimeout(() => {
-                    socket.close();
-                    statusBox.innerText = "Komut gönderildi: " + effectName;
-                }, 1000);
+                // Cooldown starten
+                startCooldown(buttons, statusBox);
+                
+                // Verbindung sauber schließen
+                setTimeout(() => socket.close(), 500);
             };
 
             socket.onerror = (err) => {
-                statusBox.innerText = "Hata! Ayarları kontrol edin.";
-                console.error("WS Error:", err);
+                console.error("Verbindungsfehler:", err);
+                statusBox.innerText = "HATA: BAGLANTI YOK!";
+                alert("Bağlantı kurulamadı. Ngrok ve Streamer.bot açık mı?");
             };
+        }
+
+        function startCooldown(buttons, statusBox) {
+            let timeLeft = COOLDOWN_TIME;
+            buttons.forEach(b => b.disabled = true);
+
+            const timer = setInterval(() => {
+                statusBox.innerText = "BEKLEME SÜRESİ: " + timeLeft + "s";
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(timer);
+                    buttons.forEach(b => b.disabled = false);
+                    statusBox.innerText = "DURUM: HAZIR";
+                }
+            }, 1000);
         }
     </script>
 </body>
