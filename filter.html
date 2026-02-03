@@ -1,87 +1,86 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChaosTitan - Face Control</title>
+    <title>Streamer.bot Filter Panel</title>
     <style>
-        body { background: #0a0a0a; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; }
-        h1 { color: #ff0000; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; }
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-        .filter-btn { 
-            background: linear-gradient(135deg, #8B0000 0%, #4a0000 100%); 
-            color: white; border: 2px solid #ff0000; padding: 25px; 
-            width: 200px; border-radius: 15px; font-weight: bold; cursor: pointer; 
-            font-size: 1.1rem; transition: 0.3s; box-shadow: 0 5px 15px rgba(255,0,0,0.2);
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #1a1a1a;
+            color: white;
+            padding-top: 50px;
         }
-        .filter-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255,0,0,0.4); }
-        .filter-btn:disabled { background: #222; border-color: #444; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
-        #status { margin-top: 40px; font-family: 'Courier New', Courier, monospace; font-size: 1.2rem; color: #ff0000; }
-        .info-text { margin-top: 20px; font-size: 0.8rem; color: #888; }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        button {
+            padding: 20px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .btn-alien { background-color: #4CAF50; color: white; }
+        .btn-ghost { background-color: #f1f1f1; color: #333; }
+        .status { margin-top: 20px; font-size: 14px; color: #888; }
     </style>
 </head>
 <body>
 
-    <h1>🎭 FACE CONTROL</h1>
+    <h1>Filter Trigger</h1>
 
     <div class="container">
-        <button class="filter-btn" onclick="sendAction('alien')">👽 ALIEN</button>
-        <button class="filter-btn" onclick="sendAction('ghost')">💀 GHOST</button>
+        <button class="btn-alien" onclick="triggerFilter('alien')">ALIEN</button>
+        <button class="btn-ghost" onclick="triggerFilter('ghost')">GHOST</button>
     </div>
 
-    <div id="status">DURUM: HAZIR</div>
-    
-    <p class="info-text">Filtreyi seçin ve yayını değiştirin!</p>
+    <p id="log" class="status">Bereit...</p>
 
     <script>
-        // Deine Ngrok-Adresse mit wss:// (Sicherer WebSocket)
-        const WS_URL = "wss://aditya-unfeudal-brock.ngrok-free.dev"; 
-        const COOLDOWN_TIME = 30; // 30 Sekunden Wartezeit
+        function triggerFilter(filterName) {
+            // --- HIER DEINE AKTUELLE NGROK URL EINTRAGEN ---
+            const url = "https://aditya-unfeudal-brock.ngrok-free.dev";
+            // ----------------------------------------------
 
-        function sendAction(actionName) {
-            const statusBox = document.getElementById('status');
-            const buttons = document.querySelectorAll('.filter-btn');
-            
-            // Verbindung aufbauen
-            const socket = new WebSocket(WS_URL);
+            const logElement = document.getElementById('log');
+            const socket = new WebSocket(url);
 
             socket.onopen = () => {
-                const payload = {
+                const request = {
                     "request": "ExecuteAction",
+                    "id": "html-trigger",
                     "actionName": "Web_Filter_Handler",
-                    "args": { "filter": actionName },
-                    "id": "web-request"
+                    "args": {
+                        "meinFilter": filterName // Deine eigene Variable
+                    }
                 };
-                socket.send(JSON.stringify(payload));
+
+                socket.send(JSON.stringify(request));
+                logElement.innerText = "Gesendet: " + filterName;
                 
-                // Cooldown starten
-                startCooldown(buttons, statusBox);
-                
-                // Verbindung sauber schließen
-                setTimeout(() => socket.close(), 500);
+                // Verbindung kurz offen halten und dann schließen
+                setTimeout(() => socket.close(), 150);
             };
 
-            socket.onerror = (err) => {
-                console.error("Verbindungsfehler:", err);
-                statusBox.innerText = "HATA: BAGLANTI YOK!";
-                alert("Bağlantı kurulamadı. Ngrok ve Streamer.bot açık mı?");
+            socket.onerror = (error) => {
+                logElement.innerText = "Fehler: Verbindung fehlgeschlagen";
+                console.error("Websocket Error:", error);
             };
-        }
 
-        function startCooldown(buttons, statusBox) {
-            let timeLeft = COOLDOWN_TIME;
-            buttons.forEach(b => b.disabled = true);
-
-            const timer = setInterval(() => {
-                statusBox.innerText = "BEKLEME SÜRESİ: " + timeLeft + "s";
-                timeLeft--;
-
-                if (timeLeft < 0) {
-                    clearInterval(timer);
-                    buttons.forEach(b => b.disabled = false);
-                    statusBox.innerText = "DURUM: HAZIR";
-                }
-            }, 1000);
+            socket.onclose = () => {
+                console.log("Verbindung geschlossen.");
+            };
         }
     </script>
 </body>
