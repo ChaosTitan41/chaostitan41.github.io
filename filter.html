@@ -1,40 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-    <title>Filter Panel</title>
+    <meta charset="UTF-8">
+    <title>Streamer.bot Filter Panel</title>
     <style>
-        button { padding: 20px; margin: 10px; font-size: 18px; cursor: pointer; }
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
+        .btn { padding: 15px 30px; font-size: 20px; margin: 10px; cursor: pointer; border-radius: 8px; border: none; font-weight: bold; }
+        .alien { background-color: #4CAF50; color: white; }
+        .ghost { background-color: #f1f1f1; color: #333; }
+        #status { margin-top: 20px; color: #888; }
     </style>
 </head>
 <body>
 
-    <button onclick="triggerCommand('alien')">Trigger Alien Command</button>
-    <button onclick="triggerCommand('ghost')">Trigger Ghost Command</button>
+    <h1>Filter Steuerung</h1>
+
+    <button class="btn alien" onclick="sendToBot('alien')">ALIEN FILTER</button>
+    <button class="btn ghost" onclick="sendToBot('ghost')">GHOST FILTER</button>
+
+    <p id="status">Bereit...</p>
 
     <script>
-        // Das ist das JavaScript
-        function triggerCommand(cmdName) {
-            // 1. Die Adresse deines Bots (Ngrok leitet das an deinen PC weiter)
-            const url = "wss://aditya-unfeudal-brock.ngrok-free.dev";
-            const socket = new WebSocket(url);
+        function sendToBot(filterName) {
+            // DEINE AKTUELLE NGROK URL
+            const ngrokUrl = "wss://aditya-unfeudal-brock.ngrok-free.dev";
+            const socket = new WebSocket(ngrokUrl);
+            const statusText = document.getElementById('status');
 
             socket.onopen = () => {
-                // 2. Das Paket, das den Command im Bot auslöst
                 const payload = {
-                    "request": "DoCommand",
-                    "id": "web-request",
-                    "command": cmdName 
+                    "request": "ExecuteAction",
+                    "id": "web-ui",
+                    "actionName": "Web_Filter_Handler",
+                    "args": {
+                        "meinFilter": filterName 
+                    }
                 };
-
-                // 3. Hier "fliegt" die Nachricht los zum Bot
                 socket.send(JSON.stringify(payload));
-                
-                console.log("Befehl gesendet: " + cmdName);
-                setTimeout(() => socket.close(), 100);
+                statusText.innerText = "Gesendet: " + filterName;
+                setTimeout(() => socket.close(), 150);
             };
 
             socket.onerror = (err) => {
-                console.error("Verbindung fehlgeschlagen! Läuft Ngrok?");
+                statusText.innerText = "Fehler: Verbindung fehlgeschlagen!";
             };
         }
     </script>
