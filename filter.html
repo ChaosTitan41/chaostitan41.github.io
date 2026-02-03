@@ -3,43 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChaosTitan - Filter Panel</title>
+    <title>ChaosTitan - Face Control</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; }
-        .box { border: 2px solid #ff0000; padding: 20px; border-radius: 20px; display: inline-block; margin-top: 50px; }
-        img { width: 100px; height: 100px; margin-bottom: 10px; }
-        button { background: #ff0000; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        button:disabled { background: #555; }
+        body { background: #0a0a0a; color: #ffffff; font-family: sans-serif; text-align: center; padding: 20px; }
+        h1 { color: #8B0000; text-transform: uppercase; letter-spacing: 2px; }
+        .card { background: #151515; border: 2px solid #8B0000; border-radius: 15px; padding: 20px; display: inline-block; width: 220px; transition: 0.3s; }
+        .card:hover { transform: scale(1.05); }
+        img { width: 80px; height: 80px; margin-bottom: 15px; }
+        button { background: #8B0000; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        button:hover { background: #ff0000; }
+        button:disabled { background: #444; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <img src="https://img.icons8.com/color/96/alien.png" alt="Alien Icon">
-        <br>
-        <button id="alienBtn" onclick="triggerAlien()">ALIEN AKTIVIEREN</button>
+    <h1>🎭 Face Control</h1>
+    <p>Aktiviere Filter direkt in meinem Stream!</p>
+
+    <div class="card">
+        <img src="https://img.icons8.com/color/96/alien.png" alt="Alien">
+        <h3>Alien Mode</h3>
+        <button id="alienBtn" onclick="triggerAction('Filter_Alien', 'alienBtn')">AKTIVIEREN</button>
     </div>
 
     <script>
-        function triggerAlien() {
-            const btn = document.getElementById('alienBtn');
-           // Ändere diese Zeile in deiner filter.html:
-const NGROK_URL = "  https://fzsgur0wc.localto.net";
+        // Deine neue Localtonet URL:
+        const API_URL = "https://fzsgur0wc.localto.net";
 
-            fetch(tunnelUrl, {
+        function triggerAction(actionName, buttonId) {
+            const btn = document.getElementById(buttonId);
+            const originalText = btn.innerText;
+
+            // Signal an den Streamer.bot senden
+            fetch(`${API_URL}/execute-code`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "Filter_Alien" })
+                body: JSON.stringify({ action: actionName })
             })
-            .then(() => {
+            .then(response => {
+                if (!response.ok) throw new Error();
+                
+                // Cooldown starten
                 btn.disabled = true;
                 btn.innerText = "AKTIVIERT!";
                 setTimeout(() => { 
                     btn.disabled = false; 
-                    btn.innerText = "ALIEN AKTIVIEREN"; 
-                }, 10000); // 10 Sekunden Cooldown
+                    btn.innerText = originalText; 
+                }, 30000); // 30 Sekunden Pause
             })
-            .catch(err => alert("Fehler: Ist Ngrok an?"));
+            .catch(err => {
+                alert("Verbindung fehlgeschlagen! Läuft Localtonet und der Bot-Server?");
+            });
         }
     </script>
 </body>
