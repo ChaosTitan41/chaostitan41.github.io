@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaosTitan - Filter Panel</title>
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; }
+        .box { border: 2px solid #ff0000; padding: 20px; border-radius: 20px; display: inline-block; margin-top: 50px; }
+        img { width: 100px; height: 100px; margin-bottom: 10px; }
+        button { background: #ff0000; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <img src="https://img.icons8.com/color/96/alien.png" alt="Alien Icon">
+        <br>
+        <button id="alienBtn" onclick="triggerAlien()">ALIEN AKTIVIEREN</button>
+    </div>
+
+    <script>
+        function triggerAlien() {
+            const btn = document.getElementById('alienBtn');
+            // ERSETZE DEN LINK UNTEN DURCH DEINEN NGROK-LINK!
+            const tunnelUrl = "https://DEINE-NGROK-ID.ngrok-free.app/execute-code";
+
+            fetch(tunnelUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: "Filter_Alien" })
+            })
+            .then(() => {
+                btn.disabled = true;
+                btn.innerText = "AKTIVIERT!";
+                setTimeout(() => { 
+                    btn.disabled = false; 
+                    btn.innerText = "ALIEN AKTIVIEREN"; 
+                }, 10000); // 10 Sekunden Cooldown
+            })
+            .catch(err => alert("Fehler: Ist Ngrok an?"));
+        }
+    </script>
+</body>
+</html>
