@@ -19,28 +19,22 @@
     <button class="btn ghost" onclick="sendToBot('ghost')">GHOST</button>
 
     <script>
-        function sendToBot(commandName) {
-            const url = "wss://aditya-unfeudal-brock.ngrok-free.dev";
-            const socket = new WebSocket(url);
+    function sendToBot(filterName) {
+        const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
 
-            socket.onopen = () => {
-                const payload = {
-                    "request": "DoCommand",
-                    "id": "web-button",
-                    "command": commandName
-                };
-                
-                socket.send(JSON.stringify(payload));
-                console.log("Command gesendet: " + commandName);
-                
-                // Kurz warten und schließen
-                setTimeout(() => socket.close(), 200);
+        socket.onopen = () => {
+            // Wir schicken den Namen einfach als 'rawInput'
+            const payload = {
+                "request": "ExecuteAction",
+                "id": "1",
+                "actionName": "Web_Filter_Handler",
+                "rawInput": filterName // Hier schicken wir einfach nur das Wort
             };
-
-            socket.onerror = (err) => {
-                console.error("Verbindung fehlgeschlagen. Ngrok prüfen!");
-            };
-        }
-    </script>
+            
+            socket.send(JSON.stringify(payload));
+            setTimeout(() => socket.close(), 200);
+        };
+    }
+</script>
 </body>
 </html>
