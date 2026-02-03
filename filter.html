@@ -3,96 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChaosTitan - Face Control</title>
+    <title>ChaosTitan - Stream Control</title>
     <style>
-        body { background: #0a0a0a; color: #ffffff; font-family: sans-serif; text-align: center; padding: 20px; }
-        h1 { color: #8B0000; text-transform: uppercase; margin-bottom: 20px; }
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-        .card { background: #151515; border: 2px solid #8B0000; border-radius: 15px; padding: 20px; width: 200px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        button { background: #8B0000; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; font-size: 1rem; }
-        button:hover { background: #ff0000; transform: scale(1.05); }
-        button:disabled { background: #444; }
-        #status-box { margin-top: 30px; padding: 10px; border-radius: 5px; background: #222; display: inline-block; min-width: 300px; font-size: 0.9em; }
-        .error { color: #ff4444; }
-        .success { color: #44ff44; }
+        body { background: #050505; color: white; font-family: 'Arial', sans-serif; text-align: center; padding: 20px; }
+        .btn-container { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 30px; }
+        .filter-btn { 
+            background: linear-gradient(145deg, #8B0000, #4a0000); 
+            color: white; border: 1px solid #ff0000; padding: 20px; width: 80%; 
+            max-width: 300px; border-radius: 12px; font-size: 1.2rem; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(255,0,0,0.3);
+        }
+        .filter-btn:active { transform: scale(0.95); background: #ff0000; }
+        #status { margin-top: 30px; font-size: 0.8rem; opacity: 0.6; }
+        .warning { color: #ffcc00; font-size: 0.7rem; margin-top: 10px; padding: 10px; border: 1px solid #444; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-    <h1>🎭 Face Control</h1>
-    
-    <div class="container">
-        <div class="card">
-            <img src="https://img.icons8.com/color/96/alien.png" style="width:60px" alt="Alien"><br><br>
-            <button id="btn-alien" onclick="triggerEffect('alien')">ALIEN FILTER</button>
-        </div>
-        <div class="card">
-            <img src="https://img.icons8.com/color/96/skull.png" style="width:60px" alt="Ghost"><br><br>
-            <button id="btn-ghost" onclick="triggerEffect('ghost')">GHOST FILTER</button>
-        </div>
+    <h1>🎭 FACE CONTROL</h1>
+    <p>Wähle einen Filter für den Stream:</p>
+
+    <div class="btn-container">
+        <button class="filter-btn" onclick="sendToBot('alien')">👽 ALIEN MODUS</button>
+        <button class="filter-btn" onclick="sendToBot('ghost')">💀 GHOST MODUS</button>
     </div>
 
-    <div id="status-box">Status: Bereit</div>
+    <div id="status">Status: Bereit</div>
+
+    <div class="warning">
+        Hinweis: Falls nichts passiert, klicke oben im Browser auf das Schloss/Regler-Symbol und erlaube "Unsichere Inhalte".
+    </div>
 
     <script>
-        // DEINE ADRESSE (WICHTIG: Port 1530 muss in Localtonet auf Local Port 8081 zeigen)
-        const WS_URL = "ws://ejlkf6oa2.localto.net:1530";
+        // Wir verbinden uns über den WebSocket-Port 8081 auf deinem PC
+        // Wir nutzen die IP deines PCs (über Localtonet-TCP falls vorhanden) 
+        // ODER direkt die Localtonet-Domain für den WebSocket.
+        
+        const WS_URL = "ws://ejlkf6oa2.localto.net:1530"; 
 
-        function updateStatus(msg, isError = false) {
-            const box = document.getElementById('status-box');
-            box.innerText = "Status: " + msg;
-            box.className = isError ? "error" : "success";
-        }
-
-        function triggerEffect(effectName) {
-            const btn = document.getElementById('btn-' + effectName);
-            const originalText = btn.innerText;
-            
-            updateStatus("Verbinde zum Bot...");
-            
+        function sendToBot(filterName) {
+            const statusDiv = document.getElementById('status');
             const socket = new WebSocket(WS_URL);
 
-            // Timeout nach 5 Sekunden, falls gar nichts passiert
-            const timeout = setTimeout(() => {
-                if (socket.readyState !== WebSocket.OPEN) {
-                    socket.close();
-                    updateStatus("Zeitüberschreitung! Localtonet prüfen.", true);
-                }
-            }, 5000);
+            statusDiv.innerText = "Sende Befehl...";
 
             socket.onopen = () => {
-                clearTimeout(timeout);
-                updateStatus("Verbunden! Sende Befehl...");
-                
                 const payload = {
                     "request": "ExecuteAction",
                     "actionName": "Web_Filter_Handler",
-                    "args": {
-                        "filter": effectName
-                    },
-                    "id": "web-ui-" + Date.now()
+                    "args": { "filter": filterName },
+                    "id": "web-ui"
                 };
-
                 socket.send(JSON.stringify(payload));
-                
-                btn.innerText = "AKTIVIERT!";
-                btn.disabled = true;
-
-                setTimeout(() => {
-                    socket.close();
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    updateStatus("Befehl gesendet.");
-                }, 1000);
+                statusDiv.innerText = "✅ " + filterName.toUpperCase() + " aktiviert!";
+                setTimeout(() => socket.close(), 1000);
             };
 
             socket.onerror = (err) => {
-                updateStatus("Verbindung fehlgeschlagen! (Check: WebSocket Server an? Port 1530 -> 8081?)", true);
-                console.error("WS Error:", err);
-            };
-
-            socket.onclose = () => {
-                console.log("Verbindung geschlossen.");
+                statusDiv.innerText = "❌ Fehler: Browser blockiert Verbindung.";
+                console.error(err);
             };
         }
     </script>
