@@ -4,122 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChaosTitan41</title>
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "f3841ef4-c111-4374-bf4e-6d1b9a5d8580",
-          safari_web_id: "web.onesignal.auto.10091379-3739-4467-854e-6e8321946006", // Falls vorhanden
-          notifyButton: {
-            enable: true,
-            displayPredicate: null, // Sorgt dafür, dass die Glocke SOFORT erscheint
-            position: 'bottom-right',
-            size: 'medium',
-            text: {
-                'tip.state.unsubscribed': 'Bildirimleri Aç',
-                'tip.state.subscribed': 'Bildirimler Aktif',
-                'tip.state.blocked': 'Bildirimler Engellendi',
-                'message.prenotify': 'Yayına girdiğimde haber verelim mi?',
-                'action.subscribe': 'EVET, HABER VER',
-                'action.resubscribe': 'TEKRAR AKTİF ET',
-                'action.unsubscribe': 'KAPAT'
-            },
-            colors: { 
-                'circle.background': '#8B0000', 
-                'circle.foreground': 'white',
-                'badge.background': '#8B0000',
-                'badge.foreground': 'white',
-                'badge.bordercolor': 'white'
-            }
-          },
-          allowLocalhostAsSecureOrigin: true
-        });
-        
-        // Erzwingt das Abo-Fenster, wenn die Glocke geklickt wird
-        OneSignal.Notifications.requestPermission();
-      });
-    </script>
+    
     <style>
         body { 
+            /* HINTERGRUND: Hier kannst du die Farbe der gesamten Seite ändern (#000 = Schwarz) */
             background: #000000; 
             color: #ffffff; 
-            font-family: 'Impact', 'Arial Black', sans-serif; 
+            /* SCHRIFTART: Impact ist die dicke Gamer-Schrift. Arial ist die Reserve. */
+            font-family: 'Impact', sans-serif; 
             text-align: center; 
             padding: 50px 20px; 
         }
+
         h1 { 
+            /* TITEL-FARBE: Hier änderst du das Dunkelrot deines Namens */
             color: #8B0000; 
+            /* GRÖSSE: 4rem ist sehr groß. Kleiner machen? Dann z.B. 3rem wählen. */
             font-size: 4rem; 
             text-transform: uppercase; 
-            letter-spacing: 3px;
+            letter-spacing: 3px; /* ABSTAND: Macht die Buchstaben breiter auseinander */
             margin-bottom: 5px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            /* SCHATTEN: Gibt dem Namen Tiefe */
+            text-shadow: 3px 3px 5px rgba(0,0,0,0.7);
         }
+
         .sub-text { 
-            font-family: 'Arial', sans-serif;
-            color: #aaaaaa; 
+            /* TEXT UNTER TITEL: Hier ist die normale Schriftart eingestellt */
+            font-family: Arial, sans-serif;
+            color: #aaaaaa; /* Farbe: Ein helles Grau */
             margin-bottom: 40px; 
             font-size: 1.1rem;
         }
+
         .main-btn { 
             display: inline-block; 
+            /* BUTTON-FARBE: Das Dunkelrot des Buttons */
             background: #8B0000; 
             color: white; 
             padding: 18px 45px; 
+            /* RUNDUNG: 4px ist fast eckig. 20px wäre sehr rund. */
             border-radius: 4px; 
             text-decoration: none; 
             font-weight: bold; 
             font-size: 1.4rem; 
-            border: 1px solid #5a0000;
-            transition: 0.3s;
-            margin-bottom: 50px;
+            border: 1px solid #5a0000; /* Rahmenfarbe des Buttons */
+            transition: 0.3s; /* Zeit für den Animationseffekt beim Drüberfahren */
         }
+
         .main-btn:hover { 
+            /* HOVER-EFFEKT: Farbe, wenn du mit der Maus über den Button fährst */
             background: #a50000; 
-            transform: scale(1.05); 
+            transform: scale(1.05); /* Macht den Button 5% größer beim Drüberfahren */
         }
-        .link-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            max-width: 320px;
-            margin: 0 auto;
-            font-family: 'Arial', sans-serif;
-        }
-        .tree-btn { 
-            background: #1a1a1a; 
-            color: white; 
-            padding: 15px; 
-            border-radius: 5px; 
-            text-decoration: none; 
-            border: 1px solid #333;
-            transition: 0.3s;
-        }
-        .tree-btn:hover { 
-            border-color: #8B0000; 
-            background: #252525;
-        }
+
         .footer-quote {
+            /* SPRUCH GANZ UNTEN */
             margin-top: 60px;
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             font-style: italic;
-            color: #444;
+            color: #444444; /* Dunkles Grau, damit es dezent bleibt */
         }
     </style>
 </head>
 <body>
+
     <h1>CHAOSTITAN41</h1>
+
     <p class="sub-text">Yayını kaçırmamak için sağ alttaki zile tıklayıp bildirimleri aç!</p>
     
     <a href="https://kick.com/chaostitan41" class="main-btn">KICK KANALINA GİT</a>
 
-    <div class="link-container">
-        <p style="color: #666; font-size: 0.8rem; text-transform: uppercase;">Sosyal Medya</p>
-        <a href="https://www.instagram.com/chaostitan41" target="_blank" class="tree-btn">Instagram</a>
-        <a href="https://www.tiktok.com/@chaostitan41" target="_blank" class="tree-btn">TikTok</a>
-    </div>
-
     <p class="footer-quote">"ChaosTitan41 Yayında bi sen eksiksin!"</p>
+
 </body>
 </html>
