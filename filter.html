@@ -7,10 +7,11 @@
     <style>
         body { background: #0a0a0a; color: #ffffff; font-family: sans-serif; text-align: center; padding: 20px; }
         h1 { color: #8B0000; text-transform: uppercase; letter-spacing: 2px; }
-        .card { background: #151515; border: 2px solid #8B0000; border-radius: 15px; padding: 20px; display: inline-block; width: 220px; transition: 0.3s; }
-        .card:hover { transform: scale(1.05); }
-        img { width: 80px; height: 80px; margin-bottom: 15px; }
-        button { background: #8B0000; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 30px; }
+        .card { background: #151515; border: 2px solid #8B0000; border-radius: 15px; padding: 20px; width: 180px; transition: 0.3s; }
+        .card:hover { border-color: #ff0000; transform: translateY(-5px); }
+        img { width: 60px; height: 60px; margin-bottom: 15px; }
+        button { background: #8B0000; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
         button:hover { background: #ff0000; }
         button:disabled { background: #444; cursor: not-allowed; }
     </style>
@@ -18,43 +19,39 @@
 <body>
 
     <h1>🎭 Face Control</h1>
-    <p>Aktiviere Filter direkt in meinem Stream!</p>
+    <p>Wähle einen Filter für den Stream:</p>
 
-    <div class="card">
-        <img src="https://img.icons8.com/color/96/alien.png" alt="Alien">
-        <h3>Alien Mode</h3>
-        <button id="alienBtn" onclick="triggerAction('Filter_Alien', 'alienBtn')">AKTIVIEREN</button>
+    <div class="container">
+        <div class="card">
+            <img src="https://img.icons8.com/color/96/alien.png" alt="Alien">
+            <h3>Alien</h3>
+            <button onclick="triggerBot('alien', this)">AKTIVIEREN</button>
+        </div>
+
+        <div class="card">
+            <img src="https://img.icons8.com/color/96/skull.png" alt="Ghost">
+            <h3>Ghost</h3>
+            <button onclick="triggerBot('ghost', this)">AKTIVIEREN</button>
+        </div>
     </div>
 
     <script>
-        // Deine neue Localtonet URL:
+        // Deine Localtonet URL (bleibt gleich, solange der Tunnel aktiv ist)
         const API_URL = "https://fzsgur0wc.localto.net";
 
-        function triggerAction(actionName, buttonId) {
-            const btn = document.getElementById(buttonId);
+        function triggerBot(filterValue, btn) {
             const originalText = btn.innerText;
 
-            // Signal an den Streamer.bot senden
-            fetch(`${API_URL}/execute-code`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: actionName })
+            // Der Trigger: Schickt die Variable 'filter' mit dem Wert (z.B. 'alien')
+            fetch(`${API_URL}/execute-code?filter=${filterValue}`, {
+                method: 'GET',
+                mode: 'no-cors'
             })
-            .then(response => {
-                if (!response.ok) throw new Error();
-                
-                // Cooldown starten
+            .then(() => {
+                // Visuelles Feedback auf der Webseite
                 btn.disabled = true;
-                btn.innerText = "AKTIVIERT!";
+                btn.innerText = "GESENDET!";
+                
+                // Cooldown von 5 Sekunden
                 setTimeout(() => { 
-                    btn.disabled = false; 
-                    btn.innerText = originalText; 
-                }, 30000); // 30 Sekunden Pause
-            })
-            .catch(err => {
-                alert("Verbindung fehlgeschlagen! Läuft Localtonet und der Bot-Server?");
-            });
-        }
-    </script>
-</body>
-</html>
+                    btn.disabled =
