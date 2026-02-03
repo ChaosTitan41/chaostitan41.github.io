@@ -1,67 +1,97 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChaosTitan - Stream Control</title>
+    <title>ChaosTitan - Face Control</title>
     <style>
-        body { background: #050505; color: white; font-family: 'Arial', sans-serif; text-align: center; padding: 20px; }
-        .btn-container { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 30px; }
-        .filter-btn { 
-            background: linear-gradient(145deg, #8B0000, #4a0000); 
-            color: white; border: 1px solid #ff0000; padding: 20px; width: 80%; 
-            max-width: 300px; border-radius: 12px; font-size: 1.2rem; font-weight: bold;
-            cursor: pointer; box-shadow: 0 4px 15px rgba(255,0,0,0.3);
+        body { background: #0a0a0a; color: #ffffff; font-family: sans-serif; text-align: center; padding: 20px; }
+        
+        /* Türkische Warnung ganz oben */
+        #turkish-warning { 
+            background: #4a0000; 
+            border: 2px solid #ff0000; 
+            color: white; 
+            padding: 15px; 
+            margin-bottom: 30px; 
+            border-radius: 10px; 
+            text-align: left; 
+            line-height: 1.5;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
-        .filter-btn:active { transform: scale(0.95); background: #ff0000; }
-        #status { margin-top: 30px; font-size: 0.8rem; opacity: 0.6; }
-        .warning { color: #ffcc00; font-size: 0.7rem; margin-top: 10px; padding: 10px; border: 1px solid #444; border-radius: 5px; }
+
+        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        .card { background: #151515; border: 2px solid #8B0000; border-radius: 15px; padding: 20px; width: 180px; }
+        h1 { color: #8B0000; text-transform: uppercase; }
+        button { 
+            background: #8B0000; color: white; border: none; padding: 15px; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; 
+            transition: 0.3s;
+        }
+        button:hover { background: #ff0000; }
+        #status { margin-top: 20px; font-size: 0.8em; color: #777; }
     </style>
 </head>
 <body>
 
+    <div id="turkish-warning">
+        <strong>⚠️ BAĞLANTI HATASI / ENGELLEME!</strong><br><br>
+        Eğer butona bastığınızda hiçbir şey olmuyorsa, tarayıcınız bu bağlantıyı engelliyor demektir.<br><br>
+        <strong>Çözüm:</strong><br>
+        1. Adres çubuğunun solundaki <strong>kilit veya ayar simgesine</strong> tıklayın.<br>
+        2. <strong>"Site Ayarları"</strong> (Site Settings) seçeneğine gidin.<br>
+        3. Listeden <strong>"Güvensiz içerik"</strong> (Insecure content) seçeneğini bulun ve <strong>"İzin ver"</strong> (Allow) olarak değiştirin.<br>
+        4. Sayfayı yenileyip tekrar deneyin.
+    </div>
+
     <h1>🎭 FACE CONTROL</h1>
-    <p>Wähle einen Filter für den Stream:</p>
 
-    <div class="btn-container">
-        <button class="filter-btn" onclick="sendToBot('alien')">👽 ALIEN MODUS</button>
-        <button class="filter-btn" onclick="sendToBot('ghost')">💀 GHOST MODUS</button>
+    <div class="container">
+        <div class="card">
+            <h3>ALIEN</h3>
+            <button onclick="triggerEffect('alien')">AKTİF ET</button>
+        </div>
+        <div class="card">
+            <h3>GHOST</h3>
+            <button onclick="triggerEffect('ghost')">AKTİF ET</button>
+        </div>
     </div>
 
-    <div id="status">Status: Bereit</div>
-
-    <div class="warning">
-        Hinweis: Falls nichts passiert, klicke oben im Browser auf das Schloss/Regler-Symbol und erlaube "Unsichere Inhalte".
-    </div>
+    <div id="status">Hazır...</div>
 
     <script>
-        // Wir verbinden uns über den WebSocket-Port 8081 auf deinem PC
-        // Wir nutzen die IP deines PCs (über Localtonet-TCP falls vorhanden) 
-        // ODER direkt die Localtonet-Domain für den WebSocket.
-        
-        const WS_URL = "ws://ejlkf6oa2.localto.net:1530"; 
+        // DEINE NEUE TCP ADRESSE
+        const WS_URL = "ws://j67hybwk3.localto.net:8723";
 
-        function sendToBot(filterName) {
-            const statusDiv = document.getElementById('status');
+        function triggerEffect(effectName) {
+            const statusBox = document.getElementById('status');
+            statusBox.innerText = "Bağlanıyor...";
+
             const socket = new WebSocket(WS_URL);
 
-            statusDiv.innerText = "Sende Befehl...";
-
             socket.onopen = () => {
+                statusBox.innerText = "Gönderiliyor...";
                 const payload = {
                     "request": "ExecuteAction",
                     "actionName": "Web_Filter_Handler",
-                    "args": { "filter": filterName },
+                    "args": {
+                        "filter": effectName
+                    },
                     "id": "web-ui"
                 };
                 socket.send(JSON.stringify(payload));
-                statusDiv.innerText = "✅ " + filterName.toUpperCase() + " aktiviert!";
-                setTimeout(() => socket.close(), 1000);
+                
+                setTimeout(() => {
+                    socket.close();
+                    statusBox.innerText = "Komut gönderildi: " + effectName;
+                }, 1000);
             };
 
             socket.onerror = (err) => {
-                statusDiv.innerText = "❌ Fehler: Browser blockiert Verbindung.";
-                console.error(err);
+                statusBox.innerText = "Hata! Ayarları kontrol edin.";
+                console.error("WS Error:", err);
             };
         }
     </script>
