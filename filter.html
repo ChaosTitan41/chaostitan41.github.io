@@ -20,31 +20,36 @@
 
     <p id="status">Bereit...</p>
 
-    <script>
-        function sendToBot(filterName) {
-            // DEINE AKTUELLE NGROK URL
-            const ngrokUrl = "wss://aditya-unfeudal-brock.ngrok-free.dev";
-            const socket = new WebSocket(ngrokUrl);
-            const statusText = document.getElementById('status');
+   <script>
+    function sendToBot(filterName) {
+        // Deine URL
+        const ngrokUrl = "wss://aditya-unfeudal-brock.ngrok-free.dev";
+        const socket = new WebSocket(ngrokUrl);
 
-            socket.onopen = () => {
-                const payload = {
-                    "request": "ExecuteAction",
-                    "id": "web-ui",
-                    "actionName": "Web_Filter_Handler",
-                    "args": {
-                        "meinFilter": filterName 
-                    }
-                };
-                socket.send(JSON.stringify(payload));
-                statusText.innerText = "Gesendet: " + filterName;
-                setTimeout(() => socket.close(), 150);
+        socket.onopen = () => {
+            // Wir bauen das Paket EXAKT so, wie der Bot es sehen will
+            const payload = {
+                "request": "ExecuteAction",
+                "id": "123", // Eine ID ist Pflicht
+                "actionName": "Web_Filter_Handler",
+                "args": {
+                    "meinFilter": filterName 
+                }
             };
 
-            socket.onerror = (err) => {
-                statusText.innerText = "Fehler: Verbindung fehlgeschlagen!";
-            };
-        }
-    </script>
+            // WICHTIG: Wir loggen in die Browser-Konsole, was wir schicken
+            console.log("Sende an Bot:", JSON.stringify(payload));
+            
+            socket.send(JSON.stringify(payload));
+            
+            // Etwas länger warten, damit der Bot Zeit zum Lesen hat
+            setTimeout(() => socket.close(), 250);
+        };
+
+        socket.onerror = (err) => {
+            console.error("Websocket Fehler!", err);
+        };
+    }
+</script>
 </body>
 </html>
