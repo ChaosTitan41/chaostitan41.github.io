@@ -1,354 +1,112 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎬 GIF an ChaosTitan41 senden</title>
+    <title>🎬 ChaosTitan41 - GIF Gönder</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial Black', 'Arial', sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: rgba(20, 20, 30, 0.9);
-            border: 3px solid #8B0000;
-            border-radius: 15px;
-            padding: 30px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 0 30px rgba(139, 0, 0, 0.5);
-            text-align: center;
-        }
-        
-        h1 {
-            color: #8B0000;
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        
-        .subtitle {
-            color: #ccc;
-            margin-bottom: 25px;
-            font-size: 1.1rem;
-        }
-        
-        .input-container {
-            margin: 20px 0;
-        }
-        
-        #gifInput {
-            width: 100%;
-            padding: 15px;
-            background: #111;
-            border: 2px solid #8B0000;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            outline: none;
-            transition: border 0.3s;
-        }
-        
-        #gifInput:focus {
-            border-color: #ff0000;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-        }
-        
-        #gifInput::placeholder {
-            color: #666;
-        }
-        
-        .timer-container {
-            background: rgba(139, 0, 0, 0.1);
-            border: 2px solid #8B0000;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-        }
-        
-        .timer-text {
-            color: #ff4444;
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-        }
-        
-        #timer {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #ff0000;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
-        }
-        
-        .send-btn {
-            background: linear-gradient(135deg, #8B0000 0%, #cc0000 100%);
-            color: white;
-            border: none;
-            padding: 18px 40px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .send-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, #cc0000 0%, #ff0000 100%);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(255, 0, 0, 0.4);
-        }
-        
-        .send-btn:disabled {
-            background: #444;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            display: none;
-        }
-        
-        .success {
-            background: rgba(0, 150, 0, 0.2);
-            border: 2px solid #00aa00;
-            color: #00ff00;
-        }
-        
-        .error {
-            background: rgba(150, 0, 0, 0.2);
-            border: 2px solid #ff0000;
-            color: #ff4444;
-        }
-        
-        .instructions {
-            background: rgba(30, 30, 40, 0.8);
-            border-left: 4px solid #8B0000;
-            padding: 15px;
-            margin-top: 25px;
-            text-align: left;
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .instructions h3 {
-            color: #8B0000;
-            margin-bottom: 10px;
-        }
-        
-        .instructions ul {
-            color: #ccc;
-            padding-left: 20px;
-        }
-        
-        .instructions li {
-            margin: 5px 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial Black', sans-serif; }
+        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: white; }
+        .container { background: rgba(20, 20, 30, 0.9); border: 3px solid #8B0000; border-radius: 15px; padding: 30px; width: 100%; max-width: 500px; box-shadow: 0 0 30px rgba(139, 0, 0, 0.5); text-align: center; }
+        h1 { color: #8B0000; font-size: 1.8rem; margin-bottom: 10px; text-transform: uppercase; }
+        #gifInput { width: 100%; padding: 15px; background: #111; border: 2px solid #8B0000; border-radius: 8px; color: white; font-size: 16px; margin-bottom: 20px; outline: none; }
+        .timer-container { background: rgba(139, 0, 0, 0.1); border: 2px solid #8B0000; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
+        #timer { font-size: 2rem; font-weight: bold; color: #00ff00; }
+        .send-btn { background: linear-gradient(135deg, #8B0000 0%, #cc0000 100%); color: white; border: none; padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; transition: 0.3s; text-transform: uppercase; }
+        .send-btn:disabled { background: #444; opacity: 0.6; cursor: not-allowed; }
+        #status { margin-top: 20px; padding: 10px; border-radius: 8px; display: none; }
+        .instructions { background: rgba(30, 30, 40, 0.8); border-left: 4px solid #8B0000; padding: 15px; margin-top: 25px; text-align: left; font-size: 0.85rem; line-height: 1.4; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎬 GIF AN CHAOSTITAN41 SENDEN</h1>
-        <div class="subtitle">Dein GIF erscheint SOFORT im Stream!</div>
+        <h1>🎬 ChaosTitan41 GIF SİSTEMİ</h1>
+        <p style="color:#ccc; margin-bottom:20px;">GIF'in yayında görünsün!</p>
         
-        <div class="input-container">
-            <input type="text" 
-                   id="gifInput" 
-                   placeholder="Füge hier die Giphy-URL ein... (z.B. https://giphy.com/gifs/...)"
-                   autocomplete="off">
-        </div>
+        <input type="text" id="gifInput" placeholder="Giphy Linkini Buraya Yapıştır...">
         
         <div class="timer-container">
-            <div class="timer-text">⏱️ NÄCHSTES GIF KANN GESENDET WERDEN IN:</div>
-            <div id="timer">03:00</div>
+            <div id="timer">HAZIR!</div>
         </div>
         
-        <button class="send-btn" id="sendBtn" onclick="sendGif()">GIF SENDEN</button>
-        
-        <div id="status" class="status"></div>
-        
+        <button class="send-btn" id="sendBtn" onclick="sendGif()">GIF'İ YAYINA GÖNDER</button>
+        <div id="status"></div>
+
         <div class="instructions">
-            <h3>📋 SO FUNKTIONIERT'S:</h3>
-            <ul>
-                <li>1. Gehe auf <a href="https://giphy.com" style="color:#ff4444" target="_blank">giphy.com</a></li>
-                <li>2. Suche ein GIF und kopiere den Link</li>
-                <li>3. Füge den Link oben ein</li>
-                <li>4. Klicke auf "GIF SENDEN"</li>
-                <li>5. Das GIF erscheint 8 Sekunden im Stream!</li>
-            </ul>
+            <strong style="color:#ff4444;">NASIL YAPILIR?</strong><br>
+            1. <a href="https://giphy.com" target="_blank" style="color:#fff;">Giphy.com</a>'a git.<br>
+            2. GIF'e sağ tıkla ve "Resim adresini kopyala" de.<br>
+            3. Link buraya yapıştır ve gönder!
         </div>
     </div>
 
     <script>
-        // DEINE STREAMER.BOT URL HIER EINTRAGEN:
-        const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.de';
-        // ACHTUNG: Ersetze 'deine-ngrok-url' mit deiner aktuellen ngrok URL!
-        
-        let cooldown = 180; // 3 Minuten in Sekunden
-        let timerActive = false;
-        let lastSent = 0;
-        
-        // Timer initialisieren
-        function initTimer() {
-            const storedTime = localStorage.getItem('gifLastSent');
-            if (storedTime) {
-                const now = Math.floor(Date.now() / 1000);
-                const timePassed = now - parseInt(storedTime);
-                
-                if (timePassed < cooldown) {
-                    startTimer(cooldown - timePassed);
+        const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev';
+        let isCooldown = false;
+
+        async function sendGif() {
+            const gifUrl = document.getElementById('gifInput').value.trim();
+            const btn = document.getElementById('sendBtn');
+            const status = document.getElementById('status');
+
+            if (!gifUrl.includes('giphy.com')) {
+                alert('Lütfen geçerli bir Giphy linki girin!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "GÖNDERİLİYOR...";
+
+            try {
+                const response = await fetch(STREAMERBOT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({ url: gifUrl })
+                });
+
+                if (response.ok) {
+                    status.style.display = 'block';
+                    status.style.color = '#00ff00';
+                    status.innerText = "✅ Başarıyla gönderildi!";
+                    document.getElementById('gifInput').value = '';
+                    startCooldown();
                 } else {
-                    enableButton();
+                    throw new Error();
                 }
+            } catch (e) {
+                alert('Hata oluştu! Botun açık olduğundan ve ngrok adresinin doğruluğundan emin ol.');
+                btn.disabled = false;
+                btn.innerText = "GIF'İ YAYINA GÖNDER";
             }
         }
-        
-        // Timer starten
-        function startTimer(seconds) {
-            timerActive = true;
-            let remaining = seconds;
-            updateTimerDisplay(remaining);
-            document.getElementById('sendBtn').disabled = true;
-            
-            const timerInterval = setInterval(() => {
-                remaining--;
-                updateTimerDisplay(remaining);
-                
-                if (remaining <= 0) {
-                    clearInterval(timerInterval);
-                    timerActive = false;
-                    enableButton();
-                    localStorage.removeItem('gifLastSent');
+
+        function startCooldown() {
+            isCooldown = true;
+            let time = 180;
+            const timerDiv = document.getElementById('timer');
+            const btn = document.getElementById('sendBtn');
+
+            const timerIdx = setInterval(() => {
+                time--;
+                let m = Math.floor(time / 60);
+                let s = time % 60;
+                timerDiv.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                timerDiv.style.color = "#ff4444";
+
+                if (time <= 0) {
+                    clearInterval(timerIdx);
+                    isCooldown = false;
+                    btn.disabled = false;
+                    btn.innerText = "GIF'İ YAYINA GÖNDER";
+                    timerDiv.innerText = "HAZIR!";
+                    timerDiv.style.color = "#00ff00";
                 }
             }, 1000);
         }
-        
-        // Timer-Anzeige aktualisieren
-        function updateTimerDisplay(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            document.getElementById('timer').textContent = 
-                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-        
-        // Button aktivieren
-        function enableButton() {
-            document.getElementById('sendBtn').disabled = false;
-            document.getElementById('sendBtn').textContent = 'GIF SENDEN';
-            document.getElementById('timer').textContent = 'BEREIT!';
-            document.getElementById('timer').style.color = '#00ff00';
-        }
-        
-        // GIF senden
-        async function sendGif() {
-            const gifUrl = document.getElementById('gifInput').value.trim();
-            const statusDiv = document.getElementById('status');
-            const button = document.getElementById('sendBtn');
-            
-            // Validierung
-            if (!gifUrl) {
-                showStatus('❌ Bitte eine GIF-URL eingeben!', 'error');
-                return;
-            }
-            
-            if (!gifUrl.includes('giphy.com')) {
-                showStatus('❌ Bitte eine gültige Giphy-URL eingeben!', 'error');
-                return;
-            }
-            
-            // Cooldown prüfen
-            if (timerActive) {
-                showStatus('⏳ Bitte warte bis der Timer abgelaufen ist!', 'error');
-                return;
-            }
-            
-            // Button deaktivieren während des Sendens
-            button.disabled = true;
-            button.textContent = 'WIRD GESENDET...';
-            
-            try {
-                // An Streamer.bot senden
-                const response = await fetch(STREAMERBOT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        url: gifUrl,
-                        timestamp: new Date().toISOString()
-                    })
-                });
-                
-                if (response.ok) {
-                    // Timer starten
-                    lastSent = Math.floor(Date.now() / 1000);
-                    localStorage.setItem('gifLastSent', lastSent.toString());
-                    startTimer(cooldown);
-                    
-                    // Erfolgsmeldung
-                    showStatus('✅ GIF erfolgreich gesendet! Es erscheint jetzt im Stream!', 'success');
-                    
-                    // Eingabefeld leeren
-                    document.getElementById('gifInput').value = '';
-                    
-                    // Nach 5 Sekunden Status ausblenden
-                    setTimeout(() => {
-                        statusDiv.style.display = 'none';
-                    }, 5000);
-                    
-                } else {
-                    showStatus('❌ Fehler beim Senden. Bitte versuche es später erneut.', 'error');
-                    button.disabled = false;
-                    button.textContent = 'GIF SENDEN';
-                }
-                
-            } catch (error) {
-                showStatus(`❌ Netzwerkfehler: ${error.message}`, 'error');
-                button.disabled = false;
-                button.textContent = 'GIF SENDEN';
-            }
-        }
-        
-        // Status anzeigen
-        function showStatus(message, type) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.textContent = message;
-            statusDiv.className = `status ${type}`;
-            statusDiv.style.display = 'block';
-        }
-        
-        // Enter-Taste zum Senden
-        document.getElementById('gifInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendGif();
-            }
-        });
-        
-        // Seite laden
-        window.onload = function() {
-            initTimer();
-            
-            // Beispiel-URL für schnelles Testen
-            document.getElementById('gifInput').value = 
-                'https://media.giphy.com/media/3o7aCTPPm4OHfRLSH6/giphy.gif';
-        };
     </script>
 </body>
 </html>
