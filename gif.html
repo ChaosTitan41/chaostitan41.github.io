@@ -2,74 +2,44 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>GIF Sender - bypass Mode</title>
+    <title>GIF Sender</title>
     <style>
         body { background: #0f0f13; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: #1a1a2e; padding: 40px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; width: 350px; box-shadow: 0 0 30px rgba(139,0,0,0.6); }
-        input { width: 100%; padding: 15px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; box-sizing: border-box; }
-        button { background: #8B0000; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-        button:disabled { background: #444; opacity: 0.5; cursor: not-allowed; }
-        #cooldown { margin-top: 20px; color: #ff4444; font-weight: bold; }
+        .box { background: #1a1a2e; padding: 40px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; width: 350px; }
+        input { width: 100%; padding: 15px; margin-bottom: 25px; background: #000; color: white; border: 1px solid #333; text-align: center; }
+        .btn-link { 
+            background: #8B0000; color: white; text-decoration: none; padding: 15px; border-radius: 8px; 
+            display: block; font-weight: bold; cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="box">
         <h2>🎬 GIF GÖNDER</h2>
-        <input type="text" id="gifInput" placeholder="Giphy Linkini Yapıştır...">
-        <button id="sendBtn" onclick="sendToBot()">YAYINA GÖNDER</button>
-        <div id="cooldown"></div>
+        <input type="text" id="gifInput" placeholder="Giphy Linkini Yapıştır..." oninput="updateLink()">
+        <a id="sendLink" href="#" target="botFrame" class="btn-link" onclick="handleSend()">YAYINA GÖNDER</a>
     </div>
+
+    <iframe name="botFrame" style="display:none;"></iframe>
 
     <script>
         const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/';
-        const COOLDOWN_TIME = 5 * 60 * 1000;
 
-        function shortenGiphy(url) {
-            const match = url.match(/\/media\/([a-zA-Z0-9]+)\//) || url.match(/\/gifs\/.*-([a-zA-Z0-9]+)$/) || url.match(/([a-zA-Z0-9]+)\/giphy\.gif/);
-            return match && match[1] ? "https://i.giphy.com/media/" + match[1] + "/giphy.gif" : url;
-        }
-
-        function sendToBot() {
-            let gifUrl = document.getElementById('gifInput').value.trim();
-            if (!gifUrl.includes('giphy.com')) return alert('Lütfen geçerli bir Giphy linki girin!');
-
-            gifUrl = shortenGiphy(gifUrl);
-
-            // DER TRICK: Wir öffnen ein kleines Popup, senden und schließen es.
-            // Das "Visit Site" Problem wird so umgangen.
-            const popup = window.open(`${NGROK_URL}?url=${encodeURIComponent(gifUrl)}`, '_blank', 'width=1,height=1');
+        function updateLink() {
+            let val = document.getElementById('gifInput').value.trim();
+            // Wir kürzen den Link wieder
+            const match = val.match(/\/media\/([a-zA-Z0-9]+)\//) || val.match(/\/gifs\/.*-([a-zA-Z0-9]+)$/) || val.match(/([a-zA-Z0-9]+)\/giphy\.gif/);
+            if (match && match[1]) {
+                val = "https://i.giphy.com/media/" + match[1] + "/giphy.gif";
+            }
             
-            setTimeout(() => {
-                if(popup) popup.close();
-            }, 500);
-
-            localStorage.setItem('lastGifSend', Date.now().toString());
-            startTimer();
-            alert("✅ Gönderildi!");
+            const finalUrl = NGROK_URL + "?url=" + encodeURIComponent(val);
+            document.getElementById('sendLink').href = finalUrl;
         }
 
-        function startTimer() {
-            const btn = document.getElementById('sendBtn');
-            btn.disabled = true;
-            const update = () => {
-                const remaining = COOLDOWN_TIME - (Date.now() - parseInt(localStorage.getItem('lastGifSend')));
-                if (remaining <= 0) {
-                    btn.disabled = false;
-                    document.getElementById('cooldown').innerText = "";
-                } else {
-                    const mins = Math.floor(remaining / 60000);
-                    const secs = Math.floor((remaining % 60000) / 1000);
-                    document.getElementById('cooldown').innerText = `Bekleme: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
-                    setTimeout(update, 1000);
-                }
-            };
-            update();
+        function handleSend() {
+            alert("✅ Gesendet! Falls nichts passiert, klicke einmal auf den Link im ngrok-Fenster.");
         }
-
-        window.onload = () => {
-            const last = localStorage.getItem('lastGifSend');
-            if (last && (Date.now() - parseInt(last) < COOLDOWN_TIME)) startTimer();
-        };
     </script>
 </body>
 </html>
