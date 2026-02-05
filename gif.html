@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>GIF Sender - Final Fix</title>
+    <title>GIF Sender - Short Link Fix</title>
     <style>
         body { background: #0f0f13; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .box { background: #1a1a2e; padding: 40px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; width: 350px; box-shadow: 0 0 30px rgba(139,0,0,0.6); }
@@ -24,40 +24,48 @@
         const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/';
         const COOLDOWN_TIME = 5 * 60 * 1000;
 
+        function shortenGiphy(url) {
+            // Dieser Teil holt nur die wichtige GIF-ID heraus
+            // Beispiel: media2.giphy.com/media/v1.../z4lwT4QTkK3sYITR7Z/giphy.gif
+            // Wird zu: https://i.giphy.com/media/z4lwT4QTkK3sYITR7Z/giphy.gif
+            const match = url.match(/\/media\/([a-zA-Z0-9]+)\//) || url.match(/\/gifs\/.*-([a-zA-Z0-9]+)$/) || url.match(/([a-zA-Z0-9]+)\/giphy\.gif/);
+            if (match && match[1]) {
+                return "https://i.giphy.com/media/" + match[1] + "/giphy.gif";
+            }
+            return url; // Fallback
+        }
+
         function sendToBot() {
-            const gifUrl = document.getElementById('gifInput').value.trim();
+            let gifUrl = document.getElementById('gifInput').value.trim();
             if (!gifUrl.includes('giphy.com')) return alert('Lütfen geçerli bir Giphy linki girin!');
 
-            // DER TRICK: Wir laden ein "Bild". Das umgeht die 400er Fehler und CORS.
-            // Wir hängen eine Zufallszahl an (v=...), damit der Browser nicht aus dem Cache lädt.
+            // LINK KÜRZEN!
+            gifUrl = shortenGiphy(gifUrl);
+            console.log("Gekürzter Link: " + gifUrl);
+
             const beacon = new Image();
-            const finalUrl = NGROK_URL + "?url=" + encodeURIComponent(gifUrl) + "&v=" + Math.random();
+            // Die URL ist jetzt extrem kurz, ngrok wird sie akzeptieren
+            const finalUrl = NGROK_URL + "?url=" + encodeURIComponent(gifUrl);
             
             beacon.src = finalUrl;
 
-            // Feedback & Cooldown
             localStorage.setItem('lastGifSend', Date.now().toString());
             startTimer(COOLDOWN_TIME);
-            
-            // Kleiner Hinweis für den User
-            alert("✅ Anfrage abgeschickt! Wenn OBS nichts anzeigt, klicke einmal auf deinen ngrok-Link und dann auf 'Visit Site'.");
+            alert("✅ Gönderildi! Link kısaltıldı: " + gifUrl);
         }
 
-        function startTimer(duration) {
+        function startTimer() {
             const btn = document.getElementById('sendBtn');
-            const timerDiv = document.getElementById('cooldown');
             btn.disabled = true;
             const update = () => {
-                const last = localStorage.getItem('lastGifSend');
-                if (!last) return;
-                const remaining = COOLDOWN_TIME - (Date.now() - parseInt(last));
+                const remaining = COOLDOWN_TIME - (Date.now() - parseInt(localStorage.getItem('lastGifSend')));
                 if (remaining <= 0) {
                     btn.disabled = false;
-                    timerDiv.innerText = "";
+                    document.getElementById('cooldown').innerText = "";
                 } else {
                     const mins = Math.floor(remaining / 60000);
                     const secs = Math.floor((remaining % 60000) / 1000);
-                    timerDiv.innerText = `Bekleme: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    document.getElementById('cooldown').innerText = `Bekleme: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
                     setTimeout(update, 1000);
                 }
             };
