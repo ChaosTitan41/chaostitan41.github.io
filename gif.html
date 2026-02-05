@@ -2,57 +2,139 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>ChaosTitan41 GIF Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaosTitan41 - GIF Sender</title>
     <style>
-        body { background: #0f0f13; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: #1a1a2e; padding: 30px; border-radius: 15px; border: 2px solid #8B0000; text-align: center; width: 400px; box-shadow: 0 0 20px rgba(139,0,0,0.5); }
-        input { width: 90%; padding: 12px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; }
-        button { background: #8B0000; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
-        button:disabled { background: #444; }
+        /* Modernes & dunkles Design passend zum Streaming */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background: linear-gradient(135deg, #0f0f13 0%, #1a1a2e 100%); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            color: white; 
+        }
+        .container { 
+            background: rgba(26, 26, 46, 0.95); 
+            border: 2px solid #8B0000; 
+            border-radius: 15px; 
+            padding: 40px; 
+            width: 100%; 
+            max-width: 450px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 0, 0, 0.3); 
+            text-align: center; 
+        }
+        h1 { color: #ff4444; font-size: 1.5rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        p { color: #bbb; margin-bottom: 25px; font-size: 0.9rem; }
+        
+        #gifInput { 
+            width: 100%; 
+            padding: 15px; 
+            background: #0a0a0a; 
+            border: 1px solid #444; 
+            border-radius: 8px; 
+            color: white; 
+            font-size: 1rem; 
+            margin-bottom: 20px; 
+            outline: none;
+            transition: border 0.3s;
+        }
+        #gifInput:focus { border-color: #8B0000; }
+
+        .send-btn { 
+            background: #8B0000; 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            width: 100%; 
+            transition: 0.3s; 
+            text-transform: uppercase; 
+        }
+        .send-btn:hover { background: #b30000; box-shadow: 0 0 15px rgba(179, 0, 0, 0.6); }
+        .send-btn:disabled { background: #444; cursor: not-allowed; box-shadow: none; }
+
+        .info-box {
+            margin-top: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            text-align: left;
+            line-height: 1.5;
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>🎬 GIF Gönder</h2>
-        <input type="text" id="gifInput" placeholder="Giphy Linkini Yapıştır...">
-        <button id="sendBtn" onclick="sendGif()">YAYINA GÖNDER</button>
+
+    <div class="container">
+        <h1>GIF SİSTEMİ</h1>
+        <p>Giphy linkini yapıştır ve yayında görünsün!</p>
+        
+        <input type="text" id="gifInput" placeholder="https://giphy.com/gifs/..." autocomplete="off">
+        
+        <button class="send-btn" id="sendBtn" onclick="sendGif()">GIF'İ GÖNDER</button>
+
+        <div class="info-box">
+            <strong style="color: #ff4444;">Nasıl kullanılır?</strong><br>
+            1. <strong>Giphy.com</strong> sitesine git.<br>
+            2. Bir GIF seç ve sağ tıkla -> <strong>"Resim adresini kopyala"</strong> de.<br>
+            3. Linki buraya yapıştır ve gönder butonuna bas.
+        </div>
     </div>
 
     <script>
-        // DEINE NGROK URL
-        const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/';
+        // --- AYARLAR ---
+        // Buraya kendi ngrok adresini yaz (sonunda / olsun)
+        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/';
 
         async function sendGif() {
             const input = document.getElementById('gifInput');
             const btn = document.getElementById('sendBtn');
-            const url = input.value.trim();
+            const gifUrl = input.value.trim();
 
-            if (!url.includes('giphy.com')) {
+            // Link kontrolü
+            if (!gifUrl.includes('giphy.com')) {
                 alert('Lütfen geçerli bir Giphy linki girin!');
                 return;
             }
 
+            // Arayüzü kilitle
             btn.disabled = true;
             btn.innerText = "GÖNDERİLİYOR...";
 
             try {
-                // Wir nutzen mode: 'no-cors' - das verhindert Fehler 400/501 komplett!
-                await fetch(STREAMERBOT_URL, {
+                // 'no-cors' modu sayesinde karmaşık hata kontrollerini baypas ediyoruz.
+                // Bu modda Streamer.bot veriyi 'requestBody' olarak alacaktır.
+                await fetch(NGROK_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: url
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: gifUrl
                 });
 
-                alert("✅ GIF Başarıyla gönderildi! (Bot'a iletildi)");
-                input.value = '';
-            } catch (e) {
-                alert("Bağlantı hatası!");
+                // 'no-cors' modunda cevap okunamaz ama istek gider.
+                alert("✅ GIF başarıyla bot'a iletildi!");
+                input.value = ''; // Giriş alanını temizle
+
+            } catch (error) {
+                console.error("Hata:", error);
+                alert("Bir hata oluştu! ngrok açık mı veya adres doğru mu?");
             } finally {
+                // Butonu tekrar aç
                 btn.disabled = false;
-                btn.innerText = "YAYINA GÖNDER";
+                btn.innerText = "GIF'İ GÖNDER";
             }
         }
     </script>
+
 </body>
 </html>
