@@ -2,95 +2,57 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎬 ChaosTitan41 - GIF Gönder</title>
+    <title>ChaosTitan41 GIF Player</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial Black', sans-serif; }
-        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: white; }
-        .container { background: rgba(20, 20, 30, 0.9); border: 3px solid #8B0000; border-radius: 15px; padding: 30px; width: 100%; max-width: 500px; box-shadow: 0 0 30px rgba(139, 0, 0, 0.5); text-align: center; }
-        h1 { color: #8B0000; font-size: 1.8rem; margin-bottom: 10px; text-transform: uppercase; }
-        #gifInput { width: 100%; padding: 15px; background: #111; border: 2px solid #8B0000; border-radius: 8px; color: white; font-size: 16px; margin-bottom: 20px; outline: none; }
-        .timer-container { background: rgba(139, 0, 0, 0.1); border: 2px solid #8B0000; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
-        #timer { font-size: 2rem; font-weight: bold; color: #00ff00; }
-        .send-btn { background: linear-gradient(135deg, #8B0000 0%, #cc0000 100%); color: white; border: none; padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; transition: 0.3s; text-transform: uppercase; }
-        .send-btn:disabled { background: #444; opacity: 0.6; cursor: not-allowed; }
-        #status { margin-top: 20px; padding: 10px; border-radius: 8px; display: none; font-weight: bold; }
-        .instructions { background: rgba(30, 30, 40, 0.8); border-left: 4px solid #8B0000; padding: 15px; margin-top: 25px; text-align: left; font-size: 0.85rem; line-height: 1.4; }
+        body { background: #0f0f13; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: #1a1a2e; padding: 30px; border-radius: 15px; border: 2px solid #8B0000; text-align: center; width: 400px; box-shadow: 0 0 20px rgba(139,0,0,0.5); }
+        input { width: 90%; padding: 12px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; }
+        button { background: #8B0000; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        button:disabled { background: #444; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎬 ChaosTitan41 GIF SİSTEMİ</h1>
-        <p style="color:#ccc; margin-bottom:20px;">GIF'in yayında görünsün!</p>
-        
-        <input type="text" id="gifInput" placeholder="Giphy Linkini Buraya Yapıştır...">
-        
-        <div class="timer-container">
-            <div id="timer">HAZIR!</div>
-        </div>
-        
-        <button class="send-btn" id="sendBtn" onclick="sendGif()">GIF'İ YAYINA GÖNDER</button>
-        <div id="status"></div>
-
-        <div class="instructions">
-            <strong style="color:#ff4444;">NASIL YAPILIR?</strong><br>
-            1. <a href="https://giphy.com" target="_blank" style="color:#fff;">Giphy.com</a>'a git.<br>
-            2. GIF'e sağ tıkla ve "Resim adresini kopyala" de.<br>
-            3. Linki buraya yapıştır ve gönder!
-        </div>
+    <div class="box">
+        <h2>🎬 GIF Gönder</h2>
+        <input type="text" id="gifInput" placeholder="Giphy Linkini Yapıştır...">
+        <button id="sendBtn" onclick="sendGif()">YAYINA GÖNDER</button>
     </div>
 
-   <script>
-const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/gif';
-       
-       let isCooldown = false;
+    <script>
+        // DEINE NGROK URL
+        const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/';
 
-    async function sendGif() {
-        const gifInput = document.getElementById('gifInput');
-        const gifUrl = gifInput.value.trim();
-        const btn = document.getElementById('sendBtn');
+        async function sendGif() {
+            const input = document.getElementById('gifInput');
+            const btn = document.getElementById('sendBtn');
+            const url = input.value.trim();
 
-        // Check ob es ein Giphy Link ist
-        if (!gifUrl.includes('giphy.com')) {
-            alert('Lütfen geçerli bir Giphy linki girin!');
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerText = "GÖNDERİLİYOR...";
-
-        try {
-            const response = await fetch(STREAMERBOT_URL, {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                },
-                // HIER STEHT ES: Das Paket wird geschnürt
-                body: JSON.stringify({ url: gifUrl }) 
-            });
-
-            if (response.ok) {
-                alert("✅ Başarıyla gönderildi!");
-                gifInput.value = ''; // Input leer machen
-                startCooldown();
-            } else {
-                alert("Hata: " + response.status);
-                btn.disabled = false;
-                btn.innerText = "GIF'İ YAYINA GÖNDER";
+            if (!url.includes('giphy.com')) {
+                alert('Lütfen geçerli bir Giphy linki girin!');
+                return;
             }
-        } catch (e) {
-            console.error(e);
-            alert("Bağlantı hatası! ngrok açık mı?");
-            btn.disabled = false;
-            btn.innerText = "GIF'İ YAYINA GÖNDER";
-        }
-    }
 
-    function startCooldown() {
-        // ... (Dein Cooldown Code von oben)
-    }
-</script>
+            btn.disabled = true;
+            btn.innerText = "GÖNDERİLİYOR...";
+
+            try {
+                // Wir nutzen mode: 'no-cors' - das verhindert Fehler 400/501 komplett!
+                await fetch(STREAMERBOT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: url
+                });
+
+                alert("✅ GIF Başarıyla gönderildi! (Bot'a iletildi)");
+                input.value = '';
+            } catch (e) {
+                alert("Bağlantı hatası!");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "YAYINA GÖNDER";
+            }
+        }
+    </script>
 </body>
 </html>
