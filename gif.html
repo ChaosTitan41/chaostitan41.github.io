@@ -2,49 +2,87 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>GIF Sender - OBS Direct</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIF Sender - Free ngrok Edition</title>
     <style>
-        body { background: #0f0f13; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: #1a1a2e; padding: 30px; border-radius: 15px; border: 2px solid #8B0000; text-align: center; width: 400px; box-shadow: 0 0 20px rgba(139,0,0,0.5); }
-        h2 { margin-top: 0; color: #ff4444; }
-        input { width: 90%; padding: 12px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; text-align: center; }
-        button { background: #8B0000; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-        button:hover:not(:disabled) { background: #ff0000; }
-        button:disabled { background: #444; cursor: not-allowed; opacity: 0.6; }
-        #cooldownTimer { margin-top: 15px; color: #ff4444; font-weight: bold; font-size: 1.2rem; }
+        body { 
+            background: #0f0f13; 
+            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .box { 
+            background: #1a1a2e; 
+            padding: 40px; 
+            border-radius: 20px; 
+            border: 2px solid #8B0000; 
+            text-align: center; 
+            width: 350px; 
+            box-shadow: 0 0 30px rgba(139,0,0,0.6); 
+        }
+        h2 { margin-bottom: 25px; color: #ff4444; letter-spacing: 2px; }
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin-bottom: 25px; 
+            border-radius: 8px; 
+            border: 1px solid #333; 
+            background: #050505; 
+            color: white; 
+            text-align: center;
+            box-sizing: border-box;
+        }
+        button { 
+            background: #8B0000; 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            width: 100%; 
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        button:hover:not(:disabled) { background: #ff0000; transform: scale(1.02); }
+        button:disabled { background: #444; cursor: not-allowed; opacity: 0.5; }
+        #cooldownTimer { 
+            margin-top: 20px; 
+            color: #ff4444; 
+            font-weight: bold; 
+            font-size: 1.1rem; 
+            min-height: 1.5em;
+        }
     </style>
 </head>
 <body>
+
     <div class="box">
-        <h2>🎬 GIF SENDER</h2>
-        <input type="text" id="gifInput" placeholder="Giphy Linkini Yapıştır...">
+        <h2>🎬 GIF GÖNDER</h2>
+        <input type="text" id="gifInput" placeholder="Giphy Linkini Buraya Yapıştır...">
         <button id="sendBtn" onclick="processGif()">YAYINA GÖNDER</button>
         <div id="cooldownTimer"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js@5.0.2/dist/obs-websocket.min.js"></script>
-
     <script>
         // --- DEINE EINSTELLUNGEN ---
-        const OBS_WS_URL = 'ws://127.0.0.1:4455'; 
-        const OBS_PASSWORD = 'T0VeDkCf6Ab0Dtqx';  
-        const SOURCE_NAME = 'GIF_Kaynak'; 
-        const SCENE_NAME = 'Szene';       
+        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/'; // Dein kostenloses ngrok
         const COOLDOWN_TIME = 5 * 60 * 1000; // 5 Minuten
         // ---------------------------
 
-        const obs = new OBSWebSocket();
         const btn = document.getElementById('sendBtn');
         const timerDisplay = document.getElementById('cooldownTimer');
 
-        // Prüfe beim Start, ob der User noch gesperrt ist (F5-Schutz)
+        // Prüfen ob Nutzer noch gesperrt ist (F5 Schutz)
         window.onload = () => {
             const lastSend = localStorage.getItem('lastGifSend');
             if (lastSend) {
                 const timeLeft = COOLDOWN_TIME - (Date.now() - parseInt(lastSend));
-                if (timeLeft > 0) {
-                    startTimer(timeLeft);
-                }
+                if (timeLeft > 0) startTimer(timeLeft);
             }
         };
 
@@ -57,137 +95,47 @@
             }
 
             try {
-                // 1. Verbindung zu OBS aufbauen
-                await obs.connect(OBS_WS_URL, OBS_PASSWORD);
-                
-                // 2. Link in die Browserquelle schreiben
-                await obs.call('SetInputSettings', {
-                    inputName: SOURCE_NAME,
-                    inputSettings: { url: gifUrl }
+                // Wir senden den Link an dein ngrok (Port 8081 am PC)
+                await fetch(NGROK_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Verhindert Browser-Blockade
+                    body: gifUrl
                 });
 
-                // 3. SceneItem ID finden & Quelle einschalten
-                const { sceneItems } = await obs.call('GetSceneItemList', { sceneName: SCENE_NAME });
-                const item = sceneItems.find(i => i.sourceName === SOURCE_NAME);
-                
-                if (!item) throw new Error("Quelle '" + SOURCE_NAME + "' in Szene '" + SCENE_NAME + "' nicht gefunden!");
-
-                await obs.call('SetSceneItemEnabled', {
-                    sceneName: SCENE_NAME,
-                    sceneItemId: item.sceneItemId,
-                    sceneItemEnabled: true
-                });
-
-                // 4. Cooldown im Browser speichern
+                // Cooldown im Browser speichern
                 localStorage.setItem('lastGifSend', Date.now().toString());
                 startTimer(COOLDOWN_TIME);
 
-                // 5. Nach exakt 5 Sekunden ausschalten
-                setTimeout(async () => {
-                    await obs.call('SetSceneItemEnabled', {
-                        sceneName: SCENE_NAME,
-                        sceneItemId: item.sceneItemId,
-                        sceneItemEnabled: false
-                    });
-                    // Verbindung trennen, um Ressourcen zu sparen
-                    await obs.disconnect();
-                }, 5000);
-
                 document.getElementById('gifInput').value = "";
-                alert("✅ GIF Yayında!");
+                alert("✅ Gönderildi! OBS'i kontrol et.");
 
             } catch (error) {
                 console.error(error);
-                alert("Hata: OBS bağlantısı kurulamadı. Şifre ve Portu kontrol et!");
+                alert("Hata: ngrok kapalı olabilir!");
             }
         }
 
         function startTimer(duration) {
             btn.disabled = true;
             
-            const update = () => {
-                const now = Date.now();
+            const updateTimer = () => {
                 const lastSend = parseInt(localStorage.getItem('lastGifSend'));
-                const elapsed = now - lastSend;
-                const remaining = COOLDOWN_TIME - elapsed;
+                const now = Date.now();
+                const remaining = COOLDOWN_TIME - (now - lastSend);
 
                 if (remaining <= 0) {
                     btn.disabled = false;
                     timerDisplay.innerText = "";
                     localStorage.removeItem('lastGifSend');
-                    return;
+                } else {
+                    const mins = Math.floor(remaining / 60000);
+                    const secs = Math.floor((remaining % 60000) / 1000);
+                    timerDisplay.innerText = `Bekleme: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    setTimeout(updateTimer, 1000);
                 }
-
-                const mins = Math.floor(remaining / 60000);
-                const secs = Math.floor((remaining % 60000) / 1000);
-                timerDisplay.innerText = `Bekleme Süresi: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
-                
-                setTimeout(update, 1000);
             };
             
-            update();
-        }
-    </script>
-</body>
-</html>                    inputSettings: { url: gifUrl }
-                });
-
-                // 3. Quelle anzeigen
-                await obs.call('SetSceneItemEnabled', {
-                    sceneName: SCENE_NAME,
-                    sceneItemId: await getSceneItemId(SOURCE_NAME),
-                    sceneItemEnabled: true
-                });
-
-                // 4. Cooldown starten & Browser merken (F5 blockiert)
-                localStorage.setItem('lastGifSend', Date.now().toString());
-                startTimer(COOLDOWN_TIME);
-
-                // 5. Nach 5 Sekunden ausblenden
-                setTimeout(async () => {
-                    await obs.call('SetSceneItemEnabled', {
-                        sceneName: SCENE_NAME,
-                        sceneItemId: await getSceneItemId(SOURCE_NAME),
-                        sceneItemEnabled: false
-                    });
-                    await obs.disconnect();
-                }, 5000);
-
-                alert("✅ GIF Yayında!");
-
-            } catch (error) {
-                console.error(error);
-                alert("OBS Bağlantı Hatası! Şifre veya Port yanlış olabilir.");
-            }
-        }
-
-        async function getSceneItemId(sourceName) {
-            const data = await obs.call('GetSceneItemList', { sceneName: SCENE_NAME });
-            const item = data.sceneItems.find(i => i.sourceName === sourceName);
-            return item.sceneItemId;
-        }
-
-        function startTimer(duration) {
-            const btn = document.getElementById('sendBtn');
-            const timerDisplay = document.getElementById('cooldownTimer');
-            btn.disabled = true;
-            timerDisplay.style.display = 'block';
-
-            let remaining = duration;
-            const interval = setInterval(() => {
-                remaining -= 1000;
-                const mins = Math.floor(remaining / 60000);
-                const secs = Math.floor((remaining % 60000) / 1000);
-                
-                timerDisplay.innerText = `Süre: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
-
-                if (remaining <= 0) {
-                    clearInterval(interval);
-                    btn.disabled = false;
-                    timerDisplay.style.display = 'none';
-                    localStorage.removeItem('lastGifSend');
-                }
-            }, 1000);
+            updateTimer();
         }
     </script>
 </body>
