@@ -14,7 +14,7 @@
         #timer { font-size: 2rem; font-weight: bold; color: #00ff00; }
         .send-btn { background: linear-gradient(135deg, #8B0000 0%, #cc0000 100%); color: white; border: none; padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; transition: 0.3s; text-transform: uppercase; }
         .send-btn:disabled { background: #444; opacity: 0.6; cursor: not-allowed; }
-        #status { margin-top: 20px; padding: 10px; border-radius: 8px; display: none; }
+        #status { margin-top: 20px; padding: 10px; border-radius: 8px; display: none; font-weight: bold; }
         .instructions { background: rgba(30, 30, 40, 0.8); border-left: 4px solid #8B0000; padding: 15px; margin-top: 25px; text-align: left; font-size: 0.85rem; line-height: 1.4; }
     </style>
 </head>
@@ -36,12 +36,13 @@
             <strong style="color:#ff4444;">NASIL YAPILIR?</strong><br>
             1. <a href="https://giphy.com" target="_blank" style="color:#fff;">Giphy.com</a>'a git.<br>
             2. GIF'e sağ tıkla ve "Resim adresini kopyala" de.<br>
-            3. Link buraya yapıştır ve gönder!
+            3. Linki buraya yapıştır ve gönder!
         </div>
     </div>
 
     <script>
-        const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev';
+        // Deine ngrok URL - Nur der Schrägstrich am Ende
+        const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/';
         let isCooldown = false;
 
         async function sendGif() {
@@ -63,7 +64,7 @@
                     mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
+                        'ngrok-skip-browser-warning': 'true' // ngrok Warnseite umgehen
                     },
                     body: JSON.stringify({ url: gifUrl })
                 });
@@ -71,14 +72,16 @@
                 if (response.ok) {
                     status.style.display = 'block';
                     status.style.color = '#00ff00';
+                    status.style.border = '1px solid #00ff00';
                     status.innerText = "✅ Başarıyla gönderildi!";
                     document.getElementById('gifInput').value = '';
                     startCooldown();
                 } else {
-                    throw new Error();
+                    throw new Error('Server hatası: ' + response.status);
                 }
             } catch (e) {
-                alert('Hata oluştu! Botun açık olduğundan ve ngrok adresinin doğruluğundan emin ol.');
+                console.error(e);
+                alert('Hata oluştu! Botun açık olduğundan, ngrok adresinin doğruluğundan ve Streamer.bot içindeki Action ayarlarından emin ol.');
                 btn.disabled = false;
                 btn.innerText = "GIF'İ YAYINA GÖNDER";
             }
