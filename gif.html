@@ -2,78 +2,102 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>GIF Sender - Direct Mode</title>
+    <title>GIF Sender - Giphy Only</title>
     <style>
-        body { background: #0f0f13; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { background: #0f0f13; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .box { background: #1a1a2e; padding: 40px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; width: 350px; box-shadow: 0 0 30px rgba(139,0,0,0.6); }
+        h2 { color: #ff4444; margin-bottom: 25px; letter-spacing: 1px; }
         input { width: 100%; padding: 15px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; box-sizing: border-box; }
-        button { background: #8B0000; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        button { background: #8B0000; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; transition: 0.3s; }
+        button:hover:not(:disabled) { background: #ff0000; }
+        button:disabled { background: #444; opacity: 0.5; cursor: not-allowed; }
         #cooldown { margin-top: 20px; color: #ff4444; font-weight: bold; }
-        iframe { display: none; } /* Das Geheime Fenster */
+        iframe { display: none; }
     </style>
 </head>
 <body>
 
     <div class="box">
         <h2>🎬 GIF GÖNDER</h2>
-        <input type="text" id="gifInput" placeholder="Giphy Linkini Yapıştır...">
-        <button id="sendBtn" onclick="sendViaIframe()">YAYINA GÖNDER</button>
+        <input type="text" id="gifInput" placeholder="https://giphy.com/..." oninput="checkLink()">
+        <button id="sendBtn" onclick="sendToBot()" disabled>YAYINA GÖNDER</button>
         <div id="cooldown"></div>
     </div>
 
-    <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
+    <iframe name="bot_frame"></iframe>
 
     <script>
-        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/GIF_Player';
+        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/';
         const COOLDOWN_TIME = 5 * 60 * 1000;
 
-        function sendViaIframe() {
-            const gifUrl = document.getElementById('gifInput').value.trim();
-            if (!gifUrl.includes('giphy.com')) return alert('Lütfen geçerli bir Giphy linki girin!');
+        // Prüft sofort beim Tippen, ob es ein Giphy Link ist
+        function checkLink() {
+            const val = document.getElementById('gifInput').value;
+            const btn = document.getElementById('sendBtn');
+            const isCooldown = !!localStorage.getItem('lastGifSend') && (Date.now() - parseInt(localStorage.getItem('lastGifSend')) < COOLDOWN_TIME);
+            
+            if (val.includes('giphy.com') && !isCooldown) {
+                btn.disabled = false;
+            } else {
+                btn.disabled = true;
+            }
+        }
 
-            // Wir erstellen ein unsichtbares Formular
+        function sendToBot() {
+            const gifUrl = document.getElementById('gifInput').value.trim();
+
+            // Sicherheits-Formular erstellen
             const form = document.createElement('form');
             form.method = 'GET';
             form.action = NGROK_URL;
-            form.target = 'hidden_iframe'; // Schickt es ins unsichtbare Fenster
+            form.target = 'bot_frame';
 
             const input = document.createElement('input');
             input.name = 'url';
             input.value = gifUrl;
-            
             form.appendChild(input);
+
             document.body.appendChild(form);
-            
-            // Absenden!
             form.submit();
-            
-            // Aufräumen
             document.body.removeChild(form);
             
-            // Cooldown & Feedback
             localStorage.setItem('lastGifSend', Date.now().toString());
             startTimer(COOLDOWN_TIME);
-            alert("✅ İşlem yapıldı! Lütfen ngrok terminalini kontrol et.");
+            document.getElementById('gifInput').value = "";
+            alert("✅ Gönderildi! Sadece Giphy linkleri kabul edilir.");
         }
 
         function startTimer(duration) {
             const btn = document.getElementById('sendBtn');
+            const timerDiv = document.getElementById('cooldown');
             btn.disabled = true;
+            
             const update = () => {
                 const last = localStorage.getItem('lastGifSend');
+                if (!last) return;
                 const remaining = COOLDOWN_TIME - (Date.now() - parseInt(last));
+                
                 if (remaining <= 0) {
                     btn.disabled = false;
-                    document.getElementById('cooldown').innerText = "";
+                    timerDiv.innerText = "";
+                    localStorage.removeItem('lastGifSend');
                 } else {
                     const mins = Math.floor(remaining / 60000);
                     const secs = Math.floor((remaining % 60000) / 1000);
-                    document.getElementById('cooldown').innerText = `Bekleme: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    timerDiv.innerText = `Bekleme: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
                     setTimeout(update, 1000);
                 }
             };
             update();
         }
+
+        // Timer beim Laden starten, falls noch Cooldown aktiv
+        window.onload = () => {
+            const last = localStorage.getItem('lastGifSend');
+            if (last && (Date.now() - parseInt(last) < COOLDOWN_TIME)) {
+                startTimer();
+            }
+        };
     </script>
 </body>
 </html>
