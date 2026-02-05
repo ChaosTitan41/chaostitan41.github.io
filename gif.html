@@ -2,140 +2,64 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIF Sender - Free ngrok Edition</title>
+    <title>GIF Sender - Fixed Route</title>
     <style>
-        body { 
-            background: #0f0f13; 
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-        }
-        .box { 
-            background: #1a1a2e; 
-            padding: 40px; 
-            border-radius: 20px; 
-            border: 2px solid #8B0000; 
-            text-align: center; 
-            width: 350px; 
-            box-shadow: 0 0 30px rgba(139,0,0,0.6); 
-        }
-        h2 { margin-bottom: 25px; color: #ff4444; letter-spacing: 2px; }
-        input { 
-            width: 100%; 
-            padding: 15px; 
-            margin-bottom: 25px; 
-            border-radius: 8px; 
-            border: 1px solid #333; 
-            background: #050505; 
-            color: white; 
-            text-align: center;
-            box-sizing: border-box;
-        }
-        button { 
-            background: #8B0000; 
-            color: white; 
-            border: none; 
-            padding: 15px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            width: 100%; 
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        button:hover:not(:disabled) { background: #ff0000; transform: scale(1.02); }
-        button:disabled { background: #444; cursor: not-allowed; opacity: 0.5; }
-        #cooldownTimer { 
-            margin-top: 20px; 
-            color: #ff4444; 
-            font-weight: bold; 
-            font-size: 1.1rem; 
-            min-height: 1.5em;
-        }
+        body { background: #0f0f13; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: #1a1a2e; padding: 40px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; width: 350px; box-shadow: 0 0 30px rgba(139,0,0,0.6); }
+        input { width: 100%; padding: 15px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; box-sizing: border-box; }
+        button { background: #8B0000; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        button:disabled { background: #444; opacity: 0.5; cursor: not-allowed; }
+        #cooldownTimer { margin-top: 20px; color: #ff4444; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <div class="box">
         <h2>🎬 GIF GÖNDER</h2>
-        <input type="text" id="gifInput" placeholder="Giphy Linkini Buraya Yapıştır...">
+        <input type="text" id="gifInput" placeholder="Giphy Linkini Yapıştır...">
         <button id="sendBtn" onclick="processGif()">YAYINA GÖNDER</button>
         <div id="cooldownTimer"></div>
     </div>
 
     <script>
-        // --- DEINE EINSTELLUNGEN ---
-        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/'; // Dein kostenloses ngrok
-        const COOLDOWN_TIME = 5 * 60 * 1000; // 5 Minuten
-        // ---------------------------
-
-        const btn = document.getElementById('sendBtn');
-        const timerDisplay = document.getElementById('cooldownTimer');
-
-        // Prüfen ob Nutzer noch gesperrt ist (F5 Schutz)
-        window.onload = () => {
-            const lastSend = localStorage.getItem('lastGifSend');
-            if (lastSend) {
-                const timeLeft = COOLDOWN_TIME - (Date.now() - parseInt(lastSend));
-                if (timeLeft > 0) startTimer(timeLeft);
-            }
-        };
+        // HIER DEINE ACTION NAME AM ENDE EINFÜGEN
+        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/GIF_Player'; 
+        const COOLDOWN_TIME = 5 * 60 * 1000;
 
         async function processGif() {
             const gifUrl = document.getElementById('gifInput').value.trim();
-            
-            if (!gifUrl.includes('giphy.com')) {
-                alert('Lütfen geçerli bir Giphy linki girin!');
-                return;
-            }
+            if (!gifUrl.includes('giphy.com')) return alert('Lütfen geçerli bir Giphy linki girin!');
 
             try {
-                // Wir senden den Link an dein ngrok (Port 8081 am PC)
-                await fetch(NGROK_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Verhindert Browser-Blockade
-                    body: gifUrl
+                // Wir senden es als GET mit Parametern, das akzeptieren Bots oft eher als POST
+                await fetch(`${NGROK_URL}?url=${encodeURIComponent(gifUrl)}`, {
+                    method: 'GET',
+                    mode: 'no-cors'
                 });
 
-                // Cooldown im Browser speichern
                 localStorage.setItem('lastGifSend', Date.now().toString());
                 startTimer(COOLDOWN_TIME);
-
-                document.getElementById('gifInput').value = "";
-                alert("✅ Gönderildi! OBS'i kontrol et.");
-
-            } catch (error) {
-                console.error(error);
-                alert("Hata: ngrok kapalı olabilir!");
+                alert("✅ Gesendet! Prüfe den Bot.");
+            } catch (e) {
+                alert("ngrok hat die Verbindung abgelehnt.");
             }
         }
 
         function startTimer(duration) {
+            const btn = document.getElementById('sendBtn');
             btn.disabled = true;
-            
-            const updateTimer = () => {
-                const lastSend = parseInt(localStorage.getItem('lastGifSend'));
-                const now = Date.now();
-                const remaining = COOLDOWN_TIME - (now - lastSend);
-
+            const update = () => {
+                const remaining = COOLDOWN_TIME - (Date.now() - parseInt(localStorage.getItem('lastGifSend')));
                 if (remaining <= 0) {
                     btn.disabled = false;
-                    timerDisplay.innerText = "";
-                    localStorage.removeItem('lastGifSend');
+                    document.getElementById('cooldownTimer').innerText = "";
                 } else {
                     const mins = Math.floor(remaining / 60000);
                     const secs = Math.floor((remaining % 60000) / 1000);
-                    timerDisplay.innerText = `Bekleme: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
-                    setTimeout(updateTimer, 1000);
+                    document.getElementById('cooldownTimer').innerText = `Bekleme: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    setTimeout(update, 1000);
                 }
             };
-            
-            updateTimer();
+            update();
         }
     </script>
 </body>
