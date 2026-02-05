@@ -1,219 +1,354 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-    <title>GIF an OBS senden</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 GIF an ChaosTitan41 senden</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial Black', 'Arial', sans-serif;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: 50px auto;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
+        
         .container {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 10px;
-        }
-        input[type="text"] {
+            background: rgba(20, 20, 30, 0.9);
+            border: 3px solid #8B0000;
+            border-radius: 15px;
+            padding: 30px;
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            background: #4CAF50;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-        }
-        button:hover {
-            background: #45a049;
-        }
-        #preview {
-            margin-top: 15px;
+            max-width: 500px;
+            box-shadow: 0 0 30px rgba(139, 0, 0, 0.5);
             text-align: center;
         }
-        #preview img {
-            max-width: 100%;
-            max-height: 200px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+        
+        h1 {
+            color: #8B0000;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
+        
+        .subtitle {
+            color: #ccc;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .input-container {
+            margin: 20px 0;
+        }
+        
+        #gifInput {
+            width: 100%;
+            padding: 15px;
+            background: #111;
+            border: 2px solid #8B0000;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        
+        #gifInput:focus {
+            border-color: #ff0000;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+        
+        #gifInput::placeholder {
+            color: #666;
+        }
+        
+        .timer-container {
+            background: rgba(139, 0, 0, 0.1);
+            border: 2px solid #8B0000;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .timer-text {
+            color: #ff4444;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        #timer {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ff0000;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+        
+        .send-btn {
+            background: linear-gradient(135deg, #8B0000 0%, #cc0000 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .send-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #cc0000 0%, #ff0000 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(255, 0, 0, 0.4);
+        }
+        
+        .send-btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
         .status {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 5px;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
             display: none;
         }
+        
         .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: rgba(0, 150, 0, 0.2);
+            border: 2px solid #00aa00;
+            color: #00ff00;
         }
+        
         .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: rgba(150, 0, 0, 0.2);
+            border: 2px solid #ff0000;
+            color: #ff4444;
+        }
+        
+        .instructions {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid #8B0000;
+            padding: 15px;
+            margin-top: 25px;
+            text-align: left;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .instructions h3 {
+            color: #8B0000;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            color: #ccc;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>🎬 GIF an OBS senden</h2>
+        <h1>🎬 GIF AN CHAOSTITAN41 SENDEN</h1>
+        <div class="subtitle">Dein GIF erscheint SOFORT im Stream!</div>
         
-        <div>
-            <label for="gifUrl">GIF-URL eingeben:</label>
+        <div class="input-container">
             <input type="text" 
-                   id="gifUrl" 
-                   placeholder="https://media.giphy.com/media/.../giphy.gif"
+                   id="gifInput" 
+                   placeholder="Füge hier die Giphy-URL ein... (z.B. https://giphy.com/gifs/...)"
                    autocomplete="off">
         </div>
         
-        <div>
-            <label for="duration">Anzeigedauer (Sekunden):</label>
-            <input type="number" 
-                   id="duration" 
-                   value="5" 
-                   min="1" 
-                   max="30">
+        <div class="timer-container">
+            <div class="timer-text">⏱️ NÄCHSTES GIF KANN GESENDET WERDEN IN:</div>
+            <div id="timer">03:00</div>
         </div>
         
-        <button onclick="sendGifToOBS()">
-            GIF an OBS senden
-        </button>
+        <button class="send-btn" id="sendBtn" onclick="sendGif()">GIF SENDEN</button>
         
-        <div id="preview">
-            <p><strong>Vorschau:</strong></p>
-            <img id="gifPreview" src="" alt="Vorschau">
+        <div id="status" class="status"></div>
+        
+        <div class="instructions">
+            <h3>📋 SO FUNKTIONIERT'S:</h3>
+            <ul>
+                <li>1. Gehe auf <a href="https://giphy.com" style="color:#ff4444" target="_blank">giphy.com</a></li>
+                <li>2. Suche ein GIF und kopiere den Link</li>
+                <li>3. Füge den Link oben ein</li>
+                <li>4. Klicke auf "GIF SENDEN"</li>
+                <li>5. Das GIF erscheint 8 Sekunden im Stream!</li>
+            </ul>
         </div>
-        
-        <div id="statusMessage" class="status"></div>
     </div>
 
     <script>
-        // Deine aktuelle ngrok URL hier eintragen
-        const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev';
+        // DEINE STREAMER.BOT URL HIER EINTRAGEN:
+        const STREAMERBOT_URL = 'https://deine-ngrok-url.ngrok-free.dev/gif-submit';
+        // ACHTUNG: Ersetze 'deine-ngrok-url' mit deiner aktuellen ngrok URL!
         
-        // GIF-URL Eingabe mit Vorschau
-        document.getElementById('gifUrl').addEventListener('input', function(e) {
-            const url = e.target.value.trim();
-            const preview = document.getElementById('gifPreview');
-            const previewContainer = document.getElementById('preview');
-            
-            if (url && isValidGifUrl(url)) {
-                preview.src = url;
-                previewContainer.style.display = 'block';
-            } else {
-                previewContainer.style.display = 'none';
+        let cooldown = 180; // 3 Minuten in Sekunden
+        let timerActive = false;
+        let lastSent = 0;
+        
+        // Timer initialisieren
+        function initTimer() {
+            const storedTime = localStorage.getItem('gifLastSent');
+            if (storedTime) {
+                const now = Math.floor(Date.now() / 1000);
+                const timePassed = now - parseInt(storedTime);
+                
+                if (timePassed < cooldown) {
+                    startTimer(cooldown - timePassed);
+                } else {
+                    enableButton();
+                }
             }
-        });
+        }
         
-        // GIF an OBS senden
-        async function sendGifToOBS() {
-            const gifUrl = document.getElementById('gifUrl').value.trim();
-            const duration = document.getElementById('duration').value;
-            const statusDiv = document.getElementById('statusMessage');
+        // Timer starten
+        function startTimer(seconds) {
+            timerActive = true;
+            let remaining = seconds;
+            updateTimerDisplay(remaining);
+            document.getElementById('sendBtn').disabled = true;
             
-            // Reset Status
-            statusDiv.style.display = 'none';
-            statusDiv.className = 'status';
+            const timerInterval = setInterval(() => {
+                remaining--;
+                updateTimerDisplay(remaining);
+                
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerActive = false;
+                    enableButton();
+                    localStorage.removeItem('gifLastSent');
+                }
+            }, 1000);
+        }
+        
+        // Timer-Anzeige aktualisieren
+        function updateTimerDisplay(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('timer').textContent = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Button aktivieren
+        function enableButton() {
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('sendBtn').textContent = 'GIF SENDEN';
+            document.getElementById('timer').textContent = 'BEREIT!';
+            document.getElementById('timer').style.color = '#00ff00';
+        }
+        
+        // GIF senden
+        async function sendGif() {
+            const gifUrl = document.getElementById('gifInput').value.trim();
+            const statusDiv = document.getElementById('status');
+            const button = document.getElementById('sendBtn');
             
             // Validierung
             if (!gifUrl) {
-                showStatus('Bitte eine GIF-URL eingeben!', 'error');
+                showStatus('❌ Bitte eine GIF-URL eingeben!', 'error');
                 return;
             }
             
-            if (!isValidGifUrl(gifUrl)) {
-                showStatus('Bitte eine gültige GIF-URL eingeben!', 'error');
+            if (!gifUrl.includes('giphy.com')) {
+                showStatus('❌ Bitte eine gültige Giphy-URL eingeben!', 'error');
                 return;
             }
+            
+            // Cooldown prüfen
+            if (timerActive) {
+                showStatus('⏳ Bitte warte bis der Timer abgelaufen ist!', 'error');
+                return;
+            }
+            
+            // Button deaktivieren während des Sendens
+            button.disabled = true;
+            button.textContent = 'WIRD GESENDET...';
             
             try {
-                showStatus('Sende GIF an OBS...', '');
-                
+                // An Streamer.bot senden
                 const response = await fetch(STREAMERBOT_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        action: 'play_gif',
                         url: gifUrl,
-                        duration: parseInt(duration),
                         timestamp: new Date().toISOString()
                     })
                 });
                 
                 if (response.ok) {
-                    showStatus('✅ GIF wurde erfolgreich an OBS gesendet!', 'success');
+                    // Timer starten
+                    lastSent = Math.floor(Date.now() / 1000);
+                    localStorage.setItem('gifLastSent', lastSent.toString());
+                    startTimer(cooldown);
                     
-                    // Feld zurücksetzen nach 3 Sekunden
+                    // Erfolgsmeldung
+                    showStatus('✅ GIF erfolgreich gesendet! Es erscheint jetzt im Stream!', 'success');
+                    
+                    // Eingabefeld leeren
+                    document.getElementById('gifInput').value = '';
+                    
+                    // Nach 5 Sekunden Status ausblenden
                     setTimeout(() => {
-                        document.getElementById('gifUrl').value = '';
-                        document.getElementById('preview').style.display = 'none';
                         statusDiv.style.display = 'none';
-                    }, 3000);
+                    }, 5000);
+                    
                 } else {
-                    showStatus('Fehler beim Senden an OBS.', 'error');
+                    showStatus('❌ Fehler beim Senden. Bitte versuche es später erneut.', 'error');
+                    button.disabled = false;
+                    button.textContent = 'GIF SENDEN';
                 }
                 
             } catch (error) {
-                showStatus('Verbindungsfehler: ' + error.message, 'error');
-            }
-        }
-        
-        // URL Validierung
-        function isValidGifUrl(url) {
-            try {
-                const urlObj = new URL(url);
-                
-                // Erlaubte Dateiformate
-                const validExtensions = ['.gif', '.gifv'];
-                const hasValidExtension = validExtensions.some(ext => 
-                    url.toLowerCase().includes(ext));
-                
-                // Erlaubte Domains (kannst du erweitern)
-                const allowedDomains = [
-                    'giphy.com',
-                    'tenor.com',
-                    'imgur.com',
-                    'i.imgur.com',
-                    'media.tenor.com',
-                    'media.giphy.com',
-                    'cdn.discordapp.com'
-                ];
-                
-                const hasAllowedDomain = allowedDomains.some(domain => 
-                    urlObj.hostname.includes(domain));
-                
-                return hasValidExtension || hasAllowedDomain;
-                
-            } catch (e) {
-                return false;
+                showStatus(`❌ Netzwerkfehler: ${error.message}`, 'error');
+                button.disabled = false;
+                button.textContent = 'GIF SENDEN';
             }
         }
         
         // Status anzeigen
         function showStatus(message, type) {
-            const statusDiv = document.getElementById('statusMessage');
+            const statusDiv = document.getElementById('status');
             statusDiv.textContent = message;
             statusDiv.className = `status ${type}`;
             statusDiv.style.display = 'block';
         }
         
         // Enter-Taste zum Senden
-        document.getElementById('gifUrl').addEventListener('keypress', function(e) {
+        document.getElementById('gifInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                sendGifToOBS();
+                sendGif();
             }
         });
+        
+        // Seite laden
+        window.onload = function() {
+            initTimer();
+            
+            // Beispiel-URL für schnelles Testen
+            document.getElementById('gifInput').value = 
+                'https://media.giphy.com/media/3o7aCTPPm4OHfRLSH6/giphy.gif';
+        };
     </script>
 </body>
 </html>
