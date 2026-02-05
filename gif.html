@@ -40,76 +40,56 @@
         </div>
     </div>
 
-    <script>
-        // Deine ngrok URL - Nur der Schrägstrich am Ende
-        const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/';
-        let isCooldown = false;
+   <script>
+    const STREAMERBOT_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev/';
+    let isCooldown = false;
 
-        async function sendGif() {
-            const gifUrl = document.getElementById('gifInput').value.trim();
-            const btn = document.getElementById('sendBtn');
-            const status = document.getElementById('status');
+    async function sendGif() {
+        const gifInput = document.getElementById('gifInput');
+        const gifUrl = gifInput.value.trim();
+        const btn = document.getElementById('sendBtn');
 
-            if (!gifUrl.includes('giphy.com')) {
-                alert('Lütfen geçerli bir Giphy linki girin!');
-                return;
-            }
+        // Check ob es ein Giphy Link ist
+        if (!gifUrl.includes('giphy.com')) {
+            alert('Lütfen geçerli bir Giphy linki girin!');
+            return;
+        }
 
-            btn.disabled = true;
-            btn.innerText = "GÖNDERİLİYOR...";
+        btn.disabled = true;
+        btn.innerText = "GÖNDERİLİYOR...";
 
-            try {
-                const response = await fetch(STREAMERBOT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' // ngrok Warnseite umgehen
-                    },
-                    body: JSON.stringify({ url: gifUrl })
-                });
+        try {
+            const response = await fetch(STREAMERBOT_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                // HIER STEHT ES: Das Paket wird geschnürt
+                body: JSON.stringify({ url: gifUrl }) 
+            });
 
-                if (response.ok) {
-                    status.style.display = 'block';
-                    status.style.color = '#00ff00';
-                    status.style.border = '1px solid #00ff00';
-                    status.innerText = "✅ Başarıyla gönderildi!";
-                    document.getElementById('gifInput').value = '';
-                    startCooldown();
-                } else {
-                    throw new Error('Server hatası: ' + response.status);
-                }
-            } catch (e) {
-                console.error(e);
-                alert('Hata oluştu! Botun açık olduğundan, ngrok adresinin doğruluğundan ve Streamer.bot içindeki Action ayarlarından emin ol.');
+            if (response.ok) {
+                alert("✅ Başarıyla gönderildi!");
+                gifInput.value = ''; // Input leer machen
+                startCooldown();
+            } else {
+                alert("Hata: " + response.status);
                 btn.disabled = false;
                 btn.innerText = "GIF'İ YAYINA GÖNDER";
             }
+        } catch (e) {
+            console.error(e);
+            alert("Bağlantı hatası! ngrok açık mı?");
+            btn.disabled = false;
+            btn.innerText = "GIF'İ YAYINA GÖNDER";
         }
+    }
 
-        function startCooldown() {
-            isCooldown = true;
-            let time = 180;
-            const timerDiv = document.getElementById('timer');
-            const btn = document.getElementById('sendBtn');
-
-            const timerIdx = setInterval(() => {
-                time--;
-                let m = Math.floor(time / 60);
-                let s = time % 60;
-                timerDiv.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                timerDiv.style.color = "#ff4444";
-
-                if (time <= 0) {
-                    clearInterval(timerIdx);
-                    isCooldown = false;
-                    btn.disabled = false;
-                    btn.innerText = "GIF'İ YAYINA GÖNDER";
-                    timerDiv.innerText = "HAZIR!";
-                    timerDiv.style.color = "#00ff00";
-                }
-            }, 1000);
-        }
-    </script>
+    function startCooldown() {
+        // ... (Dein Cooldown Code von oben)
+    }
+</script>
 </body>
 </html>
