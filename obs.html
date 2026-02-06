@@ -24,17 +24,17 @@
 
         .name-label { 
             color: white; 
-            font-size: 24px; 
+            font-size: 26px; 
             text-shadow: 2px 2px 8px #000; 
             margin-top: 10px; 
             font-weight: bold;
         }
 
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
-            10% { opacity: 1; transform: translateY(0) scale(1); }
-            90% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-20px) scale(0.8); }
+            0% { opacity: 0; transform: scale(0.8); }
+            10% { opacity: 1; transform: scale(1); }
+            90% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.8); }
         }
     </style>
 </head>
@@ -64,14 +64,13 @@
             const div = document.createElement('div');
             div.className = 'media-container';
             
-            // Wir erstellen zwei Versionen: Eine als Video (.mp4 für Sound) und eine als Bild
+            // Trick: Wir nutzen die MP4-Version wann immer möglich, da diese IMMER loopt.
             const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
-            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
+            // Bei Bildern hängen wir einen Cache-Buster an
+            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif?${Date.now()}`;
 
-            // Der Trick: Wir laden das Video. Wenn es Audio/Video-Daten hat, spielt es.
-            // Falls es ein reines GIF ohne Video-Gegenstück ist, springt es zum "onerror" und zeigt das Bild.
             div.innerHTML = `
-                <video id="vid-${snapshot.key}" src="${videoUrl}" autoplay playsinline></video>
+                <video id="vid-${snapshot.key}" src="${videoUrl}" autoplay playsinline loop muted></video>
                 <img id="img-${snapshot.key}" src="${imageUrl}" style="display:none;">
                 <div class="name-label">${data.userName}</div>
             `;
@@ -81,13 +80,18 @@
             const videoElement = document.getElementById(`vid-${snapshot.key}`);
             const imageElement = document.getElementById(`img-${snapshot.key}`);
 
-            // Falls das Video nicht geladen werden kann (weil es ein echtes GIF ist), zeige das Bild
-            videoElement.onerror = function() {
+            // Wenn es ein Video gibt, versuchen wir den Sound zu entmuten (wichtig für OBS!)
+            videoElement.oncanplay = () => {
+                videoElement.muted = false; 
+                videoElement.play();
+            };
+
+            // Falls kein MP4-Video verfügbar ist (Error), zeigen wir das GIF
+            videoElement.onerror = () => {
                 videoElement.style.display = 'none';
                 imageElement.style.display = 'block';
             };
 
-            // Nach 8 Sekunden entfernen
             setTimeout(() => { div.remove(); }, 8000);
         });
     </script>
