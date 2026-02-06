@@ -8,7 +8,6 @@
         body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
         #display { position: relative; width: 100vw; height: 100vh; }
         
-        /* Unsichtbarer Klick-Bereich für die Audio-Freigabe */
         #audio-unlocker {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: transparent; border: none; cursor: pointer; z-index: 10000;
@@ -50,7 +49,6 @@
         const db = firebase.database();
         const start = Date.now();
         
-        // Verknüpfung zur Datei auf deinem GitHub
         const notificationSound = new Audio('pop.mp3'); 
 
         function activateAudio() {
@@ -59,28 +57,28 @@
                 notificationSound.currentTime = 0;
             });
             document.getElementById('audio-unlocker').style.display = 'none';
-            console.log("System bereit und Audio entsperrt!");
         }
 
         db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
             const data = snap.val();
             if(data.timestamp < start) return;
 
-            // 1. POP SOUND (Von GitHub)
+            // 1. POP SOUND ABSPIELEN
             notificationSound.currentTime = 0;
-            notificationSound.volume = 0.6; // Moderate Lautstärke gegen Verzerren
-            notificationSound.play().catch(e => console.log("Klick in OBS nötig!"));
+            notificationSound.volume = 0.5;
+            notificationSound.play().catch(() => {});
 
-            // 2. GIF/CLIP ANZEIGEN
             const box = document.getElementById('display');
             const div = document.createElement('div');
             div.className = "media-container";
             
+            // Wir nutzen die media-URL, die bei Clips (V-IDs) oft besser funktioniert
             const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
             const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
 
+            // HIER SIND 'loop' UND 'muted=false' ENTSCHEIDEND
             div.innerHTML = `
-                <video id="v-${snap.key}" src="${videoUrl}" autoplay playsinline style="width:450px;"></video>
+                <video id="v-${snap.key}" src="${videoUrl}" autoplay loop playsinline style="width:450px;"></video>
                 <img id="i-${snap.key}" src="${imageUrl}" style="display:none; width:450px;">
                 <div class="name-label">${data.userName}</div>
             `;
@@ -89,17 +87,18 @@
             const v = document.getElementById(`v-${snap.key}`);
             const i = document.getElementById(`i-${snap.key}`);
 
-            // Video-Audio sauber einblenden
-            v.onplay = () => { 
-                v.muted = false; 
-                v.volume = 0.6; 
+            // Sound-Logik: Erzwinge Unmute bei Wiedergabe
+            v.onplay = () => {
+                v.muted = false;
+                v.volume = 0.8;
             };
 
+            // Wenn Video-Format fehlschlägt, nimm das GIF
             v.onerror = () => { 
                 v.style.display = 'none'; 
                 i.style.display = 'block'; 
             };
-            
+
             setTimeout(() => div.remove(), 8000);
         });
     </script>
