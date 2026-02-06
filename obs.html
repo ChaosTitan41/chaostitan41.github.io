@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        body { background: transparent; margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+        
+        #display-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .gif-entry {
+            position: absolute;
+            bottom: 10%;
+            right: 5%;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInOut 30s forwards;
+        }
+
+        .gif-entry img {
+            max-width: 500px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .user-tag {
+            background: rgba(100, 65, 165, 0.9);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 24px;
+            display: inline-block;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            2% { opacity: 1; transform: translateY(0); }
+            95% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+    </style>
+</head>
+<body>
+    <div id="display-container"></div>
+
+    <script>
+        const firebaseConfig = { /* GLEICHE CONFIG WIE OBEN */ };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Nur neue Einträge laden (ab jetzt)
+        const startTime = Date.now();
+
+        db.ref('activeGifs').limitToLast(1).on('child_added', snapshot => {
+            const data = snapshot.val();
+            
+            // Verhindert das Laden von alten GIFs beim Start
+            if (data.timestamp < startTime) return;
+
+            spawnGif(data);
+        });
+
+        function spawnGif(data) {
+            const container = document.getElementById('display-container');
+            const div = document.createElement('div');
+            div.className = 'gif-entry';
+            
+            const directUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
+            
+            div.innerHTML = `
+                <img src="${directUrl}"> <br>
+                <div class="user-tag">${data.userName}</div>
+            `;
+
+            container.appendChild(div);
+
+            // Nach der Animation (30s) Element löschen
+            setTimeout(() => {
+                div.remove();
+            }, 30000);
+        }
+    </script>
+</body>
+</html>
