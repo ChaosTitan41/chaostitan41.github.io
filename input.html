@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIF an ChaosTitan41 senden</title>
+    <title>GIF Sender - ChaosTitan41</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -11,10 +11,8 @@
         .container { background: #1e1e1e; padding: 30px; border-radius: 15px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 90%; }
         h2 { color: #a970ff; margin-bottom: 20px; }
         input { padding: 12px; width: 280px; border-radius: 5px; border: 1px solid #333; background: #121212; color: white; margin-bottom: 15px; outline: none; }
-        input:focus { border-color: #a970ff; }
-        button { padding: 12px 25px; background: #a970ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #7d5bbe; transform: scale(1.05); }
-        #status { margin-top: 20px; font-weight: bold; min-height: 24px; }
+        button { padding: 12px 25px; background: #a970ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        #status { margin-top: 20px; font-weight: bold; }
         .preview { margin-top: 20px; max-width: 200px; border-radius: 10px; display: none; margin-left: auto; margin-right: auto; border: 2px solid #a970ff; }
     </style>
 </head>
@@ -22,8 +20,8 @@
 
     <div class="container">
         <h2>GIF an Stream senden</h2>
-        <input type="text" id="username" placeholder="Dein Name (Zuschauer)"><br>
-        <input type="text" id="gif-url" placeholder="Giphy-Link hier einfügen..." oninput="showPreview()"><br>
+        <input type="text" id="username" placeholder="Dein Name"> <br>
+        <input type="text" id="gif-url" placeholder="Giphy-Link einfügen..." oninput="showPreview()"> <br>
         
         <img id="gif-preview" class="preview" src="" alt="Vorschau">
         
@@ -33,7 +31,6 @@
     </div>
 
     <script>
-        // Deine Firebase Konfiguration
         const firebaseConfig = {
             apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
             authDomain: "chaostitan41-website.firebaseapp.com",
@@ -44,30 +41,23 @@
             appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
         };
 
-        // Firebase initialisieren
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Extrahiert die ID aus normalen und media-Links
         function extractGifId(url) {
             url = url.trim();
             if (!url.includes("giphy.com")) return null;
-
             try {
-                if (url.includes("media.giphy.com") || url.includes("media2.giphy.com")) {
-                    // Beispiel: https://media2.giphy.com/media/v1.XYZ/ID/giphy.gif
-                    const parts = url.split("/");
-                    // Die ID steht bei diesen Links immer im vorletzten Segment
-                    return parts[parts.length - 2];
+                // Diese Logik zieht die ID aus fast jedem Giphy-Link (auch media/media2)
+                const parts = url.split("/");
+                let id = "";
+                if (url.includes("/gifs/")) {
+                    id = url.split("-").pop().split("/")[0].split("?")[0];
                 } else {
-                    // Beispiel: https://giphy.com/gifs/name-ID
-                    const parts = url.split("-");
-                    const lastPart = parts[parts.length - 1];
-                    return lastPart.split("/")[0].split("?")[0];
+                    id = parts[parts.length - 2];
                 }
-            } catch (e) {
-                return null;
-            }
+                return id.length > 3 ? id : parts[parts.length - 1].split(".")[0];
+            } catch (e) { return null; }
         }
 
         function showPreview() {
@@ -75,7 +65,8 @@
             const previewImg = document.getElementById('gif-preview');
             const id = extractGifId(url);
 
-            if (id && id.length > 5) {
+            if (id) {
+                // Wir nutzen "giphy.gif" am Ende, um die Animation zu erzwingen
                 previewImg.src = `https://media.giphy.com/media/${id}/giphy.gif`;
                 previewImg.style.display = "block";
             } else {
@@ -86,30 +77,21 @@
         function sendGif() {
             const name = document.getElementById('username').value || "Anonym";
             const urlInput = document.getElementById('gif-url').value;
-            const status = document.getElementById('status');
-            const gifId = extractGifId(urlInput);
+            const id = extractGifId(urlInput);
 
-            if (!gifId) {
-                status.style.color = "#ff4444";
-                status.innerText = "❌ Ungültiger Giphy-Link!";
+            if (!id) {
+                document.getElementById('status').innerText = "❌ Ungültiger Link!";
                 return;
             }
 
-            // In Firebase speichern
             db.ref('activeGifs').push({
-                gifId: gifId,
+                gifId: id,
                 userName: name,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
-                status.style.color = "#00e676";
-                status.innerText = "✅ Erfolgreich gesendet!";
+                document.getElementById('status').innerText = "✅ Gesendet!";
                 document.getElementById('gif-url').value = "";
                 document.getElementById('gif-preview').style.display = "none";
-                
-                setTimeout(() => { status.innerText = ""; }, 3000);
-            }).catch((error) => {
-                status.style.color = "#ff4444";
-                status.innerText = "❌ Fehler beim Senden.";
             });
         }
     </script>
