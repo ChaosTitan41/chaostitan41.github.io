@@ -13,17 +13,18 @@
         input { padding: 12px; width: 280px; border-radius: 5px; border: 1px solid #333; background: #121212; color: white; margin-bottom: 15px; outline: none; }
         button { padding: 12px 25px; background: #a970ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
         #status { margin-top: 20px; font-weight: bold; }
-        .preview { margin-top: 20px; max-width: 200px; border-radius: 10px; display: none; margin-left: auto; margin-right: auto; border: 2px solid #a970ff; }
+        .preview-media { max-width: 200px; border-radius: 10px; border: 2px solid #a970ff; display: none; margin: 20px auto; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>GIF an Stream senden</h2>
+        <h2>GIF & Clip Sender</h2>
         <input type="text" id="username" placeholder="Dein Name"> <br>
-        <input type="text" id="gif-url" placeholder="Giphy-Link einfügen..." oninput="showPreview()"> <br>
+        <input type="text" id="gif-url" placeholder="Giphy-Link hier einfügen..." oninput="showPreview()"> <br>
         
-        <img id="gif-preview" class="preview" src="" alt="Vorschau">
+        <video id="video-preview" class="preview-media" autoplay loop muted playsinline></video>
+        <img id="gif-preview" class="preview-media">
         
         <br>
         <button onclick="sendGif()">Ab an den Stream!</button>
@@ -48,29 +49,40 @@
             url = url.trim();
             if (!url.includes("giphy.com")) return null;
             try {
-                // Diese Logik zieht die ID aus fast jedem Giphy-Link (auch media/media2)
                 const parts = url.split("/");
                 let id = "";
                 if (url.includes("/gifs/")) {
+                    // ID aus Standard-Link
                     id = url.split("-").pop().split("/")[0].split("?")[0];
                 } else {
+                    // ID aus Media-Link
                     id = parts[parts.length - 2];
                 }
-                return id.length > 3 ? id : parts[parts.length - 1].split(".")[0];
+                return id && id.length > 3 ? id : parts[parts.length - 1].split(".")[0];
             } catch (e) { return null; }
         }
 
         function showPreview() {
             const url = document.getElementById('gif-url').value;
-            const previewImg = document.getElementById('gif-preview');
+            const vid = document.getElementById('video-preview');
+            const img = document.getElementById('gif-preview');
             const id = extractGifId(url);
 
             if (id) {
-                // Wir nutzen "giphy.gif" am Ende, um die Animation zu erzwingen
-                previewImg.src = `https://media.giphy.com/media/${id}/giphy.gif`;
-                previewImg.style.display = "block";
+                // Wir versuchen das Video (.mp4) zu laden, weil es perfekt loopt
+                vid.src = `https://media.giphy.com/media/${id}/giphy.mp4`;
+                vid.style.display = "block";
+                img.style.display = "none";
+
+                // Falls kein Video da ist, nehmen wir das GIF als Backup
+                vid.onerror = () => {
+                    vid.style.display = "none";
+                    img.src = `https://media.giphy.com/media/${id}/giphy.gif`;
+                    img.style.display = "block";
+                };
             } else {
-                previewImg.style.display = "none";
+                vid.style.display = "none";
+                img.style.display = "none";
             }
         }
 
@@ -80,7 +92,7 @@
             const id = extractGifId(urlInput);
 
             if (!id) {
-                document.getElementById('status').innerText = "❌ Ungültiger Link!";
+                document.getElementById('status').innerText = "❌ Link nicht erkannt!";
                 return;
             }
 
@@ -91,6 +103,7 @@
             }).then(() => {
                 document.getElementById('status').innerText = "✅ Gesendet!";
                 document.getElementById('gif-url').value = "";
+                document.getElementById('video-preview').style.display = "none";
                 document.getElementById('gif-preview').style.display = "none";
             });
         }
