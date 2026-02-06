@@ -8,7 +8,7 @@
         body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
         #display { position: relative; width: 100vw; height: 100vh; }
         
-        /* Unsichtbarer Klick-Bereich, um Audio zu entsperren */
+        /* Unsichtbarer Klick-Bereich für die Audio-Freigabe */
         #audio-unlocker {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: transparent; border: none; cursor: pointer; z-index: 10000;
@@ -23,17 +23,16 @@
         .name-label { color: white; font-size: 28px; text-shadow: 2px 2px 10px #000; margin-top: 12px; font-weight: bold; }
 
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: scale(0.5); }
+            0% { opacity: 0; transform: scale(0.95); }
             10% { opacity: 1; transform: scale(1); }
             90% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 0; transform: scale(0.95); }
         }
     </style>
 </head>
 <body>
 
     <button id="audio-unlocker" onclick="activateAudio()"></button>
-    
     <div id="display"></div>
 
     <script>
@@ -51,7 +50,8 @@
         const db = firebase.database();
         const start = Date.now();
         
-        const notificationSound = new Audio('https://www.myinstants.com/media/sounds/pop.mp3');
+        // Verknüpfung zur Datei auf deinem GitHub
+        const notificationSound = new Audio('pop.mp3'); 
 
         function activateAudio() {
             notificationSound.play().then(() => {
@@ -59,24 +59,25 @@
                 notificationSound.currentTime = 0;
             });
             document.getElementById('audio-unlocker').style.display = 'none';
-            console.log("Audio entsperrt!");
+            console.log("System bereit und Audio entsperrt!");
         }
 
         db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
             const data = snap.val();
             if(data.timestamp < start) return;
 
-            // 1. POP SOUND
+            // 1. POP SOUND (Von GitHub)
             notificationSound.currentTime = 0;
-            notificationSound.play().catch(() => console.log("Klick in OBS nötig!"));
+            notificationSound.volume = 0.6; // Moderate Lautstärke gegen Verzerren
+            notificationSound.play().catch(e => console.log("Klick in OBS nötig!"));
 
             // 2. GIF/CLIP ANZEIGEN
             const box = document.getElementById('display');
             const div = document.createElement('div');
             div.className = "media-container";
             
-            const videoUrl = `https://i.giphy.com/${data.gifId}.mp4`;
-            const imageUrl = `https://i.giphy.com/${data.gifId}.gif`;
+            const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
+            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
 
             div.innerHTML = `
                 <video id="v-${snap.key}" src="${videoUrl}" autoplay playsinline style="width:450px;"></video>
@@ -88,8 +89,16 @@
             const v = document.getElementById(`v-${snap.key}`);
             const i = document.getElementById(`i-${snap.key}`);
 
-            v.onplay = () => { v.muted = false; };
-            v.onerror = () => { v.style.display = 'none'; i.style.display = 'block'; };
+            // Video-Audio sauber einblenden
+            v.onplay = () => { 
+                v.muted = false; 
+                v.volume = 0.6; 
+            };
+
+            v.onerror = () => { 
+                v.style.display = 'none'; 
+                i.style.display = 'block'; 
+            };
             
             setTimeout(() => div.remove(), 8000);
         });
