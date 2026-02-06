@@ -15,7 +15,7 @@
         button { padding: 12px 25px; background: #a970ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         button:hover { background: #7d5bbe; transform: scale(1.05); }
         #status { margin-top: 20px; font-weight: bold; min-height: 24px; }
-        .preview { margin-top: 20px; max-width: 200px; border-radius: 10px; display: none; margin-left: auto; margin-right: auto; }
+        .preview { margin-top: 20px; max-width: 200px; border-radius: 10px; display: none; margin-left: auto; margin-right: auto; border: 2px solid #a970ff; }
     </style>
 </head>
 <body>
@@ -48,18 +48,19 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Funktion um die GIF ID aus verschiedenen Link-Formaten zu ziehen
+        // Extrahiert die ID aus normalen und media-Links
         function extractGifId(url) {
             url = url.trim();
             if (!url.includes("giphy.com")) return null;
 
             try {
-                if (url.includes("media.giphy.com")) {
-                    // Format: https://media.giphy.com/media/.../ID/giphy.gif
+                if (url.includes("media.giphy.com") || url.includes("media2.giphy.com")) {
+                    // Beispiel: https://media2.giphy.com/media/v1.XYZ/ID/giphy.gif
                     const parts = url.split("/");
+                    // Die ID steht bei diesen Links immer im vorletzten Segment
                     return parts[parts.length - 2];
                 } else {
-                    // Format: https://giphy.com/gifs/name-ID
+                    // Beispiel: https://giphy.com/gifs/name-ID
                     const parts = url.split("-");
                     const lastPart = parts[parts.length - 1];
                     return lastPart.split("/")[0].split("?")[0];
@@ -69,7 +70,6 @@
             }
         }
 
-        // Zeigt eine kleine Vorschau des GIFs an
         function showPreview() {
             const url = document.getElementById('gif-url').value;
             const previewImg = document.getElementById('gif-preview');
@@ -95,22 +95,21 @@
                 return;
             }
 
-            // In die Datenbank schreiben
+            // In Firebase speichern
             db.ref('activeGifs').push({
                 gifId: gifId,
                 userName: name,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
                 status.style.color = "#00e676";
-                status.innerText = "✅ GIF wurde gesendet!";
+                status.innerText = "✅ Erfolgreich gesendet!";
                 document.getElementById('gif-url').value = "";
                 document.getElementById('gif-preview').style.display = "none";
                 
-                // Status nach 3 Sek leeren
                 setTimeout(() => { status.innerText = ""; }, 3000);
             }).catch((error) => {
                 status.style.color = "#ff4444";
-                status.innerText = "❌ Fehler: Gebannt oder keine Rechte.";
+                status.innerText = "❌ Fehler beim Senden.";
             });
         }
     </script>
