@@ -1,52 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
+    <meta charset="UTF-8">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        #container { text-align: center; }
-        img { max-width: 500px; border: 4px solid #ff0000; border-radius: 20px; box-shadow: 0 0 30px #ff0000; display: none; }
-        #sender-name { 
-            font-family: 'Impact', sans-serif; 
+        body { background: transparent; margin: 0; overflow: hidden; }
+        #display { position: relative; width: 100vw; height: 100vh; }
+        
+        /* Unsichtbare Schicht für den ersten Klick in OBS */
+        #audio-unlocker {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent; border: none; cursor: pointer; z-index: 10000;
+        }
+
+        .media-container {
+            position: absolute; bottom: 50px; right: 50px;
+            text-align: center; animation: fadeInOut 8.5s forwards;
+        }
+
+        img, video { 
+            max-width: 450px; 
+            border-radius: 15px; 
+            border: 4px solid #ff0000; /* Roter Rahmen passend zum Design */
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.6); /* Roter Glow passend zum Button */
+            display: block;
+        }
+
+        /* OPTIK AN INPUT.HTML ANGEPASST */
+        .name-label { 
             color: white; 
-            font-size: 3rem; 
-            text-transform: uppercase; 
-            text-shadow: 0 0 15px #ff0000, 2px 2px 2px #000;
-            margin-top: 20px;
-            display: none;
+            font-family: 'Impact', sans-serif; /* Gleiche Schriftart wie input.html */
+            font-size: 50px; /* Größer für OBS Sichtbarkeit */
+            text-transform: uppercase; /* Alles Großbuchstaben */
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px #ff0000, 2px 2px 5px #000; /* Roter Glow + Schwarze Kontur */
+            margin-top: 15px; 
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.9) translateY(20px); }
+            8% { opacity: 1; transform: scale(1) translateY(0); }
+            92% { opacity: 1; transform: scale(1) translateY(0); }
+            100% { opacity: 0; transform: scale(0.9) translateY(-20px); }
         }
     </style>
 </head>
 <body>
-    <div id="container">
-        <img id="gif-display">
-        <div id="sender-name"></div>
-    </div>
+
+    <button id="audio-unlocker" onclick="activateAudio()"></button>
+    <div id="display"></div>
 
     <script>
-        // ... (Deine Firebase Config hier lassen) ...
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
+            authDomain: "chaostitan41-website.firebaseapp.com",
+            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "chaostitan41-website",
+            storageBucket: "chaostitan41-website.firebasestorage.app",
+            messagingSenderId: "553158677453",
+            appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
+        };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const start = Date.now();
+        
+        const notificationSound = new Audio('pop.mp3'); 
 
-        db.ref('activeGifs').on('child_added', snap => {
+        function activateAudio() {
+            notificationSound.play().then(() => {
+                notificationSound.pause();
+                notificationSound.currentTime = 0;
+            });
+            document.getElementById('audio-unlocker').style.display = 'none';
+        }
+
+        db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
             const data = snap.val();
-            const gif = document.getElementById('gif-display');
-            const nameDiv = document.getElementById('sender-name');
+            if(data.timestamp < start) return;
 
-            gif.src = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
-            nameDiv.innerText = data.userName;
+            notificationSound.currentTime = 0;
+            notificationSound.volume = 0.6;
+            notificationSound.play().catch(() => {});
 
-            gif.style.display = "block";
-            nameDiv.style.display = "block";
+            const box = document.getElementById('display');
+            const div = document.createElement('div');
+            div.className = "media-container";
+            
+            const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
+            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
 
-            // Nach 10 Sekunden ausblenden
-            setTimeout(() => {
-                gif.style.display = "none";
-                nameDiv.style.display = "none";
-                // Optional: Aus der Datenbank löschen, damit es nicht neu lädt
-                db.ref('activeGifs/' + snap.key).remove();
-            }, 10000);
+            div.innerHTML = `
+                <video id="v-${snap.key}" src="${videoUrl}" autoplay loop playsinline style="width:450px;"></video>
+                <img id="i-${snap.key}" src="${imageUrl}" style="display:none; width:450px;">
+                <div class="name-label">${data.userName}</div>
+            `;
+            box.appendChild(div);
+
+            const v = document.getElementById(`v-${snap.key}`);
+            const i = document.getElementById(`i-${snap.key}`);
+
+            v.onplay = () => {
+                v.muted = false;
+                v.volume = 0.7;
+            };
+
+            v.onerror = () => { 
+                v.style.display = 'none'; 
+                i.style.display = 'block'; 
+            };
+
+            setTimeout(() => div.remove(), 8500);
         });
     </script>
 </body>
