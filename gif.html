@@ -1,67 +1,53 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>GIF Sender - HTTP Mode</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { background: #0f0f13; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: #1a1a2e; padding: 40px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; width: 350px; box-shadow: 0 0 30px rgba(139,0,0,0.6); }
-        h2 { color: #ff4444; margin-bottom: 25px; }
-        input { width: 100%; padding: 15px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; box-sizing: border-box; }
-        button { background: #8B0000; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-        button:disabled { background: #444; opacity: 0.5; cursor: not-allowed; }
-        #status { margin-top: 20px; font-size: 0.9rem; color: #aaa; }
+        body { margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        #container { text-align: center; }
+        img { max-width: 500px; border: 4px solid #ff0000; border-radius: 20px; box-shadow: 0 0 30px #ff0000; display: none; }
+        #sender-name { 
+            font-family: 'Impact', sans-serif; 
+            color: white; 
+            font-size: 3rem; 
+            text-transform: uppercase; 
+            text-shadow: 0 0 15px #ff0000, 2px 2px 2px #000;
+            margin-top: 20px;
+            display: none;
+        }
     </style>
 </head>
 <body>
-
-    <div class="box">
-        <h2>🎬 GIF GÖNDER</h2>
-        <input type="text" id="gifInput" placeholder="Giphy Linkini Yapıştır...">
-        <button id="sendBtn" onclick="sendGif()">YAYINA GÖNDER</button>
-        <div id="status">Bereit</div>
+    <div id="container">
+        <img id="gif-display">
+        <div id="sender-name"></div>
     </div>
 
     <script>
-        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev'; 
+        // ... (Deine Firebase Config hier lassen) ...
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        async function sendGif() {
-            const gifUrl = document.getElementById('gifInput').value.trim();
-            const btn = document.getElementById('sendBtn');
-            const statusDiv = document.getElementById('status');
+        db.ref('activeGifs').on('child_added', snap => {
+            const data = snap.val();
+            const gif = document.getElementById('gif-display');
+            const nameDiv = document.getElementById('sender-name');
 
-            if (!gifUrl.includes('giphy.com')) return alert('Lütfen geçerli bir Giphy linki girin!');
+            gif.src = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
+            nameDiv.innerText = data.userName;
 
-            btn.disabled = true;
-            statusDiv.innerText = "Sende...";
+            gif.style.display = "block";
+            nameDiv.style.display = "block";
 
-            try {
-                // Wir senden die Anfrage mit dem speziellen ngrok-Header
-                await fetch(`${NGROK_URL}/?url=${encodeURIComponent(gifUrl)}`, {
-                    method: 'GET',
-                    mode: 'no-cors', // Wichtig für GitHub -> ngrok
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true'
-                    }
-                });
-
-                statusDiv.style.color = "#44ff44";
-                statusDiv.innerText = "✅ Erfolgreich gesendet!";
-                
-                // 5 Minuten Cooldown (optional, kannst du zum Testen ausbauen)
-                setTimeout(() => {
-                    btn.disabled = false;
-                    statusDiv.innerText = "Bereit";
-                    statusDiv.style.color = "#aaa";
-                }, 5000); // Zum Testen nur 5 Sek.
-
-            } catch (err) {
-                statusDiv.style.color = "#ff4444";
-                statusDiv.innerText = "❌ Fehler!";
-                btn.disabled = false;
-                console.error(err);
-            }
-        }
+            // Nach 10 Sekunden ausblenden
+            setTimeout(() => {
+                gif.style.display = "none";
+                nameDiv.style.display = "none";
+                // Optional: Aus der Datenbank löschen, damit es nicht neu lädt
+                db.ref('activeGifs/' + snap.key).remove();
+            }, 10000);
+        });
     </script>
 </body>
 </html>
