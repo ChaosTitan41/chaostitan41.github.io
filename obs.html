@@ -16,7 +16,6 @@
             animation: fadeInOut 8s forwards;
         }
 
-        /* Wir setzen Video und Bild auf die gleiche Größe */
         img, video { 
             max-width: 450px; 
             border-radius: 15px; 
@@ -44,6 +43,7 @@
     <div id="display"></div>
 
     <script>
+        // DEINE FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
             authDomain: "chaostitan41-website.firebaseapp.com",
@@ -56,47 +56,46 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const startTime = Date.now();
+        const start = Date.now(); // Verhindert das Laden alter GIFs
 
-        db.ref('activeGifs').limitToLast(1).on('child_added', (snapshot) => {
-            const data = snapshot.val();
-            if (data.timestamp < startTime) return;
+        db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
+            const data = snap.val();
+            if(data.timestamp < start) return;
 
-            const display = document.getElementById('display');
+            const box = document.getElementById('display'); // Geändert zu 'display'
             const div = document.createElement('div');
-            div.className = 'media-container';
+            div.className = "media-container";
             
-            // Wir laden die MP4-Version. Videos haben ein echtes 'loop' Attribut.
             const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
             const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
 
-            // 'loop' sorgt dafür, dass das Video niemals stehen bleibt.
-            // 'muted' ist am Anfang oft nötig, damit der Browser Autoplay erlaubt.
             div.innerHTML = `
-                <video id="vid-${snapshot.key}" src="${videoUrl}" autoplay loop playsinline muted></video>
-                <img id="img-${snapshot.key}" src="${imageUrl}" style="display:none;">
+                <video id="v-${snap.key}" src="${videoUrl}" autoplay playsinline style="width:450px;"></video>
+                <img id="i-${snap.key}" src="${imageUrl}" style="display:none; width:450px;">
                 <div class="name-label">${data.userName}</div>
             `;
+            box.appendChild(div);
 
-            display.appendChild(div);
+            const v = document.getElementById(`v-${snap.key}`);
+            const i = document.getElementById(`i-${snap.key}`);
 
-            const videoElement = document.getElementById(`vid-${snapshot.key}`);
-            const imageElement = document.getElementById(`img-${snapshot.key}`);
-
-            // Sobald das Video bereit ist, versuchen wir den Ton zu aktivieren
-            videoElement.oncanplay = () => {
-                videoElement.muted = false; // Entmuten für OBS
-                videoElement.play().catch(e => console.log("Sound-Autoplay blockiert"));
+            // Sound-Logik
+            v.oncanplaythrough = () => {
+                v.muted = false;
+                v.volume = 1.0;
+                v.play().catch(err => {
+                    v.muted = true; // Falls Autoplay gesperrt ist
+                    v.play();
+                    setTimeout(() => { v.muted = false; }, 100);
+                });
             };
 
-            // Falls Giphy kein MP4 für diese ID hat, nutzen wir das GIF als Backup
-            videoElement.onerror = () => {
-                videoElement.style.display = 'none';
-                imageElement.style.display = 'block';
+            v.onerror = () => { 
+                v.style.display='none'; 
+                i.style.display='block'; 
             };
-
-            // Nach 8 Sekunden das gesamte Element entfernen
-            setTimeout(() => { div.remove(); }, 8000);
+            
+            setTimeout(() => div.remove(), 8000);
         });
     </script>
 </body>
