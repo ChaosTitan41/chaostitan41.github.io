@@ -8,6 +8,20 @@
         body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
         #display { position: relative; width: 100vw; height: 100vh; }
         
+        /* Der Aktivierungs-Button (nur in OBS sichtbar beim Einrichten) */
+        #unlock-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            background: rgba(169, 112, 255, 0.8);
+            color: white;
+            border: none;
+            cursor: pointer;
+            z-index: 9999;
+            border-radius: 5px;
+        }
+
         .media-container {
             position: absolute;
             bottom: 50px;
@@ -16,30 +30,20 @@
             animation: fadeInOut 8s forwards;
         }
 
-        img, video { 
-            max-width: 450px; 
-            border-radius: 15px; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.5); 
-            display: block;
-        }
-
-        .name-label { 
-            color: white; 
-            font-size: 26px; 
-            text-shadow: 2px 2px 8px #000; 
-            margin-top: 10px; 
-            font-weight: bold;
-        }
+        img, video { max-width: 450px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); display: block; }
+        .name-label { color: white; font-size: 26px; text-shadow: 2px 2px 8px #000; margin-top: 10px; font-weight: bold; }
 
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: scale(0.5) translateY(50px); }
-            10% { opacity: 1; transform: scale(1) translateY(0); }
-            90% { opacity: 1; transform: scale(1) translateY(0); }
-            100% { opacity: 0; transform: scale(0.5) translateY(-50px); }
+            0% { opacity: 0; transform: scale(0.5); }
+            10% { opacity: 1; transform: scale(1); }
+            90% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
         }
     </style>
 </head>
 <body>
+    <button id="unlock-button" onclick="activateAudio()">🔊 KLICK MICH IN OBS (SOUND AKTIVIEREN)</button>
+    
     <div id="display"></div>
 
     <script>
@@ -56,19 +60,31 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const start = Date.now();
+        let audioContext;
 
-        // Den Pop-Sound vorbereiten
-        const popSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+        // Funktion um Audio freizuschalten
+        function activateAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            document.getElementById('unlock-button').style.display = 'none';
+            console.log("Audio freigeschaltet!");
+            
+            // Kurzer Test-Piep
+            const osc = audioContext.createOscillator();
+            osc.connect(audioContext.destination);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.1);
+        }
 
         db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
             const data = snap.val();
             if(data.timestamp < start) return;
 
-            // 1. Sound abspielen
-            popSound.currentTime = 0; // Zurück zum Start (falls schnell hintereinander gesendet wird)
-            popSound.play().catch(e => console.log("Sound-Autoplay blockiert. Einmal Interagieren nötig."));
+            // Wenn Audio aktiviert ist, spiele Pop ab
+            if(audioContext) {
+                const pop = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+                pop.play();
+            }
 
-            // 2. GIF/Video anzeigen
             const box = document.getElementById('display');
             const div = document.createElement('div');
             div.className = "media-container";
@@ -85,6 +101,11 @@
 
             const v = document.getElementById(`v-${snap.key}`);
             const i = document.getElementById(`i-${snap.key}`);
+
+            v.oncanplaythrough = () => {
+                v.muted = false;
+                v.play();
+            };
 
             v.onerror = () => { 
                 v.style.display='none'; 
