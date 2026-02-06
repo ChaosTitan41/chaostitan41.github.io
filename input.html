@@ -1,104 +1,87 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIF Gönder | CHAOSTITAN41</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <style>
-        body { background: #000 url('bg.png') no-repeat center center fixed; background-size: cover; color: #fff; font-family: 'Impact', sans-serif; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { width: 100%; max-width: 600px; padding: 40px 20px; background: rgba(0, 0, 0, 0.8); border-radius: 20px; border: 1px solid #ff0000; backdrop-filter: blur(10px); }
-        input { padding: 15px; width: 90%; border-radius: 8px; border: 1px solid #444; background: #000; color: #fff; margin-bottom: 15px; font-size: 1.1rem; text-align: center; }
-        .giphy-search-btn { display: inline-block; background: #000; color: #fff; border: 1px solid #fff; padding: 10px 20px; border-radius: 5px; text-decoration: none; margin-bottom: 20px; font-family: Arial, sans-serif; font-size: 0.9rem; transition: 0.3s; }
-        .giphy-search-btn:hover { background: #fff; color: #000; }
-        .send-btn { background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); color: #fff; border: 2px solid #ff0000; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.5rem; cursor: pointer; text-transform: uppercase; font-family: 'Impact'; transition: 0.3s; }
-        .send-btn:hover { background: #ff0000; box-shadow: 0 0 20px #ff0000; }
-        #status { margin-top: 20px; font-family: Arial; font-weight: bold; }
-        #gif-preview { max-width: 200px; display: none; margin: 15px auto; border: 2px solid red; border-radius: 10px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <img src="logo.png" style="max-width:200px; margin-bottom:10px;">
-        <br>
-        <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA (GIPHY.COM)</a>
-        <input type="text" id="username" placeholder="ADINIZ">
-        <input type="text" id="gif-url" placeholder="Giphy Linkini Buraya Yapıştır..." oninput="updatePreview()">
-        <img id="gif-preview">
-        <button onclick="send()" class="send-btn">YAYINA GÖNDER!</button>
-        <div id="status"></div>
-        <a href="index.html" style="color:#555; text-decoration:none; display:block; margin-top:20px;">← Geri Dön</a>
-    </div>
+<script>
+    // ... (Deine Firebase Config hier lassen) ...
+    const db = firebase.database();
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
-            authDomain: "chaostitan41-website.firebaseapp.com",
-            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "chaostitan41-website",
-            storageBucket: "chaostitan41-website.firebasestorage.app",
-            messagingSenderId: "553158677453",
-            appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    function getID(url) {
+        try {
+            const parts = url.split("/");
+            let id = url.includes("/gifs/") ? url.split("-").pop().split("/")[0] : parts[parts.length - 2];
+            if (id.includes("?")) id = id.split("?")[0];
+            return id;
+        } catch(e) { return null; }
+    }
 
-        // DEINE ALTE FUNKTION (Die funktioniert hat)
-        function getID(url) {
-            try {
-                const parts = url.split("/");
-                let id = url.includes("/gifs/") ? url.split("-").pop().split("/")[0] : parts[parts.length - 2];
-                if (id.includes("?")) id = id.split("?")[0];
-                return id;
-            } catch(e) { return null; }
-        }
+    function updatePreview() {
+        const id = getID(document.getElementById('gif-url').value);
+        const img = document.getElementById('gif-preview');
+        if(id) {
+            img.src = `https://media.giphy.com/media/${id}/giphy.gif`;
+            img.style.display = "block";
+        } else { img.style.display = "none"; }
+    }
 
-        function updatePreview() {
-            const id = getID(document.getElementById('gif-url').value);
-            const img = document.getElementById('gif-preview');
-            if(id) {
-                img.src = `https://media.giphy.com/media/${id}/giphy.gif`;
-                img.style.display = "block";
-            } else { img.style.display = "none"; }
-        }
+    // Cooldown Logik
+    const statusDiv = document.getElementById('status');
+    const sendBtn = document.querySelector('.send-btn');
 
-        async function send() {
-            const id = getID(document.getElementById('gif-url').value);
-            const name = document.getElementById('username').value || "Anonim";
-            if(!id) return alert("Hata: Geçersiz Link!");
+    function checkCooldown() {
+        db.ref('lastGifTime').on('value', snap => {
+            const lastTime = snap.val() || 0;
+            const now = Date.now();
+            const diff = (now - lastTime) / 1000;
 
-            // IP TRACKING FÜR ADMIN PANEL
-            let userIP = "unknown";
-            try {
-                const res = await fetch('https://api64.ipify.org?format=json');
-                const data = await res.json();
-                userIP = data.ip.replace(/\./g, '_');
-            } catch(e) {}
+            if (diff < 60) {
+                let timeLeft = Math.ceil(60 - diff);
+                sendBtn.disabled = true;
+                sendBtn.style.opacity = "0.5";
+                statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s bekleyin...</span>`;
+                
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        sendBtn.disabled = false;
+                        sendBtn.style.opacity = "1";
+                        statusDiv.innerHTML = "";
+                    } else {
+                        statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s bekleyin...</span>`;
+                    }
+                }, 1000);
+            }
+        });
+    }
+    checkCooldown();
 
-            // CHECK BAN & SEND
-            db.ref('bannedIPs/' + userIP).once('value', snap => {
-                if (snap.exists()) {
-                    document.getElementById('status').innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
-                    db.ref('bannedRequests').push({ userName: name, userIP: userIP, timestamp: firebase.database.ServerValue.TIMESTAMP });
-                } else {
-                    db.ref('activeGifs').push({
-                        gifId: id,
-                        userName: name,
-                        userIP: userIP, // Damit du die IP im Admin Panel siehst
-                        timestamp: firebase.database.ServerValue.TIMESTAMP
-                    }).then(() => {
-                        document.getElementById('status').innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
-                        document.getElementById('gif-url').value = "";
-                        document.getElementById('gif-preview').style.display = "none";
-                        
-                        // Statistik Zähler für Admin
-                        const day = new Date().toISOString().split('T')[0];
-                        db.ref('stats/daily/' + day + '/' + userIP).set(true);
-                    });
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+    async function send() {
+        const id = getID(document.getElementById('gif-url').value);
+        const name = document.getElementById('username').value || "Anonim";
+        if(!id) return alert("Hata: Geçersiz Link!");
+
+        let userIP = "unknown";
+        try {
+            const res = await fetch('https://api64.ipify.org?format=json');
+            const data = await res.json();
+            userIP = data.ip.replace(/\./g, '_');
+        } catch(e) {}
+
+        db.ref('bannedIPs/' + userIP).once('value', snap => {
+            if (snap.exists()) {
+                statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
+            } else {
+                const now = Date.now();
+                // Erst Cooldown-Zeit in Firebase setzen, dann Gif senden
+                db.ref('lastGifTime').set(now);
+                db.ref('activeGifs').push({
+                    gifId: id,
+                    userName: name,
+                    userIP: userIP,
+                    timestamp: now
+                }).then(() => {
+                    statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
+                    document.getElementById('gif-url').value = "";
+                    document.getElementById('gif-preview').style.display = "none";
+                });
+            }
+        });
+    }
+</script>
