@@ -13,7 +13,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .container { 
-            background: rgba(0, 0, 0, 0.6); /* Şeffaf arka plan */
+            background: rgba(0, 0, 0, 0.6); 
             padding: 50px 30px; border-radius: 30px; 
             border: 2px solid #8B0000; width: 90%; max-width: 600px;
             backdrop-filter: blur(8px);
@@ -24,37 +24,63 @@
         input { 
             padding: 22px; width: 90%; border-radius: 12px; border: 2px solid #333; 
             background: rgba(0,0,0,0.8); color: white; margin-bottom: 20px; font-size: 1.3rem;
-            transition: 0.3s;
         }
-        input:focus { border-color: #ff0000; outline: none; background: #000; }
-        
-        button { 
+
+        /* GIPHY ARAMA BUTONU STİLİ */
+        .giphy-search-btn {
+            display: inline-block;
+            background: #222;
+            color: #fff;
+            padding: 12px 20px;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            border: 1px solid #444;
+            transition: 0.3s;
+            font-size: 1rem;
+        }
+        .giphy-search-btn:hover {
+            background: #444;
+            border-color: #00ff99; /* Giphy'nin ikonik yeşili */
+            color: #00ff99;
+        }
+
+        button.send-btn { 
             padding: 25px; background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); 
             color: white; border: 2px solid #ff0000; border-radius: 12px; cursor: pointer; 
             font-weight: bold; font-size: 1.8rem; width: 98%; text-transform: uppercase; font-family: 'Impact';
             transition: 0.3s; margin-top: 10px;
         }
-        button:hover { background: #ff0000; transform: scale(1.02); box-shadow: 0 0 30px #ff0000; }
+        button.send-btn:hover { background: #ff0000; transform: scale(1.02); box-shadow: 0 0 30px #ff0000; }
         
         #status { margin-top: 20px; color: #00FF41; font-size: 1.4rem; font-weight: bold; height: 30px; }
-        .preview { margin: 20px auto; max-width: 250px; border-radius: 15px; display: none; border: 3px solid #ff0000; box-shadow: 0 0 20px #000; }
-        .back-link { display: inline-block; margin-top: 30px; color: #bbb; text-decoration: none; font-size: 1.1rem; border-bottom: 1px dotted #555; }
+        .preview { margin: 20px auto; max-width: 250px; border-radius: 15px; display: none; border: 3px solid #ff0000; }
+        .back-link { display: inline-block; margin-top: 30px; color: #bbb; text-decoration: none; font-size: 1.1rem; }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="logo.png" class="logo-small">
         <h2>YAYINA GIF FIRLAT</h2>
+        
+        <a href="https://giphy.com/" target="_blank" class="giphy-search-btn">
+            🔍 GIPHY'de GIF Bul (Yeni Sekme)
+        </a>
+
         <input type="text" id="username" placeholder="Adınız (Zorunlu değil)">
-        <input type="text" id="gif-url" placeholder="Giphy Linkini Yapıştır..." oninput="updatePreview()">
+        <input type="text" id="gif-url" placeholder="Giphy Linkini Buraya Yapıştır..." oninput="updatePreview()">
+        
         <img id="gif-preview" class="preview" src="">
-        <button onclick="send()">YAYINA GÖNDER!</button>
+        
+        <button onclick="send()" class="send-btn">YAYINA GÖNDER!</button>
+        
         <div id="status"></div>
         <a href="index.html" class="back-link">← Ana Sayfaya Dön</a>
     </div>
 
     <script>
-        // FIREBASE CONFIG BURAYA GELECEK (Senin mevcut config'ini kullan)
+        // Firebase Config'in (apiKey, databaseURL vb.) buraya gelecek...
         const firebaseConfig = {
             apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
             authDomain: "chaostitan41-website.firebaseapp.com",
