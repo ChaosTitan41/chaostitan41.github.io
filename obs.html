@@ -8,10 +8,11 @@
         body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
         #display { position: relative; width: 100vw; height: 100vh; }
         
+        /* Der Aktivierungs-Button für OBS */
         #unlock-button {
             position: absolute; top: 10px; left: 10px; padding: 15px;
-            background: #a970ff; color: white; border: none; cursor: pointer;
-            z-index: 9999; border-radius: 5px; font-weight: bold;
+            background: #a970ff; color: white; border: 2px solid white; cursor: pointer;
+            z-index: 9999; border-radius: 8px; font-weight: bold; font-size: 16px;
         }
 
         .media-container {
@@ -19,22 +20,36 @@
             text-align: center; animation: fadeInOut 8s forwards;
         }
 
-        img, video { max-width: 450px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .name-label { color: white; font-size: 26px; text-shadow: 2px 2px 8px #000; margin-top: 10px; font-weight: bold; }
+        img, video { 
+            max-width: 450px; 
+            border-radius: 15px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+            display: block;
+        }
+
+        .name-label { 
+            color: white; 
+            font-size: 28px; 
+            text-shadow: 2px 2px 10px #000; 
+            margin-top: 12px; 
+            font-weight: bold;
+        }
 
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: scale(0.5); }
-            10% { opacity: 1; transform: scale(1); }
-            90% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(0.5); }
+            0% { opacity: 0; transform: scale(0.5) translateY(50px); }
+            10% { opacity: 1; transform: scale(1) translateY(0); }
+            90% { opacity: 1; transform: scale(1) translateY(0); }
+            100% { opacity: 0; transform: scale(0.5) translateY(-50px); }
         }
     </style>
 </head>
 <body>
-    <button id="unlock-button" onclick="activateAudio()">🔊 KLICK MICH EINMAL (SOUND AKTIVIEREN)</button>
+
+    <button id="unlock-button" onclick="activateAudio()">🔊 SOUND AKTIVIEREN (HIER KLICKEN)</button>
     <div id="display"></div>
 
     <script>
+        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
             authDomain: "chaostitan41-website.firebaseapp.com",
@@ -49,50 +64,5 @@
         const db = firebase.database();
         const start = Date.now();
         
-        // 1. DEIN SEPARATER POP-SOUND (Unabhängig von Giphy)
-        const notificationSound = new Audio('https://www.myinstants.com/de/instant/pop/?utm_source=copy&utm_medium=share');
-
-        function activateAudio() {
-            // Schaltet das Audio-System im OBS-Browser frei
-            notificationSound.play().then(() => {
-                notificationSound.pause();
-                notificationSound.currentTime = 0;
-            });
-            document.getElementById('unlock-button').style.display = 'none';
-        }
-
-        db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
-            const data = snap.val();
-            if(data.timestamp < start) return;
-
-            // 2. BENACHRICHTIGUNG ABSPIELEN
-            notificationSound.currentTime = 0;
-            notificationSound.play().catch(e => console.log("Sound blockiert - Interagieren nötig!"));
-
-            // 3. GIF/CLIP ANZEIGEN
-            const box = document.getElementById('display');
-            const div = document.createElement('div');
-            div.className = "media-container";
-            
-            const videoUrl = `https://i.giphy.com/${data.gifId}.mp4`;
-            const imageUrl = `https://i.giphy.com/${data.gifId}.gif`;
-
-            div.innerHTML = `
-                <video id="v-${snap.key}" src="${videoUrl}" autoplay playsinline style="width:450px;"></video>
-                <img id="i-${snap.key}" src="${imageUrl}" style="display:none; width:450px;">
-                <div class="name-label">${data.userName}</div>
-            `;
-            box.appendChild(div);
-
-            const v = document.getElementById(`v-${snap.key}`);
-            const i = document.getElementById(`i-${snap.key}`);
-
-            // Clip-Audio (falls vorhanden) entmuten
-            v.onplay = () => { v.muted = false; v.volume = 0.8; };
-            v.onerror = () => { v.style.display='none'; i.style.display='block'; };
-            
-            setTimeout(() => div.remove(), 8000);
-        });
-    </script>
-</body>
-</html>
+        // POP-SOUND KONFIGURATION
+        const notificationSound = new Audio('
