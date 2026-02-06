@@ -1,71 +1,41 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <title>GIF an ChaosTitan41 senden</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
-        .box { background: #1e1e1e; padding: 20px; border-radius: 10px; display: inline-block; }
-        input { padding: 10px; width: 300px; border-radius: 5px; border: 1px solid #444; margin-bottom: 10px; }
-        button { padding: 10px 20px; background: #6441a5; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #7d5bbe; }
-        #status { margin-top: 15px; color: #00e676; }
-    </style>
-</head>
-<body>
+function sendGif() {
+    const name = document.getElementById('username').value || "Anonym";
+    let urlInput = document.getElementById('gif-url').value.trim();
+    const status = document.getElementById('status');
 
-    <div class="box">
-        <h2>GIF an Stream senden</h2>
-        <input type="text" id="username" placeholder="Dein Name (Zuschauer)"><br>
-        <input type="text" id="gif-url" placeholder="Giphy-Link hier einfügen..."><br>
-        <button onclick="sendGif()">Ab an den Stream!</button>
-        <div id="status"></div>
-    </div>
+    if (!urlInput.includes("giphy.com")) {
+        status.innerText = "❌ Bitte nur Giphy.com Links!";
+        return;
+    }
 
-    <script>
-        // Deine Firebase Konfiguration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
-            authDomain: "chaostitan41-website.firebaseapp.com",
-            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "chaostitan41-website",
-            storageBucket: "chaostitan41-website.firebasestorage.app",
-            messagingSenderId: "553158677453",
-            appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
-        };
+    let gifId = "";
 
-        // Firebase initialisieren
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        function sendGif() {
-            const name = document.getElementById('username').value || "Anonym";
-            const urlInput = document.getElementById('gif-url').value;
-            const status = document.getElementById('status');
-
-            if (!urlInput.includes("giphy.com")) {
-                status.innerText = "❌ Bitte nur Giphy.com Links!";
-                return;
-            }
-
-            // GIF ID aus dem Link ziehen
+    try {
+        if (urlInput.includes("media.giphy.com")) {
+            // Logik für deinen Link: media.giphy.com/media/.../ID/giphy.gif
+            const parts = urlInput.split("/");
+            // Die ID steht bei diesen Links immer an vorletzter Stelle vor giphy.gif
+            gifId = parts[parts.length - 2];
+        } else {
+            // Logik für Standard-Links: giphy.com/gifs/name-ID
             const parts = urlInput.split("-");
-            const gifId = parts[parts.length - 1].replace("/", "");
-
-            // In die Datenbank schreiben
-            db.ref('activeGifs').push({
-                gifId: gifId,
-                userName: name,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                status.innerText = "✅ GIF wurde gesendet!";
-                document.getElementById('gif-url').value = "";
-            }).catch((error) => {
-                status.innerText = "❌ Fehler: " + error.message;
-            });
+            gifId = parts[parts.length - 1].split("/")[0].split("?")[0];
         }
-    </script>
-</body>
-</html>
+    } catch (e) {
+        status.innerText = "❌ Link-Format nicht erkannt.";
+        return;
+    }
+
+    if (gifId && gifId.length > 5) {
+        db.ref('activeGifs').push({
+            gifId: gifId,
+            userName: name,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            status.innerText = "✅ GIF versendet: " + gifId;
+            document.getElementById('gif-url').value = "";
+        });
+    } else {
+        status.innerText = "❌ Fehler beim Extrahieren der ID.";
+    }
+}
