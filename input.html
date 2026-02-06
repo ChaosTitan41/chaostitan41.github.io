@@ -32,66 +32,69 @@
     </div>
 
     <script>
-        const firebaseConfig = { 
-            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", 
-            authDomain: "chaostitan41-website.firebaseapp.com", 
-            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", 
-            projectId: "chaostitan41-website", 
-            storageBucket: "chaostitan41-website.firebasestorage.app", 
-            messagingSenderId: "553158677453", 
-            appId: "1:553158677453:web:2cad39890ffdedb98aaa84" 
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
+            authDomain: "chaostitan41-website.firebaseapp.com",
+            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "chaostitan41-website",
+            storageBucket: "chaostitan41-website.firebasestorage.app",
+            messagingSenderId: "553158677453",
+            appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // DEINE ALTE FUNKTION (Die funktioniert hat)
         function getID(url) {
-            if (!url) return null;
-            // Diese Regex filtert die ID aus allen Giphy-Linkformaten (media, gifs, sticker, etc.)
-            const regExp = /media(?:[0-9])?\.giphy\.com\/media\/([a-zA-Z0-9]+)\/giphy/i;
-            const regExp2 = /giphy\.com\/gifs\/(?:.*-)?([a-zA-Z0-9]+)/i;
-            
-            const match = url.match(regExp) || url.match(regExp2);
-            return match ? match[1] : url.split('/').pop().split('?')[0];
+            try {
+                const parts = url.split("/");
+                let id = url.includes("/gifs/") ? url.split("-").pop().split("/")[0] : parts[parts.length - 2];
+                if (id.includes("?")) id = id.split("?")[0];
+                return id;
+            } catch(e) { return null; }
         }
 
         function updatePreview() {
             const id = getID(document.getElementById('gif-url').value);
             const img = document.getElementById('gif-preview');
-            if(id && id.length > 3) {
-                // Wir nutzen i.giphy.com - das ist die stabilste URL für direkte Einbettungen
-                img.src = `https://i.giphy.com/media/${id}/giphy.gif`;
+            if(id) {
+                img.src = `https://media.giphy.com/media/${id}/giphy.gif`;
                 img.style.display = "block";
             } else { img.style.display = "none"; }
         }
 
         async function send() {
             const id = getID(document.getElementById('gif-url').value);
-            if(!id) return alert("Hata: Geçersiz Giphy Linki!");
+            const name = document.getElementById('username').value || "Anonim";
+            if(!id) return alert("Hata: Geçersiz Link!");
 
-            let ip = "unknown";
+            // IP TRACKING FÜR ADMIN PANEL
+            let userIP = "unknown";
             try {
                 const res = await fetch('https://api64.ipify.org?format=json');
                 const data = await res.json();
-                ip = data.ip.replace(/\./g, '_');
-            } catch(e) { console.error("IP Error"); }
+                userIP = data.ip.replace(/\./g, '_');
+            } catch(e) {}
 
-            const name = document.getElementById('username').value || "Anonim";
-
-            db.ref('bannedIPs/' + ip).once('value', snap => {
+            // CHECK BAN & SEND
+            db.ref('bannedIPs/' + userIP).once('value', snap => {
                 if (snap.exists()) {
                     document.getElementById('status').innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
+                    db.ref('bannedRequests').push({ userName: name, userIP: userIP, timestamp: firebase.database.ServerValue.TIMESTAMP });
                 } else {
-                    // Wir speichern NUR die saubere ID. 
-                    // Das Overlay muss dann https://i.giphy.com/media/ID/giphy.gif abrufen.
-                    db.ref('activeGifs').push({ 
-                        gifId: id, 
-                        userName: name, 
-                        userIP: ip, 
-                        timestamp: firebase.database.ServerValue.TIMESTAMP 
+                    db.ref('activeGifs').push({
+                        gifId: id,
+                        userName: name,
+                        userIP: userIP, // Damit du die IP im Admin Panel siehst
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
                     }).then(() => {
-                        document.getElementById('status').innerHTML = "<span style='color:#00ff99'>GÖNDERİLDİ!</span>";
+                        document.getElementById('status').innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
                         document.getElementById('gif-url').value = "";
                         document.getElementById('gif-preview').style.display = "none";
+                        
+                        // Statistik Zähler für Admin
+                        const day = new Date().toISOString().split('T')[0];
+                        db.ref('stats/daily/' + day + '/' + userIP).set(true);
                     });
                 }
             });
