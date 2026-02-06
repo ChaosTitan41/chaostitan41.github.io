@@ -75,7 +75,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const MASTER = "DEIN_PASSWORT"; // <--- HIER DEIN PASSWORT
+        const MASTER = "Uzuner41!"; // <--- HIER DEIN PASSWORT
 
         if(sessionStorage.getItem("admin_auth") === "true") show();
         function checkLogin() { if(document.getElementById('admin-pass').value === MASTER) { sessionStorage.setItem("admin_auth","true"); show(); } else alert("Hata!"); }
