@@ -7,10 +7,34 @@
     <style>
         body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
         #display { position: relative; width: 100vw; height: 100vh; }
-        #audio-unlocker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; border: none; cursor: pointer; z-index: 10000; }
-        .media-container { position: absolute; bottom: 50px; right: 50px; text-align: center; animation: fadeInOut 8.5s forwards; }
-        img, video { max-width: 450px; border-radius: 15px; box-shadow: 0 0 25px rgba(0,0,0,0.6); display: block; }
-        .name-label { color: white; font-size: 28px; text-shadow: 2px 2px 10px #000; margin-top: 12px; font-weight: bold; font-family: Arial, sans-serif; }
+        
+        /* Unsichtbare Schicht für den ersten Klick in OBS */
+        #audio-unlocker {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent; border: none; cursor: pointer; z-index: 10000;
+        }
+
+        .media-container {
+            position: absolute; bottom: 50px; right: 50px;
+            text-align: center; animation: fadeInOut 8.5s forwards;
+        }
+
+        img, video { 
+            max-width: 450px; 
+            border-radius: 15px; 
+            box-shadow: 0 0 25px rgba(0,0,0,0.6); 
+            display: block;
+        }
+
+        .name-label { 
+            color: white; 
+            font-size: 28px; 
+            text-shadow: 2px 2px 10px #000; 
+            margin-top: 12px; 
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        }
+
         @keyframes fadeInOut {
             0% { opacity: 0; transform: scale(0.9) translateY(20px); }
             8% { opacity: 1; transform: scale(1) translateY(0); }
@@ -20,8 +44,10 @@
     </style>
 </head>
 <body>
+
     <button id="audio-unlocker" onclick="activateAudio()"></button>
     <div id="display"></div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
@@ -32,20 +58,28 @@
             messagingSenderId: "553158677453",
             appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
         };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const start = Date.now();
+        
+        // Dein Sound von GitHub
         const notificationSound = new Audio('pop.mp3'); 
 
         function activateAudio() {
-            notificationSound.play().then(() => { notificationSound.pause(); notificationSound.currentTime = 0; });
+            notificationSound.play().then(() => {
+                notificationSound.pause();
+                notificationSound.currentTime = 0;
+            });
             document.getElementById('audio-unlocker').style.display = 'none';
+            console.log("Overlay bereit!");
         }
 
         db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
             const data = snap.val();
             if(data.timestamp < start) return;
 
+            // 1. BENACHRICHTIGUNG (DEIN POP)
             notificationSound.currentTime = 0;
             notificationSound.volume = 0.6;
             notificationSound.play().catch(() => {});
@@ -54,8 +88,8 @@
             const div = document.createElement('div');
             div.className = "media-container";
             
-            // NEUE URL STRUKTUR HIER:
-            const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy-downsized-medium.mp4`;
+            // Wir laden sowohl Video als auch Bild (Fallback)
+            const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
             const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
 
             div.innerHTML = `
@@ -68,8 +102,19 @@
             const v = document.getElementById(`v-${snap.key}`);
             const i = document.getElementById(`i-${snap.key}`);
 
-            v.onplay = () => { v.muted = false; v.volume = 0.8; };
-            v.onerror = () => { v.style.display = 'none'; i.style.display = 'block'; };
+            // Versuche Sound vom Video zu aktivieren
+            v.onplay = () => {
+                v.muted = false;
+                v.volume = 0.7;
+            };
+
+            // Wenn Video nicht geht, zeige GIF
+            v.onerror = () => { 
+                v.style.display = 'none'; 
+                i.style.display = 'block'; 
+            };
+
+            // Nach 8.5 Sekunden aufräumen
             setTimeout(() => div.remove(), 8500);
         });
     </script>
