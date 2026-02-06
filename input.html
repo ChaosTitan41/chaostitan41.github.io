@@ -11,52 +11,39 @@
         .container { width: 100%; max-width: 600px; padding: 40px 20px; background: rgba(0, 0, 0, 0.6); border-radius: 20px; border: 1px solid rgba(255, 0, 0, 0.3); backdrop-filter: blur(10px); }
         .logo-img { width: 100%; max-width: 300px; margin-bottom: 20px; filter: drop-shadow(0 0 15px #ff0000); }
         input { padding: 20px; width: 90%; border-radius: 10px; border: 2px solid #333; background: rgba(0,0,0,0.8); color: white; margin-bottom: 20px; font-size: 1.2rem; font-family: 'Arial'; }
-        .giphy-btn { display: inline-block; background: #00ff99; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 8px; margin-bottom: 20px; font-family: 'Arial'; font-weight: bold; }
         .main-btn { display: block; width: 100%; background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); color: #fff; padding: 25px; border-radius: 12px; border: 2px solid #ff0000; font-weight: bold; font-size: 1.8rem; cursor: pointer; text-transform: uppercase; }
-        #status { margin-top: 20px; min-height: 50px; }
-        .back-link { display: inline-block; margin-top: 30px; color: #888; text-decoration: none; font-family: 'Arial'; }
+        #status { margin-top: 20px; min-height: 60px; font-family: 'Arial'; }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="logo.png" class="logo-img">
-        <a href="https://giphy.com/" target="_blank" class="giphy-btn">🔍 GIPHY'DE GIF BUL</a>
         <input type="text" id="username" placeholder="Adınız">
-        <input type="text" id="gif-url" placeholder="Giphy Linkini Buraya Yapıştır..." oninput="updatePreview()">
-        <img id="gif-preview" style="max-width:200px; display:none; margin: 10px auto; border: 2px solid red; border-radius: 10px;">
+        <input type="text" id="gif-url" placeholder="Giphy Linkini Yapıştır..." oninput="updatePreview()">
+        <img id="gif-preview" style="max-width:200px; display:none; margin: 10px auto; border: 2px solid red;">
         <button onclick="send()" class="main-btn">YAYINA GÖNDER!</button>
         <div id="status"></div>
-        <a href="index.html" class="back-link">← Geri Dön</a>
+        <a href="index.html" style="color:#555; text-decoration:none; display:block; margin-top:20px;">← Geri Dön</a>
     </div>
-
     <script>
         const firebaseConfig = { apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", authDomain: "chaostitan41-website.firebaseapp.com", databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", projectId: "chaostitan41-website", storageBucket: "chaostitan41-website.firebasestorage.app", messagingSenderId: "553158677453", appId: "1:553158677453:web:2cad39890ffdedb98aaa84" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        function getID(url) { try { const id = url.includes("/gifs/") ? url.split("-").pop().split("/")[0] : url.split("/").slice(-2, -1)[0]; return id.includes("?") ? id.split("?")[0] : id; } catch(e) { return null; } }
+        function getID(url) { try { return url.includes("/gifs/") ? url.split("-").pop().split("/")[0] : url.split("/").slice(-2, -1)[0]; } catch(e) { return null; } }
         function updatePreview() { const id = getID(document.getElementById('gif-url').value); const img = document.getElementById('gif-preview'); if(id) { img.src = `https://media.giphy.com/media/${id}/giphy.gif`; img.style.display = "block"; } else { img.style.display = "none"; } }
-
         async function send() {
-            const url = document.getElementById('gif-url').value;
-            const id = getID(url);
-            if(!id) return alert("Geçerli bir Giphy linki gir!");
-
+            const id = getID(document.getElementById('gif-url').value);
+            if(!id) return alert("Hata!");
             const res = await fetch('https://api.ipify.org?format=json');
             const data = await res.json();
             const ip = data.ip.replace(/\./g, '_');
-            const name = document.getElementById('username').value || "Gizli Üye";
-
             db.ref('bannedIPs/' + ip).once('value', snap => {
                 if (snap.exists()) {
                     document.getElementById('status').innerHTML = `<h1 style="color:red; margin:0;">BANNED</h1><p style="color:red; font-weight:bold;">BANLANDINIZ!</p>`;
-                    db.ref('bannedRequests').push({ gifId: id, userName: name + " (ENGELENDİ)", userIP: ip, timestamp: firebase.database.ServerValue.TIMESTAMP });
+                    db.ref('bannedRequests').push({ gifId: id, userName: document.getElementById('username').value + " (ENGEL)", userIP: ip, timestamp: firebase.database.ServerValue.TIMESTAMP });
                 } else {
-                    db.ref('activeGifs').push({ gifId: id, userName: name, userIP: ip, timestamp: firebase.database.ServerValue.TIMESTAMP })
-                    .then(() => { 
-                        document.getElementById('status').innerHTML = "<h2 style='color:#00ff99;'>✅ YAYINA GÖNDERİLDİ!</h2>";
-                        document.getElementById('gif-url').value = ""; document.getElementById('gif-preview').style.display = "none";
-                    });
+                    db.ref('activeGifs').push({ gifId: id, userName: document.getElementById('username').value || "Anonim", userIP: ip, timestamp: firebase.database.ServerValue.TIMESTAMP })
+                    .then(() => { document.getElementById('status').innerHTML = "<h2 style='color:#00ff99;'>✅ GÖNDERİLDİ!</h2>"; });
                 }
             });
         }
