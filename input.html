@@ -2,34 +2,45 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIF Sender - ChaosTitan41</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #121212; color: white; text-align: center; padding: 20px; }
-        .container { background: #1e1e1e; padding: 30px; border-radius: 15px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 90%; }
-        h2 { color: #a970ff; margin-bottom: 20px; }
-        input { padding: 12px; width: 280px; border-radius: 5px; border: 1px solid #333; background: #121212; color: white; margin-bottom: 15px; outline: none; }
-        button { padding: 12px 25px; background: #a970ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        #status { margin-top: 20px; font-weight: bold; }
-        .preview-media { max-width: 200px; border-radius: 10px; border: 2px solid #a970ff; display: none; margin: 20px auto; }
+        body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
+        #display { position: relative; width: 100vw; height: 100vh; }
+        
+        .media-container {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            text-align: center;
+            animation: fadeInOut 8s forwards;
+        }
+
+        img, video { 
+            max-width: 450px; 
+            border-radius: 15px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+            display: block;
+        }
+
+        .name-label { 
+            color: white; 
+            font-size: 26px; 
+            text-shadow: 2px 2px 8px #000; 
+            margin-top: 10px; 
+            font-weight: bold;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.5) translateY(50px); }
+            10% { opacity: 1; transform: scale(1) translateY(0); }
+            90% { opacity: 1; transform: scale(1) translateY(0); }
+            100% { opacity: 0; transform: scale(0.5) translateY(-50px); }
+        }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h2>GIF & Clip Sender</h2>
-        <input type="text" id="username" placeholder="Dein Name"> <br>
-        <input type="text" id="gif-url" placeholder="Giphy-Link hier einfügen..." oninput="showPreview()"> <br>
-        
-        <video id="video-preview" class="preview-media" autoplay loop muted playsinline></video>
-        <img id="gif-preview" class="preview-media">
-        
-        <br>
-        <button onclick="sendGif()">Ab an den Stream!</button>
-        <div id="status"></div>
-    </div>
+    <div id="display"></div>
 
     <script>
         const firebaseConfig = {
@@ -44,69 +55,44 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const start = Date.now();
 
-        function extractGifId(url) {
-            url = url.trim();
-            if (!url.includes("giphy.com")) return null;
-            try {
-                const parts = url.split("/");
-                let id = "";
-                if (url.includes("/gifs/")) {
-                    // ID aus Standard-Link
-                    id = url.split("-").pop().split("/")[0].split("?")[0];
-                } else {
-                    // ID aus Media-Link
-                    id = parts[parts.length - 2];
-                }
-                return id && id.length > 3 ? id : parts[parts.length - 1].split(".")[0];
-            } catch (e) { return null; }
-        }
+        // Den Pop-Sound vorbereiten
+        const popSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
 
-        function showPreview() {
-            const url = document.getElementById('gif-url').value;
-            const vid = document.getElementById('video-preview');
-            const img = document.getElementById('gif-preview');
-            const id = extractGifId(url);
+        db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
+            const data = snap.val();
+            if(data.timestamp < start) return;
 
-            if (id) {
-                // Wir versuchen das Video (.mp4) zu laden, weil es perfekt loopt
-                vid.src = `https://media.giphy.com/media/${id}/giphy.mp4`;
-                vid.style.display = "block";
-                img.style.display = "none";
+            // 1. Sound abspielen
+            popSound.currentTime = 0; // Zurück zum Start (falls schnell hintereinander gesendet wird)
+            popSound.play().catch(e => console.log("Sound-Autoplay blockiert. Einmal Interagieren nötig."));
 
-                // Falls kein Video da ist, nehmen wir das GIF als Backup
-                vid.onerror = () => {
-                    vid.style.display = "none";
-                    img.src = `https://media.giphy.com/media/${id}/giphy.gif`;
-                    img.style.display = "block";
-                };
-            } else {
-                vid.style.display = "none";
-                img.style.display = "none";
-            }
-        }
+            // 2. GIF/Video anzeigen
+            const box = document.getElementById('display');
+            const div = document.createElement('div');
+            div.className = "media-container";
+            
+            const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
+            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
 
-        function sendGif() {
-            const name = document.getElementById('username').value || "Anonym";
-            const urlInput = document.getElementById('gif-url').value;
-            const id = extractGifId(urlInput);
+            div.innerHTML = `
+                <video id="v-${snap.key}" src="${videoUrl}" autoplay playsinline style="width:450px;"></video>
+                <img id="i-${snap.key}" src="${imageUrl}" style="display:none; width:450px;">
+                <div class="name-label">${data.userName}</div>
+            `;
+            box.appendChild(div);
 
-            if (!id) {
-                document.getElementById('status').innerText = "❌ Link nicht erkannt!";
-                return;
-            }
+            const v = document.getElementById(`v-${snap.key}`);
+            const i = document.getElementById(`i-${snap.key}`);
 
-            db.ref('activeGifs').push({
-                gifId: id,
-                userName: name,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                document.getElementById('status').innerText = "✅ Gesendet!";
-                document.getElementById('gif-url').value = "";
-                document.getElementById('video-preview').style.display = "none";
-                document.getElementById('gif-preview').style.display = "none";
-            });
-        }
+            v.onerror = () => { 
+                v.style.display='none'; 
+                i.style.display='block'; 
+            };
+            
+            setTimeout(() => div.remove(), 8000);
+        });
     </script>
 </body>
 </html>
