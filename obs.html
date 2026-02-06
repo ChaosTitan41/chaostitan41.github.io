@@ -7,17 +7,21 @@
     <style>
         body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
         #display { position: relative; width: 100vw; height: 100vh; }
+        
         #unlock-button {
             position: absolute; top: 10px; left: 10px; padding: 15px;
             background: #a970ff; color: white; border: none; cursor: pointer;
             z-index: 9999; border-radius: 5px; font-weight: bold;
         }
+
         .media-container {
             position: absolute; bottom: 50px; right: 50px;
             text-align: center; animation: fadeInOut 8s forwards;
         }
+
         img, video { max-width: 450px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         .name-label { color: white; font-size: 26px; text-shadow: 2px 2px 8px #000; margin-top: 10px; font-weight: bold; }
+
         @keyframes fadeInOut {
             0% { opacity: 0; transform: scale(0.5); }
             10% { opacity: 1; transform: scale(1); }
@@ -27,7 +31,7 @@
     </style>
 </head>
 <body>
-    <button id="unlock-button" onclick="activateAudio()">🔊 KLICK MICH EINMAL (SOUND FIX)</button>
+    <button id="unlock-button" onclick="activateAudio()">🔊 KLICK MICH EINMAL (SOUND AKTIVIEREN)</button>
     <div id="display"></div>
 
     <script>
@@ -45,36 +49,33 @@
         const db = firebase.database();
         const start = Date.now();
         
-        // Wir erstellen das Audio-Objekt global
-        const popSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-        popSound.preload = 'auto';
+        // 1. DEIN SEPARATER POP-SOUND (Unabhängig von Giphy)
+        const notificationSound = new Audio('https://www.myinstants.com/de/instant/pop/?utm_source=copy&utm_medium=share');
 
         function activateAudio() {
-            // Spielt den Sound einmal lautlos an, um ihn für den Browser zu "entsperren"
-            popSound.play().then(() => {
-                popSound.pause();
-                popSound.currentTime = 0;
-                popSound.volume = 1.0;
+            // Schaltet das Audio-System im OBS-Browser frei
+            notificationSound.play().then(() => {
+                notificationSound.pause();
+                notificationSound.currentTime = 0;
             });
             document.getElementById('unlock-button').style.display = 'none';
-            console.log("Audio bereit!");
         }
 
         db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
             const data = snap.val();
             if(data.timestamp < start) return;
 
-            // 1. POP SOUND ABSSPIELEN
-            popSound.currentTime = 0;
-            popSound.play().catch(e => console.log("Sound blockiert"));
+            // 2. BENACHRICHTIGUNG ABSPIELEN
+            notificationSound.currentTime = 0;
+            notificationSound.play().catch(e => console.log("Sound blockiert - Interagieren nötig!"));
 
-            // 2. ELEMENT ERSTELLEN
+            // 3. GIF/CLIP ANZEIGEN
             const box = document.getElementById('display');
             const div = document.createElement('div');
             div.className = "media-container";
             
-            const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
-            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
+            const videoUrl = `https://i.giphy.com/${data.gifId}.mp4`;
+            const imageUrl = `https://i.giphy.com/${data.gifId}.gif`;
 
             div.innerHTML = `
                 <video id="v-${snap.key}" src="${videoUrl}" autoplay playsinline style="width:450px;"></video>
@@ -86,22 +87,10 @@
             const v = document.getElementById(`v-${snap.key}`);
             const i = document.getElementById(`i-${snap.key}`);
 
-            // Clip-Sound erzwingen
-            v.oncanplay = () => {
-                v.muted = false;
-                v.volume = 1.0;
-                let playPromise = v.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(() => {
-                        // Falls geblockt, kurz muten und wieder entmuten
-                        v.muted = true;
-                        v.play();
-                        setTimeout(() => { v.muted = false; }, 200);
-                    });
-                }
-            };
-
+            // Clip-Audio (falls vorhanden) entmuten
+            v.onplay = () => { v.muted = false; v.volume = 0.8; };
             v.onerror = () => { v.style.display='none'; i.style.display='block'; };
+            
             setTimeout(() => div.remove(), 8000);
         });
     </script>
