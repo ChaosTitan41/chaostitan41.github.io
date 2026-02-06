@@ -1,40 +1,57 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Filter Panel</title>
+    <title>Filtre Kontrol | ChaosTitan41</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
-        .btn { padding: 20px 40px; font-size: 22px; margin: 15px; cursor: pointer; border-radius: 12px; border: none; font-weight: bold; transition: 0.2s; }
-        .btn:active { transform: scale(0.9); }
-        .alien { background-color: #4CAF50; color: white; }
-        .ghost { background-color: #f1f1f1; color: #333; }
+        body { 
+            background: #000 url('bg.png') no-repeat center center fixed; background-size: cover;
+            color: white; font-family: 'Impact', sans-serif; text-align: center; margin: 0; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .container { 
+            background: rgba(0, 0, 0, 0.6); padding: 50px; border-radius: 30px; 
+            border: 2px solid #ff0000; width: 90%; max-width: 600px;
+            backdrop-filter: blur(10px);
+        }
+        h1 { color: #ff0000; font-size: 3rem; margin-bottom: 40px; letter-spacing: 3px; text-shadow: 0 0 20px #000; }
+        .btn-group { display: flex; flex-direction: column; gap: 25px; }
+        
+        .btn { 
+            padding: 35px; font-size: 2.2rem; cursor: pointer; border-radius: 15px; 
+            border: 3px solid #333; font-weight: bold; transition: 0.3s; font-family: 'Impact';
+            text-transform: uppercase;
+        }
+        .alien { background: #00FF41; color: #000; border-color: #008F11; }
+        .ghost { background: #fff; color: #000; border-color: #ccc; }
+        
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,255,255,0.3); }
+        .alien:hover { box-shadow: 0 0 40px #00FF41; }
+        
+        .back { margin-top: 40px; display: inline-block; color: #ff0000; text-decoration: none; font-size: 1.2rem; }
     </style>
 </head>
 <body>
-
-    <h1>Stream Control</h1>
-
-    <button class="btn alien" onclick="sendToBot('alien')">ALIEN</button>
-    <button class="btn ghost" onclick="sendToBot('ghost')">GHOST</button>
+    <div class="container">
+        <img src="logo.png" style="max-width: 250px; margin-bottom: 30px; filter: drop-shadow(0 0 10px #ff0000);">
+        <h1>FİLTRE KONTROLÜ</h1>
+        <div class="btn-group">
+            <button class="btn alien" onclick="sendToBot('alien')">ALIEN MODU</button>
+            <button class="btn ghost" onclick="sendToBot('ghost')">HAYALET MODU</button>
+        </div>
+        <a href="index.html" class="back">← Ana Sayfaya Dön</a>
+    </div>
 
     <script>
     function sendToBot(filterName) {
         const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
-
         socket.onopen = () => {
-            // Wir schicken den Namen einfach als 'rawInput'
-            const payload = {
-                "request": "ExecuteAction",
-                "id": "1",
-                "actionName": "Web_Filter_Handler",
-                "rawInput": filterName // Hier schicken wir einfach nur das Wort
-            };
-            
+            const payload = { "request": "ExecuteAction", "id": "1", "actionName": "Web_Filter_Handler", "rawInput": filterName };
             socket.send(JSON.stringify(payload));
-            setTimeout(() => socket.close(), 200);
+            setTimeout(() => { socket.close(); }, 200);
+            alert(filterName.toUpperCase() + " Aktif Edildi!");
         };
     }
-</script>
+    </script>
 </body>
 </html>
