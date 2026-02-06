@@ -2,314 +2,151 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel | CHAOSTITAN41</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { 
-            background: #000 url('bg.png') no-repeat center center fixed; 
-            background-size: cover; 
-            color: #fff; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            min-height: 100vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
-        
-        /* Login Bereich */
-        #login-overlay { 
-            background: rgba(0,0,0,0.9); 
-            padding: 50px; 
-            border-radius: 20px; 
-            border: 2px solid #8B0000; 
-            text-align: center; 
-            width: 350px; 
-            backdrop-filter: blur(15px); 
-            box-shadow: 0 0 50px rgba(255,0,0,0.2); 
-        }
-        .pass-container { position: relative; margin: 20px 0; }
-        input[type="password"] { 
-            width: 100%; 
-            padding: 15px; 
-            border-radius: 8px; 
-            border: 1px solid #444; 
-            background: #000; 
-            color: #fff; 
-            font-size: 1.1rem; 
-            box-sizing: border-box; 
-            text-align: center; 
-        }
-        .login-btn { 
-            background: #8B0000; 
-            color: white; 
-            border: none; 
-            padding: 15px; 
-            width: 100%; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            text-transform: uppercase; 
-            transition: 0.3s;
-        }
-        .login-btn:hover { background: #ff0000; box-shadow: 0 0 20px #ff0000; }
-
-        /* Admin Dashboard Bereich */
-        #admin-content { 
-            display: none; 
-            width: 95%; 
-            max-width: 1100px; 
-            background: rgba(0,0,0,0.85); 
-            padding: 30px; 
-            border-radius: 25px; 
-            border: 1px solid #ff0000; 
-            backdrop-filter: blur(15px); 
-            margin: 20px; 
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
-        }
-        
-        .stats-grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 15px; 
-            margin-bottom: 30px; 
-        }
-        .stat-card { 
-            background: rgba(30,0,0,0.3); 
-            border: 1px solid #8B0000; 
-            padding: 20px; 
-            border-radius: 15px; 
-            text-align: center; 
-            transition: 0.3s; 
-        }
-        .stat-card:hover { background: rgba(255,0,0,0.1); transform: translateY(-5px); }
-        .stat-card h3 { margin: 0; color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-card p { 
-            margin: 10px 0 0; 
-            color: #ff0000; 
-            font-size: 2.5rem; 
-            font-family: 'Impact', sans-serif; 
-            text-shadow: 0 0 10px rgba(255,0,0,0.5); 
-        }
-
-        .section { 
-            background: rgba(20,20,20,0.6); 
-            border: 1px solid #444; 
-            padding: 20px; 
-            border-radius: 15px; 
-            margin-bottom: 20px; 
-        }
-        h2 { 
-            color: #ff0000; 
-            font-family: 'Impact', sans-serif; 
-            text-transform: uppercase; 
-            border-bottom: 2px solid #8B0000; 
-            padding-bottom: 10px; 
-            margin-top: 0; 
-            font-size: 1.5rem; 
-        }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #555; padding: 10px; font-size: 0.8rem; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #222; font-size: 0.9rem; }
-        
-        .ip-text { font-family: monospace; color: #00FF41; }
+        body { background: #000 url('bg.png') no-repeat center center fixed; background-size: cover; color: #fff; font-family: sans-serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        #login-overlay { background: rgba(0,0,0,0.95); padding: 50px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; width: 350px; backdrop-filter: blur(15px); }
+        #admin-content { display: none; width: 95%; max-width: 1100px; background: rgba(0,0,0,0.9); padding: 30px; border-radius: 25px; border: 1px solid #ff0000; backdrop-filter: blur(15px); margin: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: rgba(40,0,0,0.4); border: 1px solid #8B0000; padding: 20px; border-radius: 15px; text-align: center; }
+        .stat-card p { margin: 10px 0 0; color: #ff0000; font-size: 2.5rem; font-family: 'Impact'; text-shadow: 0 0 10px #ff0000; }
+        .section { background: rgba(20,20,20,0.7); border: 1px solid #444; padding: 20px; border-radius: 15px; margin-bottom: 20px; overflow-x: auto; }
+        h2 { color: #ff0000; font-family: 'Impact'; text-transform: uppercase; border-bottom: 2px solid #8B0000; padding-bottom: 10px; }
+        table { width: 100%; text-align: left; border-collapse: collapse; min-width: 600px; }
+        td, th { padding: 12px; border-bottom: 1px solid #222; }
+        .ip-text { font-family: monospace; color: #00ff99; font-weight: bold; }
         .ban-btn { background: #ff0000; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .unban-btn { background: #00FF41; color: #000; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        
-        .logout-btn { 
-            background: none; 
-            border: 1px solid #444; 
-            color: #666; 
-            padding: 10px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            margin-top: 10px; 
-            transition: 0.3s;
-        }
-        .logout-btn:hover { color: #fff; border-color: #fff; }
+        input { width:100%; padding:15px; margin-bottom:20px; background:#000; color:#fff; border:1px solid #444; text-align:center; border-radius: 8px; }
     </style>
 </head>
 <body>
-
     <div id="login-overlay">
-        <img src="logo.png" style="max-width: 200px; margin-bottom: 20px; filter: drop-shadow(0 0 10px red);">
-        <h2 style="font-family: 'Impact'; color: #ff0000; letter-spacing: 2px;">ADMIN PANEL</h2>
-        <div class="pass-container">
-            <input type="password" id="admin-pass" placeholder="ŞİFRE">
-        </div>
-        <button class="login-btn" onclick="checkLogin()">GİRİŞ YAP</button>
+        <h2 style="color:red; font-family:Impact;">ADMIN GİRİŞİ</h2>
+        <input type="password" id="admin-pass" placeholder="ŞİFRE">
+        <button onclick="checkLogin()" style="background:#8B0000; color:white; border:none; padding:15px; width:100%; border-radius:8px; cursor:pointer; font-weight:bold;">GİRİŞ</button>
     </div>
 
     <div id="admin-content">
         <div class="stats-grid">
-            <div class="stat-card"><h3>Bugün</h3><p id="s-today">0</p></div>
-            <div class="stat-card"><h3>Hafta</h3><p id="s-week">0</p></div>
-            <div class="stat-card"><h3>Ay</h3><p id="s-month">0</p></div>
-            <div class="stat-card"><h3>Yıl</h3><p id="s-year">0</p></div>
+            <div class="stat-card"><h3>BUGÜN</h3><p id="s-today">0</p></div>
+            <div class="stat-card"><h3>HAFTA</h3><p id="s-week">0</p></div>
+            <div class="stat-card"><h3>AY</h3><p id="s-month">0</p></div>
+            <div class="stat-card"><h3>YIL</h3><p id="s-year">0</p></div>
         </div>
 
         <div class="section">
-            <h2>Canlı Akış (Gelen GIF'ler)</h2>
+            <h2>CANLI AKIŞ (SON GELENLER)</h2>
             <table>
-                <thead>
-                    <tr><th>Zaman</th><th>Kullanıcı</th><th>IP</th><th>İşlem</th></tr>
-                </thead>
-                <tbody id="l-body">
-                    </tbody>
-            </table>
-        </div>
-
-        <div class="section" style="border-color: rgba(255, 170, 0, 0.3);">
-            <h2 style="color: #ffaa00;">Engellenen Denemeler (Yasaklılar)</h2>
-            <table>
-                <tbody id="blocked-body">
-                    </tbody>
+                <thead><tr><th>Zaman</th><th>Kullanıcı</th><th>IP Adresi</th><th>İşlem</th></tr></thead>
+                <tbody id="l-body"></tbody>
             </table>
         </div>
 
         <div class="section">
-            <h2>Aktif Yasaklı Listesi</h2>
+            <h2 style="color:#ffaa00">ENGEL TAKILANLAR (BANLI GİRİŞLER)</h2>
             <table>
-                <thead>
-                    <tr><th>IP Adresi</th><th>Durum</th><th>İşlem</th></tr>
-                </thead>
-                <tbody id="b-body">
-                    </tbody>
+                <thead><tr><th>Zaman</th><th>Kullanıcı</th><th>IP Adresi</th><th>Durum</th></tr></thead>
+                <tbody id="blocked-body"></tbody>
             </table>
         </div>
-        
-        <button class="logout-btn" onclick="sessionStorage.clear(); location.reload();">Güvenli Çıkış</button>
+
+        <div class="section">
+            <h2>AKTİF BAN LİSTESİ</h2>
+            <table>
+                <thead><tr><th>IP Adresi</th><th>Durum</th><th>İşlem</th></tr></thead>
+                <tbody id="b-body"></tbody>
+            </table>
+        </div>
+        <button onclick="sessionStorage.clear(); location.reload();" style="color:#444; background:none; border:none; cursor:pointer; margin-top:20px;">Güvenli Çıkış</button>
     </div>
 
     <script>
-        // Firebase Konfigürasyonu
-        const firebaseConfig = {
-            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
-            authDomain: "chaostitan41-website.firebaseapp.com",
-            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "chaostitan41-website",
-            storageBucket: "chaostitan41-website.firebasestorage.app",
-            messagingSenderId: "553158677453",
-            appId: "1:553158677453:web:2cad39890ffdedb98aaa84",
-            measurementId: "G-H9KMM44JZB"
+        const firebaseConfig = { 
+            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", 
+            authDomain: "chaostitan41-website.firebaseapp.com", 
+            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", 
+            projectId: "chaostitan41-website", 
+            storageBucket: "chaostitan41-website.firebasestorage.app", 
+            messagingSenderId: "553158677453", 
+            appId: "1:553158677453:web:2cad39890ffdedb98aaa84" 
         };
-
-        // Firebase Başlatma
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const MASTER = "DEIN_PASSWORT"; // <--- HIER DEIN PASSWORT
 
-        // ADMIN ŞİFRESİ
-        const MASTER = "DEIN_PASSWORT"; // <--- BURAYI DEĞİŞTİR!
+        if(sessionStorage.getItem("admin_auth") === "true") show();
+        function checkLogin() { if(document.getElementById('admin-pass').value === MASTER) { sessionStorage.setItem("admin_auth","true"); show(); } else alert("Hata!"); }
 
-        // Oturum Kontrolü
-        window.onload = () => { 
-            if(sessionStorage.getItem("admin_auth") === "true") showDashboard(); 
-        };
-
-        function checkLogin() {
-            const input = document.getElementById('admin-pass').value;
-            if(input === MASTER) {
-                sessionStorage.setItem("admin_auth", "true");
-                showDashboard();
-            } else { 
-                alert("Hatalı Giriş!"); 
-            }
-        }
-
-        function showDashboard() {
+        function show() {
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
 
-            // 1. İstatistikleri Yükle (Gerçek Zamanlı)
+            // STATS LOGIC
             db.ref('stats/daily').on('value', snap => {
-                const data = snap.val() || {}; 
-                const now = new Date(); 
-                const todayStr = now.toISOString().split('T')[0];
-                
-                let todayCount = 0; 
-                const weekSet = new Set(), monthSet = new Set(), yearSet = new Set();
-                
+                const data = snap.val() || {}; const now = new Date(); const todayStr = now.toISOString().split('T')[0];
+                let todayCount = 0; const weekSet = new Set(), monthSet = new Set(), yearSet = new Set();
                 Object.keys(data).forEach(dateKey => {
-                    const recordDate = new Date(dateKey); 
-                    const ips = Object.keys(data[dateKey]);
-                    
+                    const recordDate = new Date(dateKey); const ips = Object.keys(data[dateKey]);
                     if(dateKey === todayStr) todayCount = ips.length;
                     if((now - recordDate) / 864e5 <= 7) ips.forEach(i => weekSet.add(i));
                     if(recordDate.getMonth() === now.getMonth() && recordDate.getFullYear() === now.getFullYear()) ips.forEach(i => monthSet.add(i));
                     if(recordDate.getFullYear() === now.getFullYear()) ips.forEach(i => yearSet.add(i));
                 });
-                
-                document.getElementById('s-today').innerText = todayCount; 
-                document.getElementById('s-week').innerText = weekSet.size;
-                document.getElementById('s-month').innerText = monthSet.size; 
-                document.getElementById('s-year').innerText = yearSet.size;
+                document.getElementById('s-today').innerText = todayCount; document.getElementById('s-week').innerText = weekSet.size;
+                document.getElementById('s-month').innerText = monthSet.size; document.getElementById('s-year').innerText = yearSet.size;
             });
 
-            // 2. Canlı GIF Akışı
+            // LIVE GIFS TABLE
             db.ref('activeGifs').limitToLast(15).on('value', s => {
-                const body = document.getElementById('l-body'); 
-                body.innerHTML = "";
-                s.forEach(child => { 
-                    const d = child.val(); 
-                    body.insertAdjacentHTML('afterbegin', `
-                        <tr>
-                            <td>${new Date(d.timestamp).toLocaleTimeString()}</td>
-                            <td>${d.userName}</td>
-                            <td class="ip-text">${d.userIP.replace(/_/g,'.')}</td>
-                            <td><button class="ban-btn" onclick="banUser('${d.userIP}')">BAN</button></td>
-                        </tr>`); 
+                const b = document.getElementById('l-body'); b.innerHTML = "";
+                s.forEach(c => { 
+                    const d = c.val(); 
+                    const displayIP = (d.userIP || d.ip || "unknown").replace(/_/g,'.');
+                    const rawIP = (d.userIP || d.ip || "unknown");
+                    b.insertAdjacentHTML('afterbegin', `<tr>
+                        <td>${new Date(d.timestamp).toLocaleTimeString()}</td>
+                        <td>${d.userName || 'Anonim'}</td>
+                        <td class="ip-text">${displayIP}</td>
+                        <td><button class="ban-btn" onclick="bn('${rawIP}')">BANLA</button></td>
+                    </tr>`); 
                 });
             });
 
-            // 3. Yasaklıların Denemeleri
+            // BLOCKED ATTEMPTS TABLE
             db.ref('bannedRequests').limitToLast(10).on('value', s => {
-                const body = document.getElementById('blocked-body'); 
-                body.innerHTML = "";
-                s.forEach(child => { 
-                    const d = child.val(); 
-                    body.insertAdjacentHTML('afterbegin', `
-                        <tr style="color:#ffaa00; background:rgba(255,170,0,0.05);">
-                            <td>${new Date(d.timestamp).toLocaleTimeString()}</td>
-                            <td>${d.userName}</td>
-                            <td class="ip-text">${d.userIP.replace(/_/g,'.')}</td>
-                            <td><button class="unban-btn" onclick="unbanUser('${d.userIP}')">AFFET</button></td>
-                        </tr>`); 
+                const b = document.getElementById('blocked-body'); b.innerHTML = "";
+                s.forEach(c => { 
+                    const d = c.val(); 
+                    const displayIP = (d.userIP || d.ip || "unknown").replace(/_/g,'.');
+                    const rawIP = (d.userIP || d.ip || "unknown");
+                    b.insertAdjacentHTML('afterbegin', `<tr style="color:#ffaa00; background:rgba(255,170,0,0.05);">
+                        <td>${new Date(d.timestamp).toLocaleTimeString()}</td>
+                        <td>${d.userName || 'Anonim'}</td>
+                        <td class="ip-text">${displayIP}</td>
+                        <td><button class="unban-btn" onclick="ubn('${rawIP}')">AFFET</button></td>
+                    </tr>`); 
                 });
             });
 
-            // 4. Yasaklı Listesi
+            // BAN LIST TABLE
             db.ref('bannedIPs').on('value', s => {
-                const body = document.getElementById('b-body'); 
-                body.innerHTML = "";
-                s.forEach(child => { 
-                    body.innerHTML += `
-                        <tr>
-                            <td class="ip-text">${child.key.replace(/_/g,'.')}</td>
-                            <td style="color:red">YASAKLI</td>
-                            <td><button class="unban-btn" onclick="unbanUser('${child.key}')">YASAĞI KALDIR</button></td>
-                        </tr>`; 
+                const b = document.getElementById('b-body'); b.innerHTML = "";
+                s.forEach(c => { 
+                    const displayIP = c.key.replace(/_/g,'.');
+                    b.innerHTML += `<tr>
+                        <td class="ip-text">${displayIP}</td>
+                        <td style="color:red;">YASAKLI</td>
+                        <td><button class="unban-btn" onclick="ubn('${c.key}')">YASAĞI KALDIR</button></td>
+                    </tr>`; 
                 });
             });
         }
-
-        // Banlama Fonksiyonu
-        function banUser(ip) { 
-            if(confirm(ip.replace(/_/g,'.') + " adresini banlamak istediğine emin misin?")) {
-                db.ref('bannedIPs/' + ip).set(true); 
-            }
-        }
-
-        // Ban Kaldırma Fonksiyonu
-        function unbanUser(ip) { 
-            if(confirm("Yasağı kaldırmak istiyor musun?")) {
-                db.ref('bannedIPs/' + ip).remove(); 
-            }
-        }
+        
+        function bn(i) { if(i !== "unknown" && confirm(i.replace(/_/g,'.') + " banlansın mı?")) db.ref('bannedIPs/'+i).set(true); }
+        function ubn(i) { if(confirm("Ban kaldırılsın mı?")) db.ref('bannedIPs/'+i).remove(); }
     </script>
 </body>
 </html>
