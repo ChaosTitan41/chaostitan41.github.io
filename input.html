@@ -2,26 +2,41 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Test-Modus: GIF Sender</title>
+    <title>GIF an ChaosTitan41 senden</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
-        input { padding: 12px; margin: 5px; border-radius: 5px; border: none; width: 300px; }
-        button { padding: 12px 20px; background: #00e676; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .info { color: #888; font-size: 0.8em; margin-top: 10px; }
+        .box { background: #1e1e1e; padding: 20px; border-radius: 10px; display: inline-block; }
+        input { padding: 10px; width: 300px; border-radius: 5px; border: 1px solid #444; margin-bottom: 10px; }
+        button { padding: 10px 20px; background: #6441a5; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #7d5bbe; }
+        #status { margin-top: 15px; color: #00e676; }
     </style>
 </head>
 <body>
 
-    <h2>🛠 Test-Panel (Ohne Login)</h2>
-    <input type="text" id="username" placeholder="Dein Name (Test)"><br>
-    <input type="text" id="gif-url" placeholder="Giphy Link hier rein"><br>
-    <button onclick="sendGif()">GIF an OBS senden</button>
-    <p id="status"></p>
+    <div class="box">
+        <h2>GIF an Stream senden</h2>
+        <input type="text" id="username" placeholder="Dein Name (Zuschauer)"><br>
+        <input type="text" id="gif-url" placeholder="Giphy-Link hier einfügen..."><br>
+        <button onclick="sendGif()">Ab an den Stream!</button>
+        <div id="status"></div>
+    </div>
 
     <script>
-        const firebaseConfig = { /* DEINE CONFIG HIER */ };
+        // Deine Firebase Konfiguration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
+            authDomain: "chaostitan41-website.firebaseapp.com",
+            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "chaostitan41-website",
+            storageBucket: "chaostitan41-website.firebasestorage.app",
+            messagingSenderId: "553158677453",
+            appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
+        };
+
+        // Firebase initialisieren
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -31,21 +46,24 @@
             const status = document.getElementById('status');
 
             if (!urlInput.includes("giphy.com")) {
-                status.innerText = "Bitte nur Giphy-Links!";
+                status.innerText = "❌ Bitte nur Giphy.com Links!";
                 return;
             }
 
-            // GIF ID extrahieren
+            // GIF ID aus dem Link ziehen
             const parts = urlInput.split("-");
             const gifId = parts[parts.length - 1].replace("/", "");
 
+            // In die Datenbank schreiben
             db.ref('activeGifs').push({
                 gifId: gifId,
                 userName: name,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
-                status.innerText = "Erfolgreich gesendet!";
+                status.innerText = "✅ GIF wurde gesendet!";
                 document.getElementById('gif-url').value = "";
+            }).catch((error) => {
+                status.innerText = "❌ Fehler: " + error.message;
             });
         }
     </script>
