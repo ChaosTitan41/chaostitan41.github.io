@@ -12,8 +12,10 @@
         .logo-img { width: 100%; max-width: 250px; margin-bottom: 30px; filter: drop-shadow(0 0 15px #ff0000); }
         .btn-container { display: flex; flex-direction: column; gap: 20px; }
         .filter-btn { padding: 30px; font-size: 2rem; border-radius: 12px; border: 2px solid #333; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-family: 'Impact'; }
+        .filter-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
         .alien { background: #00FF41; color: #000; }
         .ghost { background: #fff; color: #000; }
+        #status { margin-top: 20px; font-family: Arial; font-weight: bold; min-height: 24px; color: #ffaa00; }
         .back-link { display: inline-block; margin-top: 40px; color: #888; text-decoration: none; font-family: 'Arial'; }
     </style>
 </head>
@@ -21,9 +23,10 @@
     <div class="container">
         <img src="logo.png" class="logo-img">
         <div class="btn-container">
-            <button class="filter-btn alien" onclick="sendFilter('alien')">ALIEN MODU</button>
-            <button class="filter-btn ghost" onclick="sendFilter('ghost')">HAYALET MODU</button>
+            <button id="btn-alien" class="filter-btn alien" onclick="sendFilter('alien')">ALIEN MODU</button>
+            <button id="btn-ghost" class="filter-btn ghost" onclick="sendFilter('ghost')">HAYALET MODU</button>
         </div>
+        <div id="status"></div>
         <a href="index.html" class="back-link">← Geri Dön</a>
     </div>
     <script>
@@ -31,20 +34,72 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        const statusDiv = document.getElementById('status');
+        const buttons = document.querySelectorAll('.filter-btn');
+        let timerInterval;
+
+        // Globaler Cooldown Check (5 Minuten = 300 Sekunden)
+        function checkCooldown() {
+            db.ref('lastFilterTime').on('value', snap => {
+                const lastTime = snap.val() || 0;
+                const now = Date.now();
+                const diff = (now - lastTime) / 1000;
+
+                clearInterval(timerInterval);
+
+                if (diff < 300) {
+                    let timeLeft = Math.ceil(300 - diff);
+                    buttons.forEach(b => b.disabled = true);
+                    
+                    timerInterval = setInterval(() => {
+                        timeLeft--;
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval);
+                            buttons.forEach(b => b.disabled = false);
+                            statusDiv.innerHTML = "";
+                        } else {
+                            let minutes = Math.floor(timeLeft / 60);
+                            let seconds = timeLeft % 60;
+                            statusDiv.innerHTML = `COOLDOWN: ${minutes}:${seconds < 10 ? '0' : ''}${seconds} bekleyin...`;
+                        }
+                    }, 1000);
+                } else {
+                    buttons.forEach(b => b.disabled = false);
+                    statusDiv.innerHTML = "";
+                }
+            });
+        }
+        checkCooldown();
+
         async function sendFilter(f) {
-            const res = await fetch('https://api.ipify.org?format=json');
-            const data = await res.json();
-            const ip = data.ip.replace(/\./g, '_');
+            let ip = "unknown";
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                ip = data.ip.replace(/\./g, '_');
+            } catch(e) {}
 
             db.ref('bannedIPs/' + ip).once('value', snap => {
                 if (snap.exists()) {
-                    alert("BANNED - BANLANDINIZ!");
+                    alert("BANLANDINIZ!");
                 } else {
+                    const now = Date.now();
+                    // 1. Globalen Cooldown setzen
+                    db.ref('lastFilterTime').set(now);
+
+                    // 2. WebSocket Aktion ausführen
                     const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
                     socket.onopen = () => {
                         socket.send(JSON.stringify({"request":"ExecuteAction","id":"1","actionName":"Web_Filter_Handler","rawInput":f}));
-                        setTimeout(() => { socket.close(); alert(f.toUpperCase() + " AKTIF!"); }, 200);
+                        setTimeout(() => { 
+                            socket.close(); 
+                            alert(f.toUpperCase() + " AKTIF!"); 
+                        }, 200);
                     };
+                    
+                    // 3. Statistik für Admin (optional, wie bei GIF)
+                    const day = new Date().toISOString().split('T')[0];
+                    db.ref('stats/filters/' + day + '/' + ip).set(true);
                 }
             });
         }
