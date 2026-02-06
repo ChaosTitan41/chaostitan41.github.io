@@ -7,32 +7,17 @@
     <style>
         body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
         #display { position: relative; width: 100vw; height: 100vh; }
-        
-        /* Der Aktivierungs-Button (nur in OBS sichtbar beim Einrichten) */
         #unlock-button {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            padding: 10px;
-            background: rgba(169, 112, 255, 0.8);
-            color: white;
-            border: none;
-            cursor: pointer;
-            z-index: 9999;
-            border-radius: 5px;
+            position: absolute; top: 10px; left: 10px; padding: 15px;
+            background: #a970ff; color: white; border: none; cursor: pointer;
+            z-index: 9999; border-radius: 5px; font-weight: bold;
         }
-
         .media-container {
-            position: absolute;
-            bottom: 50px;
-            right: 50px;
-            text-align: center;
-            animation: fadeInOut 8s forwards;
+            position: absolute; bottom: 50px; right: 50px;
+            text-align: center; animation: fadeInOut 8s forwards;
         }
-
-        img, video { max-width: 450px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); display: block; }
+        img, video { max-width: 450px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         .name-label { color: white; font-size: 26px; text-shadow: 2px 2px 8px #000; margin-top: 10px; font-weight: bold; }
-
         @keyframes fadeInOut {
             0% { opacity: 0; transform: scale(0.5); }
             10% { opacity: 1; transform: scale(1); }
@@ -42,8 +27,7 @@
     </style>
 </head>
 <body>
-    <button id="unlock-button" onclick="activateAudio()">🔊 KLICK MICH IN OBS (SOUND AKTIVIEREN)</button>
-    
+    <button id="unlock-button" onclick="activateAudio()">🔊 KLICK MICH EINMAL (SOUND FIX)</button>
     <div id="display"></div>
 
     <script>
@@ -60,31 +44,31 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const start = Date.now();
-        let audioContext;
+        
+        // Wir erstellen das Audio-Objekt global
+        const popSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+        popSound.preload = 'auto';
 
-        // Funktion um Audio freizuschalten
         function activateAudio() {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            // Spielt den Sound einmal lautlos an, um ihn für den Browser zu "entsperren"
+            popSound.play().then(() => {
+                popSound.pause();
+                popSound.currentTime = 0;
+                popSound.volume = 1.0;
+            });
             document.getElementById('unlock-button').style.display = 'none';
-            console.log("Audio freigeschaltet!");
-            
-            // Kurzer Test-Piep
-            const osc = audioContext.createOscillator();
-            osc.connect(audioContext.destination);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.1);
+            console.log("Audio bereit!");
         }
 
         db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
             const data = snap.val();
             if(data.timestamp < start) return;
 
-            // Wenn Audio aktiviert ist, spiele Pop ab
-            if(audioContext) {
-                const pop = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-                pop.play();
-            }
+            // 1. POP SOUND ABSSPIELEN
+            popSound.currentTime = 0;
+            popSound.play().catch(e => console.log("Sound blockiert"));
 
+            // 2. ELEMENT ERSTELLEN
             const box = document.getElementById('display');
             const div = document.createElement('div');
             div.className = "media-container";
@@ -102,16 +86,22 @@
             const v = document.getElementById(`v-${snap.key}`);
             const i = document.getElementById(`i-${snap.key}`);
 
-            v.oncanplaythrough = () => {
+            // Clip-Sound erzwingen
+            v.oncanplay = () => {
                 v.muted = false;
-                v.play();
+                v.volume = 1.0;
+                let playPromise = v.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        // Falls geblockt, kurz muten und wieder entmuten
+                        v.muted = true;
+                        v.play();
+                        setTimeout(() => { v.muted = false; }, 200);
+                    });
+                }
             };
 
-            v.onerror = () => { 
-                v.style.display='none'; 
-                i.style.display='block'; 
-            };
-            
+            v.onerror = () => { v.style.display='none'; i.style.display='block'; };
             setTimeout(() => div.remove(), 8000);
         });
     </script>
