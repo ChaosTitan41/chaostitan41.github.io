@@ -1,82 +1,132 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Panel | CHAOSTITAN41</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <style>
-        body { background: #000 url('bg.png') no-repeat center center fixed; background-size: cover; color: #fff; font-family: sans-serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        #login-overlay { background: rgba(0,0,0,0.9); padding: 50px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; width: 350px; backdrop-filter: blur(15px); }
-        #admin-content { display: none; width: 95%; max-width: 1100px; background: rgba(0,0,0,0.85); padding: 30px; border-radius: 25px; border: 1px solid #ff0000; backdrop-filter: blur(15px); }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-        .stat-card { background: rgba(40,0,0,0.4); border: 1px solid #8B0000; padding: 20px; border-radius: 15px; text-align: center; }
-        .stat-card p { margin: 10px 0 0; color: #ff0000; font-size: 2.5rem; font-family: 'Impact'; text-shadow: 0 0 10px #ff0000; }
-        .section { background: rgba(20,20,20,0.7); border: 1px solid #444; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-        h2 { color: #ff0000; font-family: 'Impact'; text-transform: uppercase; border-bottom: 2px solid #8B0000; padding-bottom: 10px; }
-        table { width: 100%; text-align: left; border-collapse: collapse; }
-        td, th { padding: 12px; border-bottom: 1px solid #222; }
-        .ban-btn { background: #ff0000; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .unban-btn { background: #00FF41; color: #000; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div id="login-overlay">
-        <img src="logo.png" style="max-width: 150px; margin-bottom: 20px;">
-        <h2>ADMIN GİRİŞİ</h2>
-        <input type="password" id="admin-pass" style="width:100%; padding:15px; margin-bottom:20px; background:#000; color:#fff; border:1px solid #444; border-radius:8px; text-align:center;">
-        <button onclick="checkLogin()" style="background:#8B0000; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; cursor:pointer;">GİRİŞ YAP</button>
-    </div>
-    <div id="admin-content">
-        <div class="stats-grid">
-            <div class="stat-card"><h3>BUGÜN</h3><p id="s-today">0</p></div>
-            <div class="stat-card"><h3>HAFTA</h3><p id="s-week">0</p></div>
-            <div class="stat-card"><h3>AY</h3><p id="s-month">0</p></div>
-            <div class="stat-card"><h3>YIL</h3><p id="s-year">0</p></div>
-        </div>
-        <div class="section"><h2>CANLI AKIŞ</h2><table><tbody id="l-body"></tbody></table></div>
-        <div class="section"><h2 style="color:#ffaa00">YASAKLI DENEMELERİ</h2><table><tbody id="blocked-body"></tbody></table></div>
-        <div class="section"><h2>BAN LİSTESİ</h2><table><tbody id="b-body"></tbody></table></div>
-        <button onclick="sessionStorage.clear(); location.reload();" style="color:#555; background:none; border:none; cursor:pointer;">Çıkış Yap</button>
-    </div>
+
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", authDomain: "chaostitan41-website.firebaseapp.com", databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", projectId: "chaostitan41-website", storageBucket: "chaostitan41-website.firebasestorage.app", messagingSenderId: "553158677453", appId: "1:553158677453:web:2cad39890ffdedb98aaa84" };
-        firebase.initializeApp(firebaseConfig);
+        // Deine Firebase Config im Compat-Format
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
+            authDomain: "chaostitan41-website.firebaseapp.com",
+            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "chaostitan41-website",
+            storageBucket: "chaostitan41-website.firebasestorage.app",
+            messagingSenderId: "553158677453",
+            appId: "1:553158677453:web:2cad39890ffdedb98aaa84",
+            measurementId: "G-H9KMM44JZB"
+        };
+
+        // Initialisierung (verhindert doppelte Initialisierung)
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.database();
-        const MASTER = "Uzuner41!"; // <--- ÄNDERN!
-        if(sessionStorage.getItem("lg") === "1") show();
-        function checkLogin() { if(document.getElementById('admin-pass').value === MASTER) { sessionStorage.setItem("lg","1"); show(); } else alert("Hata!"); }
+
+        // DEIN PASSWORT HIER EINTRAGEN
+        const MASTER = "DEIN_PASSWORT"; 
+
+        // Prüfen ob bereits eingeloggt
+        window.onload = () => { 
+            if(sessionStorage.getItem("lg") === "1") show(); 
+        };
+
+        function checkLogin() {
+            const passInput = document.getElementById('admin-pass').value;
+            if(passInput === MASTER) {
+                sessionStorage.setItem("lg", "1");
+                show();
+            } else { 
+                alert("Hatalı Şifre!"); 
+            }
+        }
+
         function show() {
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
+
+            // --- BESUCHER STATISTIK LOGIK ---
             db.ref('stats/daily').on('value', snap => {
-                const d = snap.val() || {}; const now = new Date(); const today = now.toISOString().split('T')[0];
-                let t=0; const w=new Set(), m=new Set(), y=new Set();
+                const d = snap.val() || {}; 
+                const now = new Date(); 
+                const todayStr = now.toISOString().split('T')[0];
+                
+                let t = 0; 
+                const w = new Set(), m = new Set(), y = new Set();
+                
                 Object.keys(d).forEach(dt => {
-                    const date = new Date(dt); const ips = Object.keys(d[dt]);
-                    if(dt === today) t = ips.length;
-                    if((now-date)/864e5 <= 7) ips.forEach(i => w.add(i));
-                    if(date.getMonth() === now.getMonth()) ips.forEach(i => m.add(i));
-                    if(date.getFullYear() === now.getFullYear()) ips.forEach(i => y.add(i));
+                    const date = new Date(dt); 
+                    const ips = Object.keys(d[dt]);
+                    
+                    // Heute
+                    if(dt === todayStr) t = ips.length;
+                    
+                    // Woche (letzte 7 Tage)
+                    if((now - date) / 864e5 <= 7) ips.forEach(i => w.add(i));
+                    
+                    // Monat (aktueller Kalendermonat)
+                    if(date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) {
+                        ips.forEach(i => m.add(i));
+                    }
+                    
+                    // Jahr
+                    if(date.getFullYear() === now.getFullYear()) {
+                        ips.forEach(i => y.add(i));
+                    }
                 });
-                document.getElementById('s-today').innerText=t; document.getElementById('s-week').innerText=w.size;
-                document.getElementById('s-month').innerText=m.size; document.getElementById('s-year').innerText=y.size;
+                
+                document.getElementById('s-today').innerText = t; 
+                document.getElementById('s-week').innerText = w.size;
+                document.getElementById('s-month').innerText = m.size; 
+                document.getElementById('s-year').innerText = y.size;
             });
+
+            // --- LIVE LOGS (GIFS) ---
             db.ref('activeGifs').limitToLast(10).on('value', s => {
-                const b = document.getElementById('l-body'); b.innerHTML="";
-                s.forEach(c => { const d=c.val(); b.insertAdjacentHTML('afterbegin', `<tr><td>${new Date(d.timestamp).toLocaleTimeString()}</td><td>${d.userName}</td><td style="color:#00ff99">${d.userIP.replace(/_/g,'.')}</td><td><button class="ban-btn" onclick="bn('${d.userIP}')">BAN</button></td></tr>`); });
+                const b = document.getElementById('l-body'); 
+                b.innerHTML = "";
+                s.forEach(c => { 
+                    const d = c.val(); 
+                    b.insertAdjacentHTML('afterbegin', `
+                        <tr>
+                            <td>${new Date(d.timestamp).toLocaleTimeString()}</td>
+                            <td>${d.userName}</td>
+                            <td style="color:#00ff99; font-family:monospace;">${d.userIP.replace(/_/g,'.')}</td>
+                            <td><button class="ban-btn" onclick="bn('${d.userIP}')">BAN</button></td>
+                        </tr>`); 
+                });
             });
+
+            // --- BLOCKIERTE VERSUCHE (BANLI) ---
             db.ref('bannedRequests').limitToLast(10).on('value', s => {
-                const b = document.getElementById('blocked-body'); b.innerHTML="";
-                s.forEach(c => { const d=c.val(); b.innerHTML += `<tr style="color:#ffaa00"><td>${new Date(d.timestamp).toLocaleTimeString()}</td><td>${d.userName}</td><td>${d.userIP.replace(/_/g,'.')}</td><td><button class="unban-btn" onclick="ubn('${d.userIP}')">AFFET</button></td></tr>`; });
+                const b = document.getElementById('blocked-body'); 
+                b.innerHTML = "";
+                s.forEach(c => { 
+                    const d = c.val(); 
+                    b.insertAdjacentHTML('afterbegin', `
+                        <tr style="color:#ffaa00; background:rgba(255,170,0,0.05);">
+                            <td>${new Date(d.timestamp).toLocaleTimeString()}</td>
+                            <td>${d.userName}</td>
+                            <td>${d.userIP.replace(/_/g,'.')}</td>
+                            <td><button class="unban-btn" onclick="ubn('${d.userIP}')">AFFET</button></td>
+                        </tr>`); 
+                });
             });
+
+            // --- AKTIVE BAN LISTE ---
             db.ref('bannedIPs').on('value', s => {
-                const b = document.getElementById('b-body'); b.innerHTML="";
-                s.forEach(c => { b.innerHTML += `<tr><td style="color:#00ff99">${c.key.replace(/_/g,'.')}</td><td><button class="unban-btn" onclick="ubn('${c.key}')">KALDIR</button></td></tr>`; });
+                const b = document.getElementById('b-body'); 
+                b.innerHTML = "";
+                s.forEach(c => { 
+                    b.innerHTML += `
+                        <tr>
+                            <td style="color:#00ff99; font-family:monospace;">${c.key.replace(/_/g,'.')}</td>
+                            <td><button class="unban-btn" onclick="ubn('${c.key}')">KALDIR</button></td>
+                        </tr>`; 
+                });
             });
         }
-        function bn(i) { if(confirm("Banlansın mı?")) db.ref('bannedIPs/'+i).set(true); }
-        function ubn(i) { if(confirm("Kaldırılsın mı?")) db.ref('bannedIPs/'+i).remove(); }
+
+        // Hilfsfunktionen für Ban/Unban
+        function bn(i) { if(confirm("Bu IP adresi banlansın mı?")) db.ref('bannedIPs/' + i).set(true); }
+        function ubn(i) { if(confirm("Ban kaldırılsın mı?")) db.ref('bannedIPs/' + i).remove(); }
     </script>
 </body>
 </html>
