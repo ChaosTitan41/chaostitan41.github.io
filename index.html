@@ -57,31 +57,26 @@
         }
         trackVisitor();
     </script>
+    
+    (<!-- Webpushr -->
+<script>
+(function(w,d, s, id) {
+  if(typeof(w.webpushr)!=='undefined') return;
+  w.webpushr=w.webpushr||function(){
+    (w.webpushr.q=w.webpushr.q||[]).push(arguments)
+  };
+  var js = d.createElement(s);
+  js.id = id;
+  js.async = 1;
+  js.src = "https://cdn.webpushr.com/app.min.js";
+  document.head.appendChild(js);
+}(window,document, 'script', 'webpushr-jssdk'));
 
-    <script>
-    (function(w,d,s,id){
-        if(typeof(w.webpushr)!=='undefined') return;
-        w.webpushr=w.webpushr||function(){
-            (w.webpushr.q=w.webpushr.q||[]).push(arguments)
-        };
-        var js, fjs=d.getElementsByTagName(s)[0];
-        js=d.createElement(s); js.id=id;
-        js.async=1;
-        js.src="https://cdn.webpushr.com/app.min.js";
-        fjs.parentNode.insertBefore(js,fjs);
-    }(window,document,'script','webpushr-jssdk'));
+webpushr('setup',{
+  key:'BJDxZo78K7DTSoVesx3_oPgaDHFxyCwfJK-4wm7dr1K2NkcucVal5R29oJLquTyscMXDw6zXr4P3WiqxmEyRBjk'
+});
+</script>
 
-    webpushr('setup',{
-        key:'85291734d60f7ec3cf8887dc66bd6814' 
-    });
 
-    // Die Anfrage wird jetzt 3 Sekunden nach dem Laden gestellt, 
-    // das erhöht die Chance, dass der Browser es zulässt.
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            webpushr('ask');
-        }, 3000);
-    });
-    </script>
 </body>
 </html>
