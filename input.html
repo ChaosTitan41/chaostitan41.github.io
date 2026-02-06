@@ -1,30 +1,60 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>GIF Sender - ChaosTitan41</title>
+    <title>GIF Gönder | ChaosTitan41</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 20px; }
-        .box { background: #1e1e1e; padding: 25px; border-radius: 15px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        input { padding: 12px; width: 300px; border-radius: 5px; border: 1px solid #444; background: #222; color: white; margin-bottom: 10px; }
-        button { padding: 12px 20px; background: #a970ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        #status { margin-top: 15px; font-weight: bold; }
-        .preview { margin-top: 15px; max-width: 150px; border-radius: 8px; display: none; margin-left: auto; margin-right: auto; }
+        body { 
+            background: #000 url('bg.png') no-repeat center center fixed; 
+            background-size: cover;
+            color: white; font-family: 'Arial', sans-serif; text-align: center; margin: 0; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .container { 
+            background: rgba(0, 0, 0, 0.6); /* Şeffaf arka plan */
+            padding: 50px 30px; border-radius: 30px; 
+            border: 2px solid #8B0000; width: 90%; max-width: 600px;
+            backdrop-filter: blur(8px);
+        }
+        .logo-small { width: 100%; max-width: 300px; margin-bottom: 30px; filter: drop-shadow(0 0 15px #ff0000); }
+        h2 { color: #ff0000; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; font-family: 'Impact'; font-size: 2.5rem; }
+        
+        input { 
+            padding: 22px; width: 90%; border-radius: 12px; border: 2px solid #333; 
+            background: rgba(0,0,0,0.8); color: white; margin-bottom: 20px; font-size: 1.3rem;
+            transition: 0.3s;
+        }
+        input:focus { border-color: #ff0000; outline: none; background: #000; }
+        
+        button { 
+            padding: 25px; background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); 
+            color: white; border: 2px solid #ff0000; border-radius: 12px; cursor: pointer; 
+            font-weight: bold; font-size: 1.8rem; width: 98%; text-transform: uppercase; font-family: 'Impact';
+            transition: 0.3s; margin-top: 10px;
+        }
+        button:hover { background: #ff0000; transform: scale(1.02); box-shadow: 0 0 30px #ff0000; }
+        
+        #status { margin-top: 20px; color: #00FF41; font-size: 1.4rem; font-weight: bold; height: 30px; }
+        .preview { margin: 20px auto; max-width: 250px; border-radius: 15px; display: none; border: 3px solid #ff0000; box-shadow: 0 0 20px #000; }
+        .back-link { display: inline-block; margin-top: 30px; color: #bbb; text-decoration: none; font-size: 1.1rem; border-bottom: 1px dotted #555; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>GIF an Stream senden</h2>
-        <input type="text" id="username" placeholder="Dein Name"><br>
-        <input type="text" id="gif-url" placeholder="Giphy Link einfügen..." oninput="updatePreview()"><br>
-        <img id="gif-preview" class="preview" src=""><br>
-        <button onclick="send()">Senden</button>
+    <div class="container">
+        <img src="logo.png" class="logo-small">
+        <h2>YAYINA GIF FIRLAT</h2>
+        <input type="text" id="username" placeholder="Adınız (Zorunlu değil)">
+        <input type="text" id="gif-url" placeholder="Giphy Linkini Yapıştır..." oninput="updatePreview()">
+        <img id="gif-preview" class="preview" src="">
+        <button onclick="send()">YAYINA GÖNDER!</button>
         <div id="status"></div>
+        <a href="index.html" class="back-link">← Ana Sayfaya Dön</a>
     </div>
 
     <script>
+        // FIREBASE CONFIG BURAYA GELECEK (Senin mevcut config'ini kullan)
         const firebaseConfig = {
             apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
             authDomain: "chaostitan41-website.firebaseapp.com",
@@ -40,7 +70,6 @@
         function getID(url) {
             try {
                 const parts = url.split("/");
-                // Filtert die ID aus media-Links oder normalen Links
                 let id = url.includes("/gifs/") ? url.split("-").pop().split("/")[0] : parts[parts.length - 2];
                 if (id.includes("?")) id = id.split("?")[0];
                 return id;
@@ -58,17 +87,18 @@
 
         function send() {
             const id = getID(document.getElementById('gif-url').value);
-            const name = document.getElementById('username').value || "Anonym";
-            if(!id) return alert("Ungültiger Link!");
+            const name = document.getElementById('username').value || "Gizli Üye";
+            if(!id) return alert("Hata: Geçerli bir Giphy linki gir!");
 
             db.ref('activeGifs').push({
                 gifId: id,
                 userName: name,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
-                document.getElementById('status').innerText = "✅ Gesendet!";
+                document.getElementById('status').innerText = "✅ Yayına Gönderildi!";
                 document.getElementById('gif-url').value = "";
                 document.getElementById('gif-preview').style.display = "none";
+                setTimeout(() => { document.getElementById('status').innerText = ""; }, 3000);
             });
         }
     </script>
