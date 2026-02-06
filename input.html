@@ -2,48 +2,29 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <title>GIF Sender - ChaosTitan41</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
-        #display { position: relative; width: 100vw; height: 100vh; }
-        
-        .media-container {
-            position: absolute;
-            bottom: 50px;
-            right: 50px;
-            text-align: center;
-            animation: fadeInOut 8s forwards;
-        }
-
-        img, video { 
-            max-width: 450px; 
-            border-radius: 15px; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.5); 
-            display: block;
-        }
-
-        .name-label { 
-            color: white; 
-            font-size: 26px; 
-            text-shadow: 2px 2px 8px #000; 
-            margin-top: 10px; 
-            font-weight: bold;
-        }
-
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: scale(0.8); }
-            10% { opacity: 1; transform: scale(1); }
-            90% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(0.8); }
-        }
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 20px; }
+        .box { background: #1e1e1e; padding: 25px; border-radius: 15px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        input { padding: 12px; width: 300px; border-radius: 5px; border: 1px solid #444; background: #222; color: white; margin-bottom: 10px; }
+        button { padding: 12px 20px; background: #a970ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        #status { margin-top: 15px; font-weight: bold; }
+        .preview { margin-top: 15px; max-width: 150px; border-radius: 8px; display: none; margin-left: auto; margin-right: auto; }
     </style>
 </head>
 <body>
-    <div id="display"></div>
+    <div class="box">
+        <h2>GIF an Stream senden</h2>
+        <input type="text" id="username" placeholder="Dein Name"><br>
+        <input type="text" id="gif-url" placeholder="Giphy Link einfügen..." oninput="updatePreview()"><br>
+        <img id="gif-preview" class="preview" src=""><br>
+        <button onclick="send()">Senden</button>
+        <div id="status"></div>
+    </div>
 
     <script>
-        // DEINE FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
             authDomain: "chaostitan41-website.firebaseapp.com",
@@ -53,50 +34,43 @@
             messagingSenderId: "553158677453",
             appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const start = Date.now(); // Verhindert das Laden alter GIFs
 
-        db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
-            const data = snap.val();
-            if(data.timestamp < start) return;
+        function getID(url) {
+            try {
+                const parts = url.split("/");
+                // Filtert die ID aus media-Links oder normalen Links
+                let id = url.includes("/gifs/") ? url.split("-").pop().split("/")[0] : parts[parts.length - 2];
+                if (id.includes("?")) id = id.split("?")[0];
+                return id;
+            } catch(e) { return null; }
+        }
 
-            const box = document.getElementById('display'); // Geändert zu 'display'
-            const div = document.createElement('div');
-            div.className = "media-container";
-            
-            const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
-            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
+        function updatePreview() {
+            const id = getID(document.getElementById('gif-url').value);
+            const img = document.getElementById('gif-preview');
+            if(id) {
+                img.src = `https://media.giphy.com/media/${id}/giphy.gif`;
+                img.style.display = "block";
+            } else { img.style.display = "none"; }
+        }
 
-            div.innerHTML = `
-                <video id="v-${snap.key}" src="${videoUrl}" autoplay playsinline style="width:450px;"></video>
-                <img id="i-${snap.key}" src="${imageUrl}" style="display:none; width:450px;">
-                <div class="name-label">${data.userName}</div>
-            `;
-            box.appendChild(div);
+        function send() {
+            const id = getID(document.getElementById('gif-url').value);
+            const name = document.getElementById('username').value || "Anonym";
+            if(!id) return alert("Ungültiger Link!");
 
-            const v = document.getElementById(`v-${snap.key}`);
-            const i = document.getElementById(`i-${snap.key}`);
-
-            // Sound-Logik
-            v.oncanplaythrough = () => {
-                v.muted = false;
-                v.volume = 1.0;
-                v.play().catch(err => {
-                    v.muted = true; // Falls Autoplay gesperrt ist
-                    v.play();
-                    setTimeout(() => { v.muted = false; }, 100);
-                });
-            };
-
-            v.onerror = () => { 
-                v.style.display='none'; 
-                i.style.display='block'; 
-            };
-            
-            setTimeout(() => div.remove(), 8000);
-        });
+            db.ref('activeGifs').push({
+                gifId: id,
+                userName: name,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                document.getElementById('status').innerText = "✅ Gesendet!";
+                document.getElementById('gif-url').value = "";
+                document.getElementById('gif-preview').style.display = "none";
+            });
+        }
     </script>
 </body>
 </html>
