@@ -4,132 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHAOSTITAN41 | Official</title>
-    <script>(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.async=1;js.src = "https://cdn.webpushr.com/app.min.js";fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('setup',{'key':'BJDxZo78K7DTSoVesx3_oPgaDHFxyCwfJK-4wm7dr1K2NkcucVal5R29oJLquTyscMXDw6zXr4P3WiqxmEyRBjk' });</script>
     <style>
         body { 
             background: #000 url('bg.png') no-repeat center center fixed; 
             background-size: cover;
             color: #fff; 
-            font-family: 'Impact', 'Arial Black', sans-serif; 
-            text-align: center; 
-            margin: 0; 
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: 'Impact', sans-serif; 
+            text-align: center; margin: 0; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        /* Overlay für bessere Lesbarkeit über dem Hintergrundbild */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%);
-            z-index: -1;
-        }
-
+        /* Kein harter schwarzer Kasten mehr, nur ein leichter Schatten für die Lesbarkeit */
         .container {
-            max-width: 450px;
-            width: 90%;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 20px;
-            border: 1px solid rgba(139, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
+            width: 100%;
+            max-width: 600px; /* Breiter für größere Buttons */
+            padding: 40px 20px;
         }
-
-        .logo-img {
-            max-width: 100%;
-            height: auto;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.6));
+        .logo-img { 
+            width: 100%; 
+            max-width: 450px; 
+            margin-bottom: 40px; 
+            filter: drop-shadow(0 0 20px #ff0000); 
         }
-
-        .nav-container { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            margin-bottom: 25px;
-        }
+        .nav-container { display: flex; flex-direction: column; gap: 20px; }
         
+        /* Viel größere Buttons */
         .main-btn { 
             display: block; 
             background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); 
             color: #fff; 
-            padding: 16px; 
-            border-radius: 8px; 
+            padding: 25px; /* Größeres Padding */
+            border-radius: 12px; 
             text-decoration: none; 
             font-weight: bold; 
-            font-size: 1.1rem;
+            font-size: 1.8rem; /* Größere Schrift */
             transition: 0.3s; 
-            border: 1px solid #ff0000; 
+            border: 2px solid #ff0000; 
             text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
-
-        .main-btn:hover { 
-            background: #ff0000; 
-            transform: scale(1.03);
-            box-shadow: 0 0 20px rgba(255,0,0,0.6); 
-        }
-
+        .main-btn:hover { background: #ff0000; transform: scale(1.05); box-shadow: 0 0 30px #ff0000; }
+        
         .sub-btn { 
-            background: rgba(30, 30, 30, 0.9); 
-            border: 1px solid #444;
-            border-left: 4px solid #ff0000; 
+            background: rgba(0, 0, 0, 0.6); 
+            border: 2px solid #444;
+            border-left: 8px solid #ff0000; 
             color: #fff; 
-            padding: 12px; 
+            padding: 18px; 
             text-decoration: none; 
-            border-radius: 4px; 
-            transition: 0.2s;
+            border-radius: 8px; 
+            transition: 0.3s; 
             text-transform: uppercase;
-            font-size: 0.9rem;
+            font-size: 1.2rem;
         }
+        .sub-btn:hover { background: rgba(255, 0, 0, 0.2); border-left-width: 20px; }
 
-        .sub-btn:hover { background: #333; border-left-width: 10px; }
-
-        .social-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; 
-            gap: 8px; 
-        }
-
+        .social-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 30px; }
         .social-link { 
-            background: #111; 
-            padding: 8px; 
-            text-decoration: none; 
-            color: #bbb; 
-            font-size: 0.7rem; 
-            border-radius: 4px; 
-            border: 1px solid #222; 
-        }
-
-        .footer-text {
-            color: #777;
-            font-size: 0.75rem;
-            margin-top: 25px;
-            font-style: italic;
-            font-family: sans-serif;
+            background: rgba(0,0,0,0.7); padding: 15px; text-decoration: none; 
+            color: #fff; font-size: 0.9rem; border-radius: 6px; border: 1px solid #333; 
         }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="logo.png" class="logo-img" alt="CHAOSTITAN41">
-        
         <div class="nav-container">
             <a href="https://kick.com/chaostitan41" class="main-btn" target="_blank">KICK KANALINA GİT</a>
-            <a href="input.html" class="main-btn">YAYINA GIF GÖNDER</a>
-            <a href="filter.html" class="sub-btn">YAYIN FİLTRE PANELİ (Admin)</a>
+            <a href="input.html" class="main-btn" style="background: rgba(20,20,20,0.8); border-color: #8B0000;">YAYINA GIF GÖNDER</a>
+            <a href="filter.html" class="sub-btn">FİLTRE PANELİ (Admin)</a>
         </div>
-
         <div class="social-grid">
             <a href="https://www.instagram.com/chaostitan41" target="_blank" class="social-link">INSTAGRAM</a>
             <a href="https://www.tiktok.com/@chaostitan41" target="_blank" class="social-link">TIKTOK</a>
             <a href="https://www.youtube.com/@chaostitan41" target="_blank" class="social-link">YOUTUBE</a>
         </div>
-
-        <p class="footer-text">"ChaosTitan41 Yayında bi sen eksiksin!"</p>
     </div>
 </body>
 </html>
