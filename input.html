@@ -44,39 +44,22 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // DER ULTIMATIVE GIPHY FILTER
         function getID(url) {
             if (!url) return null;
-            try {
-                // Entfernt alles nach dem Fragezeichen (Tokens etc.)
-                let cleanUrl = url.split('?')[0];
-                
-                // Extrahiert die ID aus verschiedenen Formaten (media, gifs, stickers)
-                let parts = cleanUrl.split("/");
-                let id = "";
-                
-                if (cleanUrl.includes("giphy.com/media/")) {
-                    // Formate wie media.giphy.com/media/ID/giphy.gif
-                    id = parts[4];
-                } else if (cleanUrl.includes("/gifs/")) {
-                    // Formate wie giphy.com/gifs/name-ID
-                    id = parts[parts.length - 1].split("-").pop();
-                } else {
-                    // Fallback: Letzter Teil der URL
-                    id = parts[parts.length - 1];
-                }
-                
-                // Falls noch Dateiendungen wie .gif oder .webp dran hängen
-                return id.replace(".gif", "").replace(".webp", "").replace(".mp4", "");
-            } catch(e) { return null; }
+            // Diese Regex filtert die ID aus allen Giphy-Linkformaten (media, gifs, sticker, etc.)
+            const regExp = /media(?:[0-9])?\.giphy\.com\/media\/([a-zA-Z0-9]+)\/giphy/i;
+            const regExp2 = /giphy\.com\/gifs\/(?:.*-)?([a-zA-Z0-9]+)/i;
+            
+            const match = url.match(regExp) || url.match(regExp2);
+            return match ? match[1] : url.split('/').pop().split('?')[0];
         }
 
         function updatePreview() {
             const id = getID(document.getElementById('gif-url').value);
             const img = document.getElementById('gif-preview');
             if(id && id.length > 3) {
-                // Wir erzwingen die Standard-Vorschau über die reine ID
-                img.src = `https://media.giphy.com/media/${id}/giphy.gif`;
+                // Wir nutzen i.giphy.com - das ist die stabilste URL für direkte Einbettungen
+                img.src = `https://i.giphy.com/media/${id}/giphy.gif`;
                 img.style.display = "block";
             } else { img.style.display = "none"; }
         }
@@ -97,18 +80,18 @@
             db.ref('bannedIPs/' + ip).once('value', snap => {
                 if (snap.exists()) {
                     document.getElementById('status').innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
-                    db.ref('bannedRequests').push({ userName: name, userIP: ip, timestamp: firebase.database.ServerValue.TIMESTAMP });
                 } else {
+                    // Wir speichern NUR die saubere ID. 
+                    // Das Overlay muss dann https://i.giphy.com/media/ID/giphy.gif abrufen.
                     db.ref('activeGifs').push({ 
-                        gifId: id, // HIER WIRD NUR NOCH DIE REINE ID GESPEICHERT
+                        gifId: id, 
                         userName: name, 
                         userIP: ip, 
                         timestamp: firebase.database.ServerValue.TIMESTAMP 
                     }).then(() => {
                         document.getElementById('status').innerHTML = "<span style='color:#00ff99'>GÖNDERİLDİ!</span>";
                         document.getElementById('gif-url').value = "";
-                        const day = new Date().toISOString().split('T')[0];
-                        db.ref('stats/daily/' + day + '/' + ip).set(true);
+                        document.getElementById('gif-preview').style.display = "none";
                     });
                 }
             });
