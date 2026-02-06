@@ -2,104 +2,51 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Stream GIF Sender</title>
+    <title>Test-Modus: GIF Sender</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; text-align: center; padding-top: 50px; }
-        .card { background: #1e1e1e; padding: 30px; border-radius: 15px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        input { padding: 12px; width: 250px; border-radius: 5px; border: none; margin-bottom: 10px; }
-        button { padding: 12px 25px; cursor: pointer; border-radius: 5px; border: none; background: #6441a5; color: white; font-weight: bold; }
-        button:disabled { background: #444; cursor: not-allowed; }
-        #status { margin-top: 15px; color: #ff9900; }
-        .hidden { display: none; }
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
+        input { padding: 12px; margin: 5px; border-radius: 5px; border: none; width: 300px; }
+        button { padding: 12px 20px; background: #00e676; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .info { color: #888; font-size: 0.8em; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>GIF an Stream senden</h2>
-        
-        <div id="login-section">
-            <button onclick="login()">Mit Google einloggen</button>
-        </div>
-
-        <div id="input-section" class="hidden">
-            <p id="user-welcome"></p>
-            <input type="text" id="gif-url" placeholder="https://giphy.com/gifs/..." /> <br>
-            <button id="send-btn" onclick="sendGif()">GIF Abschicken</button>
-            <div id="status"></div>
-        </div>
-    </div>
+    <h2>🛠 Test-Panel (Ohne Login)</h2>
+    <input type="text" id="username" placeholder="Dein Name (Test)"><br>
+    <input type="text" id="gif-url" placeholder="Giphy Link hier rein"><br>
+    <button onclick="sendGif()">GIF an OBS senden</button>
+    <p id="status"></p>
 
     <script>
-        // DEINE FIREBASE CONFIG HIER EINTRAGEN
-        const firebaseConfig = {
-            apiKey: "DEIN_API_KEY",
-            authDomain: "DEIN_PROJEKT.firebaseapp.com",
-            databaseURL: "https://DEIN_PROJEKT.firebaseio.com",
-            projectId: "DEIN_PROJEKT",
-            storageBucket: "DEIN_PROJEKT.appspot.com",
-            messagingSenderId: "DEINE_ID",
-            appId: "DEINE_APP_ID"
-        };
+        const firebaseConfig = { /* DEINE CONFIG HIER */ };
         firebase.initializeApp(firebaseConfig);
-
-        const auth = firebase.auth();
         const db = firebase.database();
-        let lastSentTime = 0;
-        const COOLDOWN_MS = 60000; // 60 Sekunden Cooldown
 
-        function login() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(e => console.error(e));
-        }
-
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('input-section').classList.remove('hidden');
-                document.getElementById('user-welcome').innerText = "Hallo " + user.displayName;
-            }
-        });
-
-        async function sendGif() {
+        function sendGif() {
+            const name = document.getElementById('username').value || "Anonym";
             const urlInput = document.getElementById('gif-url').value;
             const status = document.getElementById('status');
-            const now = Date.now();
 
-            // 1. Cooldown Check
-            if (now - lastSentTime < COOLDOWN_MS) {
-                const remaining = Math.ceil((COOLDOWN_MS - (now - lastSentTime)) / 1000);
-                status.innerText = `Warte noch ${remaining}s...`;
-                return;
-            }
-
-            // 2. Giphy Validation
             if (!urlInput.includes("giphy.com")) {
-                status.innerText = "Nur Giphy-Links erlaubt!";
+                status.innerText = "Bitte nur Giphy-Links!";
                 return;
             }
 
-            // 3. GIF ID extrahieren (verbesserte Logik)
-            const regex = /\/gifs\/.*-([a-zA-Z0-9]+)/;
-            const match = urlInput.match(regex);
-            const gifId = match ? match[1] : urlInput.split('/').pop();
+            // GIF ID extrahieren
+            const parts = urlInput.split("-");
+            const gifId = parts[parts.length - 1].replace("/", "");
 
-            try {
-                await db.ref('activeGifs').push({
-                    gifId: gifId,
-                    userName: auth.currentUser.displayName,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-                
-                lastSentTime = now;
-                status.innerText = "Gesendet! Schau in den Stream.";
+            db.ref('activeGifs').push({
+                gifId: gifId,
+                userName: name,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                status.innerText = "Erfolgreich gesendet!";
                 document.getElementById('gif-url').value = "";
-            } catch (error) {
-                status.innerText = "Fehler: Du bist vermutlich gebannt oder nicht eingeloggt.";
-            }
+            });
         }
     </script>
 </body>
