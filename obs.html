@@ -8,23 +8,33 @@
         body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
         #display { position: relative; width: 100vw; height: 100vh; }
         
-        .gif-container {
+        .media-container {
             position: absolute;
             bottom: 50px;
             right: 50px;
             text-align: center;
-            /* Animation: Einblenden, 28 Sek stehen, Ausblenden */
-            animation: fadeInOut 30s forwards;
+            animation: fadeInOut 8s forwards;
         }
 
-        img { max-width: 450px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .name-label { color: white; font-size: 24px; text-shadow: 2px 2px 4px #000; margin-top: 10px; }
+        img, video { 
+            max-width: 450px; 
+            border-radius: 15px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+        }
+
+        .name-label { 
+            color: white; 
+            font-size: 24px; 
+            text-shadow: 2px 2px 8px #000; 
+            margin-top: 10px; 
+            font-weight: bold;
+        }
 
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: scale(0.5); }
-            5% { opacity: 1; transform: scale(1); }
-            95% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(0.5); }
+            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+            10% { opacity: 1; transform: translateY(0) scale(1); }
+            90% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-20px) scale(0.8); }
         }
     </style>
 </head>
@@ -46,26 +56,39 @@
         const db = firebase.database();
         const startTime = Date.now();
 
-        // Auf neue GIFs warten
         db.ref('activeGifs').limitToLast(1).on('child_added', (snapshot) => {
             const data = snapshot.val();
-            if (data.timestamp < startTime) return; // Alte GIFs ignorieren
+            if (data.timestamp < startTime) return;
 
             const display = document.getElementById('display');
             const div = document.createElement('div');
-            div.className = 'gif-container';
+            div.className = 'media-container';
             
-            const gifUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
-            
+            // Wir erstellen zwei Versionen: Eine als Video (.mp4 für Sound) und eine als Bild
+            const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
+            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
+
+            // Der Trick: Wir laden das Video. Wenn es Audio/Video-Daten hat, spielt es.
+            // Falls es ein reines GIF ohne Video-Gegenstück ist, springt es zum "onerror" und zeigt das Bild.
             div.innerHTML = `
-                <img src="${gifUrl}">
+                <video id="vid-${snapshot.key}" src="${videoUrl}" autoplay playsinline></video>
+                <img id="img-${snapshot.key}" src="${imageUrl}" style="display:none;">
                 <div class="name-label">${data.userName}</div>
             `;
 
             display.appendChild(div);
 
-            // Nach 30 Sekunden aus dem Code löschen
-            setTimeout(() => { div.remove(); }, 30000);
+            const videoElement = document.getElementById(`vid-${snapshot.key}`);
+            const imageElement = document.getElementById(`img-${snapshot.key}`);
+
+            // Falls das Video nicht geladen werden kann (weil es ein echtes GIF ist), zeige das Bild
+            videoElement.onerror = function() {
+                videoElement.style.display = 'none';
+                imageElement.style.display = 'block';
+            };
+
+            // Nach 8 Sekunden entfernen
+            setTimeout(() => { div.remove(); }, 8000);
         });
     </script>
 </body>
