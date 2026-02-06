@@ -16,10 +16,12 @@
             animation: fadeInOut 8s forwards;
         }
 
+        /* Wir setzen Video und Bild auf die gleiche Größe */
         img, video { 
             max-width: 450px; 
             border-radius: 15px; 
             box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+            display: block;
         }
 
         .name-label { 
@@ -64,13 +66,14 @@
             const div = document.createElement('div');
             div.className = 'media-container';
             
-            // Trick: Wir nutzen die MP4-Version wann immer möglich, da diese IMMER loopt.
+            // Wir laden die MP4-Version. Videos haben ein echtes 'loop' Attribut.
             const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
-            // Bei Bildern hängen wir einen Cache-Buster an
-            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif?${Date.now()}`;
+            const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
 
+            // 'loop' sorgt dafür, dass das Video niemals stehen bleibt.
+            // 'muted' ist am Anfang oft nötig, damit der Browser Autoplay erlaubt.
             div.innerHTML = `
-                <video id="vid-${snapshot.key}" src="${videoUrl}" autoplay playsinline loop muted></video>
+                <video id="vid-${snapshot.key}" src="${videoUrl}" autoplay loop playsinline muted></video>
                 <img id="img-${snapshot.key}" src="${imageUrl}" style="display:none;">
                 <div class="name-label">${data.userName}</div>
             `;
@@ -80,18 +83,19 @@
             const videoElement = document.getElementById(`vid-${snapshot.key}`);
             const imageElement = document.getElementById(`img-${snapshot.key}`);
 
-            // Wenn es ein Video gibt, versuchen wir den Sound zu entmuten (wichtig für OBS!)
+            // Sobald das Video bereit ist, versuchen wir den Ton zu aktivieren
             videoElement.oncanplay = () => {
-                videoElement.muted = false; 
-                videoElement.play();
+                videoElement.muted = false; // Entmuten für OBS
+                videoElement.play().catch(e => console.log("Sound-Autoplay blockiert"));
             };
 
-            // Falls kein MP4-Video verfügbar ist (Error), zeigen wir das GIF
+            // Falls Giphy kein MP4 für diese ID hat, nutzen wir das GIF als Backup
             videoElement.onerror = () => {
                 videoElement.style.display = 'none';
                 imageElement.style.display = 'block';
             };
 
+            // Nach 8 Sekunden das gesamte Element entfernen
             setTimeout(() => { div.remove(); }, 8000);
         });
     </script>
