@@ -6,126 +6,119 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { background: #000 url('bg.png') no-repeat center center fixed; background-size: cover; color: #fff; font-family: sans-serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        
-        /* Login Bereich */
-        #login-overlay { background: rgba(0,0,0,0.85); padding: 50px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; width: 350px; backdrop-filter: blur(10px); }
-        .pass-container { position: relative; margin: 20px 0; }
-        input[type="password"], input[type="text"] { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #444; background: #000; color: #fff; font-size: 1.1rem; box-sizing: border-box; }
-        .toggle-password { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; font-size: 1.2rem; }
-        .login-btn { background: #8B0000; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; transition: 0.3s; }
-        .login-btn:hover { background: #ff0000; box-shadow: 0 0 20px #ff0000; }
-
-        /* Admin Dashboard (Standardmäßig versteckt) */
-        #admin-content { display: none; width: 90%; max-width: 1000px; background: rgba(0,0,0,0.8); padding: 30px; border-radius: 20px; border: 1px solid #ff0000; }
-        .section { background: rgba(20,20,20,0.8); border: 1px solid #8B0000; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        h2 { color: #ff0000; text-transform: uppercase; border-bottom: 2px solid #8B0000; padding-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        body { background: #0a0a0a; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .login-box { background: #111; padding: 40px; border-radius: 20px; border: 2px solid #8B0000; text-align: center; }
+        input[type="password"] { padding: 15px; width: 250px; border-radius: 8px; border: 1px solid #444; background: #000; color: #fff; margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: #111; border: 1px solid #8B0000; padding: 20px; border-radius: 12px; text-align: center; }
+        .stat-card p { font-size: 2rem; color: #ff0000; font-weight: bold; margin: 5px 0 0; }
+        .section { background: #111; border: 1px solid #333; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        h2 { color: #ff0000; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; }
-        th { background: #1a1a1a; color: #888; }
-        .ban-btn { background: #ff0000; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .unban-btn { background: #00FF41; color: black; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .ip-text { font-family: monospace; color: #00FF41; font-size: 1.1rem; }
+        .ban-btn { background: #ff0000; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+        .unban-btn { background: #00ff99; color: #000; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .blocked-row { background: rgba(255,0,0,0.1); }
     </style>
 </head>
 <body>
-
     <div id="login-overlay">
-        <img src="logo.png" style="max-width: 200px; margin-bottom: 20px;">
-        <h2>Admin Giriş</h2>
-        <div class="pass-container">
-            <input type="password" id="admin-pass" placeholder="Şifre Girin...">
-            <span class="toggle-password" onclick="togglePass()">👁️</span>
+        <div class="login-box">
+            <h2>ADMIN PANEL</h2>
+            <input type="password" id="admin-pass" placeholder="Şifre..."><br>
+            <button onclick="checkLogin()" style="padding: 10px 30px; cursor: pointer;">GİRİŞ</button>
         </div>
-        <button class="login-btn" onclick="checkLogin()">GİRİŞ YAP</button>
     </div>
 
-    <div id="admin-content">
+    <div id="admin-content" style="display:none;">
+        <div class="stats-grid">
+            <div class="stat-card"><h3>Bugün</h3><p id="s-today">0</p></div>
+            <div class="stat-card"><h3>Hafta</h3><p id="s-week">0</p></div>
+            <div class="stat-card"><h3>Ay</h3><p id="s-month">0</p></div>
+            <div class="stat-card"><h3>Yıl</h3><p id="s-year">0</p></div>
+        </div>
+
         <div class="section">
-            <h2>Son Gönderilen GIF'ler (Live)</h2>
+            <h2>Canlı Akış (Gelen GIF'ler)</h2>
             <table>
-                <thead>
-                    <tr><th>Zaman</th><th>Kullanıcı</th><th>IP Adresi</th><th>İşlem</th></tr>
-                </thead>
-                <tbody id="logs-body"></tbody>
+                <thead><tr><th>Zaman</th><th>User</th><th>IP</th><th>İşlem</th></tr></thead>
+                <tbody id="l-body"></tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2 style="color: #ffaa00;">Engellenen Denemeler (Banlılar)</h2>
+            <table>
+                <thead><tr><th>Zaman</th><th>User</th><th>IP</th><th>İşlem</th></tr></thead>
+                <tbody id="blocked-body"></tbody>
             </table>
         </div>
 
         <div class="section">
             <h2>Yasaklı IP Listesi</h2>
             <table>
-                <thead>
-                    <tr><th>IP Adresi</th><th>İşlem</th></tr>
-                </thead>
-                <tbody id="bans-body"></tbody>
+                <thead><tr><th>IP Adresi</th><th>İşlem</th></tr></thead>
+                <tbody id="b-body"></tbody>
             </table>
         </div>
-        <button class="login-btn" style="width: auto;" onclick="location.reload()">ÇIKIŞ YAP</button>
+        <button onclick="sessionStorage.clear(); location.reload();">Güvenli Çıkış</button>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
-            authDomain: "chaostitan41-website.firebaseapp.com",
-            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "chaostitan41-website",
-            storageBucket: "chaostitan41-website.firebasestorage.app",
-            messagingSenderId: "553158677453",
-            appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", authDomain: "chaostitan41-website.firebaseapp.com", databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", projectId: "chaostitan41-website", storageBucket: "chaostitan41-website.firebasestorage.app", messagingSenderId: "553158677453", appId: "1:553158677453:web:2cad39890ffdedb98aaa84" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const MASTER_PASS = "ŞİFRENİ_BURAYA_YAZ"; 
 
-        function togglePass() {
-            const passField = document.getElementById('admin-pass');
-            passField.type = passField.type === 'password' ? 'text' : 'password';
-        }
+        if(sessionStorage.getItem("admin") === "true") showDashboard();
 
         function checkLogin() {
-            const pass = document.getElementById('admin-pass').value;
-            if(pass === "DEIN_WUNSCHPASSWORT") { // <--- HIER DEIN PASSWORT EINTRAGEN
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('admin-content').style.display = 'block';
-                loadData();
-            } else {
-                alert("Hatalı Şifre!");
-            }
+            if(document.getElementById('admin-pass').value === MASTER_PASS) {
+                sessionStorage.setItem("admin", "true");
+                showDashboard();
+            } else { alert("Hatalı Şifre!"); }
         }
 
-        function loadData() {
-            // Live Logs
-            db.ref('activeGifs').limitToLast(15).on('value', (snapshot) => {
-                const tbody = document.getElementById('logs-body');
-                tbody.innerHTML = "";
-                snapshot.forEach((child) => {
-                    const data = child.val();
-                    const time = new Date(data.timestamp).toLocaleTimeString();
-                    const rawIP = data.userIP || "Bilinmiyor";
-                    const cleanIP = rawIP.replace(/_/g, '.');
-                    tbody.insertAdjacentHTML('afterbegin', `<tr>
-                        <td>${time}</td><td>${data.userName}</td>
-                        <td class="ip-text">${cleanIP}</td>
-                        <td><button class="ban-btn" onclick="banIP('${rawIP}')">BAN</button></td>
-                    </tr>`);
+        function showDashboard() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('admin-content').style.display = 'block';
+            
+            // Stats
+            db.ref('stats/daily').on('value', snap => {
+                const d = snap.val() || {}; const now = new Date(); const today = now.toISOString().split('T')[0];
+                let t=0; const w=new Set(), m=new Set(), y=new Set();
+                Object.keys(d).forEach(dt => {
+                    const date = new Date(dt); const ips = Object.keys(d[dt]);
+                    if(dt===today) t=ips.length;
+                    if((now-date)/864e5 <= 7) ips.forEach(i=>w.add(i));
+                    if(date.getMonth()===now.getMonth()) ips.forEach(i=>m.add(i));
+                    if(date.getFullYear()===now.getFullYear()) ips.forEach(i=>y.add(i));
                 });
+                document.getElementById('s-today').innerText=t; document.getElementById('s-week').innerText=w.size;
+                document.getElementById('s-month').innerText=m.size; document.getElementById('s-year').innerText=y.size;
+            });
+
+            // Live Logs
+            db.ref('activeGifs').limitToLast(10).on('value', s => {
+                const b = document.getElementById('l-body'); b.innerHTML="";
+                s.forEach(c => { const d=c.val(); b.insertAdjacentHTML('afterbegin', `<tr><td>${new Date(d.timestamp).toLocaleTimeString()}</td><td>${d.userName}</td><td>${d.userIP.replace(/_/g,'.')}</td><td><button class="ban-btn" onclick="ban('${d.userIP}')">BAN</button></td></tr>`); });
+            });
+
+            // Blocked Attempts
+            db.ref('bannedRequests').limitToLast(10).on('value', s => {
+                const b = document.getElementById('blocked-body'); b.innerHTML="";
+                s.forEach(c => { const d=c.val(); b.insertAdjacentHTML('afterbegin', `<tr class="blocked-row"><td>${new Date(d.timestamp).toLocaleTimeString()}</td><td>${d.userName}</td><td>${d.userIP.replace(/_/g,'.')}</td><td><button class="unban-btn" onclick="unban('${d.userIP}')">AFFET</button></td></tr>`); });
             });
 
             // Banned List
-            db.ref('bannedIPs').on('value', (snapshot) => {
-                const tbody = document.getElementById('bans-body');
-                tbody.innerHTML = "";
-                snapshot.forEach((child) => {
-                    const ip = child.key.replace(/_/g, '.');
-                    tbody.innerHTML += `<tr>
-                        <td class="ip-text">${ip}</td>
-                        <td><button class="unban-btn" onclick="unbanIP('${child.key}')">KALDIR</button></td>
-                    </tr>`;
-                });
+            db.ref('bannedIPs').on('value', s => {
+                const b = document.getElementById('b-body'); b.innerHTML="";
+                s.forEach(c => { b.innerHTML+=`<tr><td>${c.key.replace(/_/g,'.')}</td><td><button class="unban-btn" onclick="unban('${c.key}')">KALDIR</button></td></tr>`; });
             });
         }
-
-        function banIP(ipKey) { if(confirm("Yasakla: " + ipKey.replace(/_/g, '.'))) db.ref('bannedIPs/' + ipKey).set(true); }
-        function unbanIP(ipKey) { db.ref('bannedIPs/' + ipKey).remove(); }
+        function ban(i) { if(confirm("Banlansın mı?")) db.ref('bannedIPs/'+i).set(true); }
+        function unban(i) { if(confirm("Ban kaldırılsın mı?")) db.ref('bannedIPs/'+i).remove(); }
     </script>
 </body>
 </html>
