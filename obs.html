@@ -5,10 +5,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { background: transparent; margin: 0; overflow: hidden; font-family: sans-serif; }
+        body { background: transparent; margin: 0; overflow: hidden; }
         #display { position: relative; width: 100vw; height: 100vh; }
         
-        /* Unsichtbare Schicht für den ersten Klick in OBS */
         #audio-unlocker {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: transparent; border: none; cursor: pointer; z-index: 10000;
@@ -22,17 +21,32 @@
         img, video { 
             max-width: 450px; 
             border-radius: 15px; 
-            box-shadow: 0 0 25px rgba(0,0,0,0.6); 
+            border: 4px solid #ff0000; 
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8); 
             display: block;
         }
 
+        /* DIESER TEIL MACHT DEN LOGO-LOOK */
         .name-label { 
-            color: white; 
-            font-size: 28px; 
-            text-shadow: 2px 2px 10px #000; 
-            margin-top: 12px; 
-            font-weight: bold;
-            font-family: Arial, sans-serif;
+            color: #ff0000; /* Das kräftige Rot deines Logos */
+            font-family: 'Impact', 'Arial Black', sans-serif; /* Die massivste verfügbare Schrift */
+            font-size: 65px; 
+            font-weight: 900;
+            text-transform: uppercase; 
+            letter-spacing: -1px; /* Enger zusammen für Logo-Look */
+            font-style: italic; /* Kursiv wirkt oft dynamischer in Logos */
+            
+            /* Die "magische" Formel für Logo-Konturen: */
+            -webkit-text-stroke: 2px white; /* Weiße Außenlinie */
+            text-shadow: 
+                3px 3px 0px #000, 
+                -1px -1px 0px #000,  
+                1px -1px 0px #000,
+                -1px 1px 0px #000,
+                1px 1px 0px #000,
+                0px 0px 20px rgba(255, 0, 0, 0.8); /* Roter Glow außen rum */
+            
+            margin-top: 5px; 
         }
 
         @keyframes fadeInOut {
@@ -63,7 +77,6 @@
         const db = firebase.database();
         const start = Date.now();
         
-        // Dein Sound von GitHub
         const notificationSound = new Audio('pop.mp3'); 
 
         function activateAudio() {
@@ -72,14 +85,12 @@
                 notificationSound.currentTime = 0;
             });
             document.getElementById('audio-unlocker').style.display = 'none';
-            console.log("Overlay bereit!");
         }
 
         db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
             const data = snap.val();
             if(data.timestamp < start) return;
 
-            // 1. BENACHRICHTIGUNG (DEIN POP)
             notificationSound.currentTime = 0;
             notificationSound.volume = 0.6;
             notificationSound.play().catch(() => {});
@@ -88,7 +99,6 @@
             const div = document.createElement('div');
             div.className = "media-container";
             
-            // Wir laden sowohl Video als auch Bild (Fallback)
             const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
             const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
 
@@ -102,19 +112,16 @@
             const v = document.getElementById(`v-${snap.key}`);
             const i = document.getElementById(`i-${snap.key}`);
 
-            // Versuche Sound vom Video zu aktivieren
             v.onplay = () => {
                 v.muted = false;
                 v.volume = 0.7;
             };
 
-            // Wenn Video nicht geht, zeige GIF
             v.onerror = () => { 
                 v.style.display = 'none'; 
                 i.style.display = 'block'; 
             };
 
-            // Nach 8.5 Sekunden aufräumen
             setTimeout(() => div.remove(), 8500);
         });
     </script>
