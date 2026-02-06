@@ -8,49 +8,114 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         body { background: #000 url('bg.png') no-repeat center center fixed; background-size: cover; color: #fff; font-family: 'Impact', sans-serif; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { width: 100%; max-width: 600px; padding: 40px 20px; background: rgba(0, 0, 0, 0.75); border-radius: 20px; border: 1px solid #ff0000; backdrop-filter: blur(10px); }
-        input { padding: 15px; width: 90%; border-radius: 8px; border: 1px solid #444; background: #000; color: #fff; margin-bottom: 15px; font-size: 1.1rem; }
-        .send-btn { background: #8B0000; color: #fff; border: 2px solid #ff0000; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.5rem; cursor: pointer; text-transform: uppercase; font-family: 'Impact'; }
-        #status { margin-top: 20px; font-family: 'Arial'; font-weight: bold; }
+        .container { width: 100%; max-width: 600px; padding: 40px 20px; background: rgba(0, 0, 0, 0.75); border-radius: 20px; border: 1px solid #ff0000; backdrop-filter: blur(10px); box-shadow: 0 0 30px rgba(255,0,0,0.2); }
+        .logo-img { width: 100%; max-width: 250px; margin-bottom: 20px; filter: drop-shadow(0 0 15px #ff0000); }
+        input { padding: 15px; width: 90%; border-radius: 8px; border: 1px solid #444; background: #000; color: #fff; margin-bottom: 15px; font-size: 1.1rem; text-align: center; }
+        .send-btn { background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); color: #fff; border: 2px solid #ff0000; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.5rem; cursor: pointer; text-transform: uppercase; font-family: 'Impact'; transition: 0.3s; }
+        .send-btn:hover { background: #ff0000; transform: scale(1.02); box-shadow: 0 0 20px #ff0000; }
+        #status { margin-top: 20px; min-height: 50px; font-family: 'Arial'; }
+        .back-link { color: #555; text-decoration: none; display: block; margin-top: 20px; font-size: 0.9rem; transition: 0.3s; }
+        .back-link:hover { color: #fff; }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="logo.png" style="max-width:200px; margin-bottom:20px;">
-        <input type="text" id="username" placeholder="Nicknameniz">
-        <input type="text" id="gif-url" placeholder="Giphy Linki..." oninput="updatePreview()">
-        <img id="gif-preview" style="max-width:150px; display:none; margin: 10px auto; border: 1px solid red;">
+        <img src="logo.png" class="logo-img">
+        <input type="text" id="username" placeholder="ADINIZ / NICK">
+        <input type="text" id="gif-url" placeholder="Giphy Linkini Yapıştır..." oninput="updatePreview()">
+        
+        <p style="font-size: 0.7rem; color: #888; margin-top: -10px; margin-bottom: 15px;">Örnek: https://giphy.com/gifs/funny-cat-abc123</p>
+
+        <img id="gif-preview" style="max-width:200px; display:none; margin: 10px auto; border: 2px solid #ff0000; border-radius: 10px;">
+        
         <button onclick="send()" class="send-btn">YAYINA GÖNDER!</button>
+        
         <div id="status"></div>
-        <a href="index.html" style="color:#555; text-decoration:none; display:block; margin-top:20px;">← Geri Dön</a>
+        
+        <a href="index.html" class="back-link">← Ana Sayfaya Dön</a>
     </div>
+
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", authDomain: "chaostitan41-website.firebaseapp.com", databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", projectId: "chaostitan41-website", storageBucket: "chaostitan41-website.firebasestorage.app", messagingSenderId: "553158677453", appId: "1:553158677453:web:2cad39890ffdedb98aaa84" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", 
+            authDomain: "chaostitan41-website.firebaseapp.com", 
+            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", 
+            projectId: "chaostitan41-website", 
+            storageBucket: "chaostitan41-website.firebasestorage.app", 
+            messagingSenderId: "553158677453", 
+            appId: "1:553158677453:web:2cad39890ffdedb98aaa84" 
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        function getID(url) { try { return url.includes("/gifs/") ? url.split("-").pop().split("/")[0] : url.split("/").slice(-2, -1)[0]; } catch(e) { return null; } }
-        function updatePreview() { const id = getID(document.getElementById('gif-url').value); const img = document.getElementById('gif-preview'); if(id) { img.src = `https://media.giphy.com/media/${id}/giphy.gif`; img.style.display = "block"; } else { img.style.display = "none"; } }
+
+        // Verbesserte Giphy ID Extraktion
+        function getID(url) { 
+            try { 
+                if (!url) return null;
+                // Falls es ein Media-Link ist: media.giphy.com/media/ID/giphy.gif
+                if (url.includes("media.giphy.com")) {
+                    return url.split("/")[4];
+                }
+                // Falls es ein Standard-Link ist: giphy.com/gifs/name-ID
+                return url.split("-").pop().split("/")[0].split("?")[0]; 
+            } catch(e) { return null; } 
+        }
+
+        function updatePreview() { 
+            const id = getID(document.getElementById('gif-url').value); 
+            const img = document.getElementById('gif-preview'); 
+            if(id && id.length > 2) { 
+                img.src = `https://media.giphy.com/media/${id}/giphy.gif`; 
+                img.style.display = "block"; 
+            } else { 
+                img.style.display = "none"; 
+            } 
+        }
         
         async function send() {
-            const id = getID(document.getElementById('gif-url').value);
-            if(!id) return alert("Hata: Link geçersiz!");
-            const res = await fetch('https://api.ipify.org?format=json');
-            const data = await res.json();
-            const ip = data.ip.replace(/\./g, '_');
-            const name = document.getElementById('username').value || "Anonim";
+            const gifInput = document.getElementById('gif-url').value;
+            const id = getID(gifInput);
+            
+            if(!id || id.length < 3) {
+                alert("Hata: Geçerli bir Giphy linki girin!");
+                return;
+            }
 
-            db.ref('bannedIPs/' + ip).once('value', snap => {
-                if (snap.exists()) {
-                    document.getElementById('status').innerHTML = `<h1 style="color:red;">BANNED</h1><p style="color:red;">BANLANDINIZ!</p>`;
-                    db.ref('bannedRequests').push({ userName: name, userIP: ip, timestamp: firebase.database.ServerValue.TIMESTAMP });
-                } else {
-                    db.ref('activeGifs').push({ gifId: id, userName: name, userIP: ip, timestamp: firebase.database.ServerValue.TIMESTAMP })
-                    .then(() => { 
-                        document.getElementById('status').innerHTML = "<h2 style='color:#00ff99;'>✅ YAYINA GÖNDERİLDİ!</h2>";
-                        document.getElementById('gif-url').value = "";
-                    });
-                }
-            });
+            try {
+                // IP holen und Punkte für Firebase in Unterstriche wandeln
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                const userIP = data.ip.replace(/\./g, '_'); 
+                const name = document.getElementById('username').value || "Anonim";
+
+                // Check ob User gebannt ist
+                db.ref('bannedIPs/' + userIP).once('value', snap => {
+                    if (snap.exists()) {
+                        document.getElementById('status').innerHTML = `<h2 style="color:red;">ENGELLENDİNİZ!</h2><p style="color:red;">Yayıncı tarafından yasaklandınız.</p>`;
+                        // Ban-Versuch an Admin melden
+                        db.ref('bannedRequests').push({ 
+                            userName: name, 
+                            userIP: userIP, 
+                            timestamp: firebase.database.ServerValue.TIMESTAMP 
+                        });
+                    } else {
+                        // Erfolgreiches Senden
+                        db.ref('activeGifs').push({ 
+                            gifId: id, 
+                            userName: name, 
+                            userIP: userIP, 
+                            timestamp: firebase.database.ServerValue.TIMESTAMP 
+                        })
+                        .then(() => { 
+                            document.getElementById('status').innerHTML = "<h2 style='color:#00ff99;'>✅ BAŞARIYLA GÖNDERİLDİ!</h2>"; 
+                            document.getElementById('gif-url').value = ""; 
+                            document.getElementById('gif-preview').style.display = "none";
+                        });
+                    }
+                });
+            } catch (error) {
+                alert("Bağlantı Hatası: Lütfen internetinizi kontrol edin.");
+            }
         }
     </script>
 </body>
