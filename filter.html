@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Filtre Paneli | CHAOSTITAN41</title>
-
-    <link rel="icon" type="image/ico" href="image/favicon.ico">
-    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -17,197 +14,354 @@
             background-size: cover; 
             color: #fff; 
             font-family: 'Impact', sans-serif; 
+            text-align: center; 
+            margin: 0; 
             min-height: 100vh;
-            padding: 40px 20px 150px;
+            padding: 140px 20px 100px;
         }
-
-        .header-logo { text-align: center; margin-bottom: 40px; }
-        .logo-img { width: 100%; max-width: 200px; filter: drop-shadow(0 0 15px #ff0000); }
         
+        /* Fixiertes Logo oben */
+        .logo-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 2px solid #ff0000;
+            padding: 15px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Logo Link - nur leuchten bei Hover */
+        .logo-link {
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .logo-img { 
+            width: 100%; 
+            max-width: 180px;
+            margin: 0 auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        
+        /* Nur leuchten wenn Maus drauf */
+        .logo-link:hover .logo-img {
+            filter: drop-shadow(0 0 25px #ff0000);
+            transform: scale(1.05);
+        }
+        
+        /* Haupt-Layout mit Sidebar */
         .main-wrapper {
             display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
             max-width: 1200px;
             margin: 0 auto;
-            gap: 30px;
-            position: relative;
         }
-
-        /* Linke Seite: Große Buttons */
-        .content-left { flex: 2; }
+        
+        .container { 
+            width: 100%; 
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        /* Grid - 4 Spalten */
         .btn-container { 
             display: grid; 
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
         }
-
-        /* Rechte Seite: Top 10 Sticky */
-        .content-right { 
-            flex: 0.8; 
-            position: sticky; 
-            top: 20px; 
-            height: fit-content;
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid rgba(255, 0, 0, 0.5);
-            border-radius: 15px;
-            padding: 15px;
+        
+        /* 9:16 Format Buttons - nur Bild */
+        .filter-btn { 
+            aspect-ratio: 9/16;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 0, 0, 0.3); 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Roter Akzent-Streifen links */
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #ff0000;
+            z-index: 2;
+        }
+        
+        /* Verschiedene Akzentfarben */
+        .filter-btn:nth-child(4n+2)::before { background: #ff3333; }
+        .filter-btn:nth-child(4n+3)::before { background: #cc0000; }
+        .filter-btn:nth-child(4n+4)::before { background: #ff6666; }
+        
+        .filter-btn:disabled { 
+            opacity: 0.3; 
+            cursor: not-allowed; 
+            filter: grayscale(1);
+        }
+        
+        .filter-btn:hover:not(:disabled) {
+            transform: scale(1.03);
+            border-color: #ff0000;
+            box-shadow: 0 8px 30px rgba(255, 0, 0, 0.4);
+        }
+        
+        /* Bild füllt den ganzen Button */
+        .btn-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        /* Fixierter Status unten */
+        #status { 
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 2px solid #ff0000;
+            padding: 20px; 
+            font-family: 'Arial', sans-serif; 
+            font-weight: bold; 
+            color: #ffaa00; 
+            font-size: 1.3rem;
+            z-index: 1000;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             backdrop-filter: blur(10px);
-            min-width: 260px;
         }
-
-        .top10-title {
-            font-size: 1.2rem;
-            color: #ff0000;
-            margin-bottom: 15px;
+        
+        .back-link { 
+            display: inline-block;
+            margin-top: 40px; 
+            color: #888; 
+            text-decoration: none; 
+            font-family: 'Arial', sans-serif; 
+            font-size: 1rem;
+            transition: all 0.3s;
+            padding: 15px 40px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.5);
             text-transform: uppercase;
-            border-bottom: 1px solid #ff0000;
-            padding-bottom: 5px;
+            letter-spacing: 1px;
         }
-
+        
+        .back-link:hover {
+            color: #ff0000;
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* TOP 10 SIDEBAR */
+        .top10-sidebar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 0, 0, 0.5);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 140px;
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
+        }
+        
+        .top10-title {
+            font-size: 1.5rem;
+            color: #ff0000;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #ff0000;
+            padding-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        
+        .top10-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
         .top10-item {
             display: flex;
             align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.05);
             padding: 8px;
-            margin-bottom: 8px;
-            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border-left: 4px solid #ff0000;
+            transition: all 0.3s;
+        }
+        
+        .top10-item:hover {
+            background: rgba(255, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .top10-rank {
+            font-size: 1.3rem;
+            color: #ff0000;
+            font-weight: bold;
+            min-width: 25px;
+            text-align: center;
+        }
+        
+        /* Mini-Bilder im Top 10 */
+        .top10-img {
+            width: 40px;
+            height: 40px;
             border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
+            object-fit: cover;
+            border: 2px solid rgba(255, 0, 0, 0.3);
+        }
+        
+        .top10-info {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .top10-name {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+        
+        .top10-count {
+            font-size: 0.75rem;
+            color: #888;
             font-family: 'Arial', sans-serif;
         }
-        .top10-item:hover { background: rgba(255, 0, 0, 0.2); transform: scale(1.02); }
-
-        .top10-img {
-            width: 40px; height: 40px; border-radius: 50%;
-            object-fit: cover; border: 1px solid #ff0000; margin-right: 12px;
+        
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .main-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .top10-sidebar {
+                width: 100%;
+                max-width: 900px;
+                position: relative;
+                top: 0;
+                max-height: none;
+                margin-top: 30px;
+            }
         }
-
-        .top10-rank { font-weight: bold; color: #ff0000; margin-right: 8px; font-size: 0.9rem; }
-        .top10-info { flex: 1; text-align: left; }
-        .top10-name { display: block; text-transform: uppercase; font-size: 0.85rem; font-weight: bold; }
-        .top10-count { font-size: 0.7rem; color: #aaa; }
-
-        /* Große Buttons */
-        .filter-item { display: flex; flex-direction: column; align-items: center; }
-        .filter-btn { 
-            aspect-ratio: 9/16; border-radius: 15px; border: 2px solid rgba(255, 0, 0, 0.3); 
-            cursor: pointer; transition: 0.3s; background: #111; position: relative;
-            overflow: hidden; width: 100%;
+        
+        @media (max-width: 768px) {
+            .btn-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }
         }
-        .filter-btn::before {
-            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
-            background: #ff0000; z-index: 3;
-        }
-        .btn-image { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
-        .filter-name { margin-top: 8px; font-size: 0.9rem; text-transform: uppercase; color: #ccc; }
-        .filter-btn:disabled { opacity: 0.2; cursor: not-allowed; }
-
-        /* Timer Balken */
-        #status-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 2000; }
-        #status { 
-            background: rgba(0, 0, 0, 0.9); border: 2px solid #ff0000; border-radius: 50px; 
-            padding: 12px 35px; color: #fff; font-weight: bold; backdrop-filter: blur(15px);
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
-        }
-
-        @media (max-width: 900px) {
-            .main-wrapper { flex-direction: column; }
-            .content-right { position: relative; width: 100%; top: 0; }
-            .btn-container { grid-template-columns: repeat(2, 1fr); }
+        
+        @media (max-width: 480px) {
+            .btn-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .filter-btn {
+                border-radius: 12px;
+            }
         }
     </style>
 </head>
 <body>
-
-    <div class="header-logo">
-        <img src="logo.png" class="logo-img" alt="Logo">
+    <!-- Fixiertes Logo mit Link -->
+    <div class="logo-container">
+        <a href="index.html" class="logo-link">
+            <img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo">
+        </a>
     </div>
 
+    <!-- Hauptbereich mit Sidebar -->
     <div class="main-wrapper">
-        <div class="content-left">
+        <div class="container">
             <div class="btn-container" id="buttonGrid">
+                <button class="filter-btn" onclick="sendFilter('alien')" id="btn-alien">
+                    <img src="alien.jpg" class="btn-image" alt="Alien" onerror="this.src='https://via.placeholder.com/270x480/1a0000/ff0000?text=ALIEN'">
+                </button>
                 
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter1')">
-                        <img src="images/filter1.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+1'">
-                    </button>
-                    <div class="filter-name">Filter 1</div>
-                </div>
-
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter2')">
-                        <img src="images/filter2.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+2'">
-                    </button>
-                    <div class="filter-name">Filter 2</div>
-                </div>
-
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter3')">
-                        <img src="images/filter3.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+3'">
-                    </button>
-                    <div class="filter-name">Filter 3</div>
-                </div>
-
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter4')">
-                        <img src="images/filter4.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+4'">
-                    </button>
-                    <div class="filter-name">Filter 4</div>
-                </div>
-
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter5')">
-                        <img src="images/filter5.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+5'">
-                    </button>
-                    <div class="filter-name">Filter 5</div>
-                </div>
-
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter6')">
-                        <img src="images/filter6.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+6'">
-                    </button>
-                    <div class="filter-name">Filter 6</div>
-                </div>
-
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter7')">
-                        <img src="images/filter7.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+7'">
-                    </button>
-                    <div class="filter-name">Filter 7</div>
-                </div>
-
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter8')">
-                        <img src="images/filter8.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+8'">
-                    </button>
-                    <div class="filter-name">Filter 8</div>
-                </div>
-
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter9')">
-                        <img src="images/filter9.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+9'">
-                    </button>
-                    <div class="filter-name">Filter 9</div>
-                </div>
-
-                <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('filter10')">
-                        <img src="images/filter10.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+10'">
-                    </button>
-                    <div class="filter-name">Filter 10</div>
-                </div>
-
+                <button class="filter-btn" onclick="sendFilter('ghost')" id="btn-ghost">
+                    <img src="ghost.jpg" class="btn-image" alt="Ghost" onerror="this.src='https://via.placeholder.com/270x480/0d0d0d/666666?text=GHOST'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('cyber')" id="btn-cyber">
+                    <img src="cyber.jpg" class="btn-image" alt="Cyber" onerror="this.src='https://via.placeholder.com/270x480/000033/00ffff?text=CYBER'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('matrix')" id="btn-matrix">
+                    <img src="matrix.jpg" class="btn-image" alt="Matrix" onerror="this.src='https://via.placeholder.com/270x480/001100/00ff00?text=MATRIX'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('glitch')" id="btn-glitch">
+                    <img src="glitch.jpg" class="btn-image" alt="Glitch" onerror="this.src='https://via.placeholder.com/270x480/330033/ff00ff?text=GLITCH'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('neon')" id="btn-neon">
+                    <img src="neon.jpg" class="btn-image" alt="Neon" onerror="this.src='https://via.placeholder.com/270x480/1a0033/cc00ff?text=NEON'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('retro')" id="btn-retro">
+                    <img src="retro.jpg" class="btn-image" alt="Retro" onerror="this.src='https://via.placeholder.com/270x480/331a00/ffaa00?text=RETRO'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('void')" id="btn-void">
+                    <img src="void.jpg" class="btn-image" alt="Void" onerror="this.src='https://via.placeholder.com/270x480/000000/ffffff?text=VOID'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('pixel')" id="btn-pixel">
+                    <img src="pixel.jpg" class="btn-image" alt="Pixel" onerror="this.src='https://via.placeholder.com/270x480/222222/ffcc00?text=PIXEL'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('vhs')" id="btn-vhs">
+                    <img src="vhs.jpg" class="btn-image" alt="VHS" onerror="this.src='https://via.placeholder.com/270x480/1a1a1a/ff0066?text=VHS'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('noise')" id="btn-noise">
+                    <img src="noise.jpg" class="btn-image" alt="Noise" onerror="this.src='https://via.placeholder.com/270x480/111111/888888?text=NOISE'">
+                </button>
+                
+                <button class="filter-btn" onclick="sendFilter('invert')" id="btn-invert">
+                    <img src="invert.jpg" class="btn-image" alt="Invert" onerror="this.src='https://via.placeholder.com/270x480/ffffff/000000?text=INVERT'">
+                </button>
+            </div>
+            
+            <a href="index.html" class="back-link">← Geri Dön</a>
+        </div>
+        
+        <!-- Top 10 Sidebar -->
+        <div class="top10-sidebar">
+            <div class="top10-title">🔥 Top 10 Filter</div>
+            <div class="top10-list" id="top10List">
+                <!-- Wird per JavaScript gefüllt -->
             </div>
         </div>
-
-        <div class="content-right">
-            <h2 class="top10-title">TOP 10 POPÜLER</h2>
-            <div id="top10-list"></div>
-        </div>
     </div>
-
-    <div id="status-container">
-        <div id="status">Sistem Yükleniyor...</div>
-    </div>
+    
+    <!-- Fixierter Status -->
+    <div id="status"></div>
 
     <script>
         const firebaseConfig = { 
@@ -223,75 +377,183 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function updateTop10() {
-            db.ref('filterStats').on('value', snap => {
-                const data = snap.val() || {};
-                const listDiv = document.getElementById('top10-list');
-                const sorted = Object.entries(data)
-                    .map(([name, count]) => ({ name, count }))
-                    .sort((a, b) => b.count - a.count)
-                    .slice(0, 10);
+        const statusDiv = document.getElementById('status');
+        const buttons = document.querySelectorAll('.filter-btn');
+        let timerInterval;
 
-                listDiv.innerHTML = '';
-                sorted.forEach((item, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'top10-item';
-                    div.onclick = () => sendFilter(item.name);
-                    div.innerHTML = `
-                        <span class="top10-rank">${index + 1}</span>
-                        <img src="images/${item.name}.jpg" class="top10-img" onerror="this.src='https://via.placeholder.com/50?text=? '">
-                        <div class="top10-info">
-                            <span class="top10-name">${item.name}</span>
-                            <span class="top10-count">${item.count} kez</span>
-                        </div>
-                    `;
-                    listDiv.appendChild(div);
-                });
-            });
-        }
+        // Filter-Daten für Top 10
+        const filterData = {
+            'alien': { name: 'Alien Modu', img: 'alien.jpg' },
+            'ghost': { name: 'Hayalet Modu', img: 'ghost.jpg' },
+            'cyber': { name: 'Cyber Punk', img: 'cyber.jpg' },
+            'matrix': { name: 'Matrix', img: 'matrix.jpg' },
+            'glitch': { name: 'Glitch', img: 'glitch.jpg' },
+            'neon': { name: 'Neon', img: 'neon.jpg' },
+            'retro': { name: 'Retro 80s', img: 'retro.jpg' },
+            'void': { name: 'Void', img: 'void.jpg' },
+            'pixel': { name: 'Pixel Art', img: 'pixel.jpg' },
+            'vhs': { name: 'VHS', img: 'vhs.jpg' },
+            'noise': { name: 'TV Noise', img: 'noise.jpg' },
+            'invert': { name: 'Invert', img: 'invert.jpg' }
+        };
 
         function checkCooldown() {
             db.ref('lastFilterTime').on('value', snap => {
-                const diff = (Date.now() - (snap.val() || 0)) / 1000;
-                if (diff < 300) startTimer(Math.ceil(300 - diff));
-                else enableButtons();
+                const lastTime = snap.val() || 0;
+                const now = Date.now();
+                const diff = (now - lastTime) / 1000;
+                clearInterval(timerInterval);
+
+                if (diff < 300) {
+                    let timeLeft = Math.ceil(300 - diff);
+                    disableAllButtons(true);
+                    updateStatus(timeLeft);
+                    
+                    timerInterval = setInterval(() => {
+                        timeLeft--;
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval);
+                            disableAllButtons(false);
+                            showTemporaryMessage("HAZIR ✓ - Filtre Seçin", 2000);
+                        } else {
+                            updateStatus(timeLeft);
+                        }
+                    }, 1000);
+                } else {
+                    disableAllButtons(false);
+                    statusDiv.innerHTML = "";
+                }
+            });
+        }
+        
+        function disableAllButtons(disabled) {
+            buttons.forEach(btn => btn.disabled = disabled);
+        }
+        
+        function updateStatus(seconds) {
+            let minutes = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            statusDiv.innerHTML = `⏱️ COOLDOWN: ${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        function showTemporaryMessage(msg, duration) {
+            statusDiv.innerHTML = msg;
+            if (duration) {
+                setTimeout(() => {
+                    if (statusDiv.innerHTML === msg) statusDiv.innerHTML = "";
+                }, duration);
+            }
+        }
+        
+        // Top 10 laden und anzeigen - MIT ZÄHLER
+        function loadTop10() {
+            db.ref('filterStats').on('value', snap => {
+                const stats = snap.val() || {};
+                const filterCounts = {};
+                
+                // Zähle Klicks pro Filter
+                Object.keys(stats).forEach(filter => {
+                    // Zähle alle Einträge für diesen Filter
+                    const clicks = Object.keys(stats[filter]).length;
+                    filterCounts[filter] = clicks;
+                });
+                
+                // Sortiere nach Anzahl (absteigend)
+                const sorted = Object.entries(filterCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+                
+                // HTML generieren
+                const top10List = document.getElementById('top10List');
+                top10List.innerHTML = '';
+                
+                sorted.forEach((item, index) => {
+                    const [filter, count] = item;
+                    const data = filterData[filter] || { name: filter, img: 'default.jpg' };
+                    
+                    const div = document.createElement('div');
+                    div.className = 'top10-item';
+                    div.innerHTML = `
+                        <div class="top10-rank">${index + 1}</div>
+                        <img src="${data.img}" class="top10-img" alt="${data.name}" onerror="this.src='https://via.placeholder.com/40x40/333/fff?text=?'">
+                        <div class="top10-info">
+                            <div class="top10-name">${data.name}</div>
+                            <div class="top10-count">${count} Klicks</div>
+                        </div>
+                    `;
+                    top10List.appendChild(div);
+                });
+                
+                // Falls keine Daten
+                if (sorted.length === 0) {
+                    top10List.innerHTML = '<div style="color: #666; padding: 20px;">Noch keine Daten</div>';
+                }
             });
         }
 
-        function startTimer(sec) {
-            disableButtons();
-            const itv = setInterval(() => {
-                sec--;
-                let m = Math.floor(sec / 60), s = sec % 60;
-                document.getElementById('status').innerHTML = `⏱️ BEKLE: ${m}:${s < 10 ? '0' : ''}${s}`;
-                if (sec <= 0) { clearInterval(itv); enableButtons(); }
-            }, 1000);
-        }
+        async function sendFilter(filterId) {
+            let ip = "unknown";
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                ip = data.ip.replace(/\./g, '_');
+            } catch(e) {
+                console.log("IP konnte nicht ermittelt werden");
+            }
 
-        function disableButtons() { 
-            document.querySelectorAll('.filter-btn').forEach(b => b.disabled = true);
-            document.querySelectorAll('.top10-item').forEach(i => i.style.pointerEvents = 'none');
+            db.ref('bannedIPs/' + ip).once('value', snap => {
+                if (snap.exists()) {
+                    alert("BANLANDINIZ! Erişim reddedildi.");
+                    return;
+                }
+                
+                activateFilter(filterId, ip);
+            });
         }
-
-        function enableButtons() { 
-            document.querySelectorAll('.filter-btn').forEach(b => b.disabled = false); 
-            document.querySelectorAll('.top10-item').forEach(i => i.style.pointerEvents = 'auto');
-            document.getElementById('status').innerHTML = "HAZIR ✓"; 
-        }
-
-        async function sendFilter(id) {
-            db.ref('filterStats/' + id).transaction(v => (v || 0) + 1);
-            db.ref('lastFilterTime').set(Date.now());
+        
+        function activateFilter(filterId, ip) {
+            const now = Date.now();
+            
+            // 1. Globalen Cooldown setzen
+            db.ref('lastFilterTime').set(now);
+            
+            // 2. Statistik speichern für Top 10 - INCREMENT ZÄHLER
+            // Speichere jeden Klick mit Timestamp für genaue Zählung
+            const clickId = db.ref().push().key; // Eindeutige ID für jeden Klick
+            db.ref('filterStats/' + filterId + '/' + clickId).set({
+                timestamp: now,
+                date: new Date().toISOString().split('T')[0],
+                ip: ip
+            });
+            
+            showTemporaryMessage(`🚀 ${filterId.toUpperCase()} GÖNDERILIYOR...`);
             
             const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
+            
             socket.onopen = () => {
-                socket.send(JSON.stringify({ "request": "ExecuteAction", "actionName": "Web_Filter_Handler", "rawInput": id }));
-                setTimeout(() => socket.close(), 500);
+                socket.send(JSON.stringify({
+                    "request": "ExecuteAction",
+                    "id": "1",
+                    "actionName": "Web_Filter_Handler",
+                    "rawInput": filterId
+                }));
+                
+                setTimeout(() => { 
+                    socket.close(); 
+                    showTemporaryMessage(`✅ ${filterId.toUpperCase()} AKTIF!`, 2000);
+                    setTimeout(() => checkCooldown(), 2000);
+                }, 200);
+            };
+            
+            socket.onerror = (error) => {
+                console.error("WebSocket Error:", error);
+                showTemporaryMessage("❌ BAĞLANTI HATASI", 3000);
             };
         }
-
-        updateTop10();
+        
+        // Initialisierung
         checkCooldown();
+        loadTop10();
     </script>
 </body>
 </html>
