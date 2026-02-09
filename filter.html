@@ -16,7 +16,6 @@
             font-family: 'Impact', sans-serif; 
             text-align: center; 
             min-height: 100vh;
-            overflow-x: hidden;
         }
         
         .logo-container {
@@ -67,11 +66,10 @@
             box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
         }
 
-        .filter-btn:disabled { opacity: 0.2; filter: grayscale(1); }
+        .filter-btn:disabled { opacity: 0.2; filter: grayscale(1); cursor: not-allowed; }
         
         .btn-image { width: 100%; height: 100%; object-fit: cover; display: block; }
         
-        /* Sidebar Styling */
         .top10-sidebar {
             width: 320px;
             background: rgba(0, 0, 0, 0.85);
@@ -88,16 +86,20 @@
             background: rgba(255, 255, 255, 0.05);
             padding: 8px; margin-bottom: 8px; border-radius: 12px;
             border-left: 4px solid #ff0000;
-            transition: 0.5s ease; /* Sanftes Verschieben bei Rangänderung */
         }
 
-        .top10-thumb {
-            width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid #444;
-        }
+        .top10-thumb { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
 
+        /* Cooldown Anzeige jetzt in der Sidebar */
         #status { 
-            position: fixed; bottom: 30px; left: 0; right: 0; 
-            color: #ffaa00; font-size: 1.5rem; text-shadow: 0 2px 10px #000; 
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 0, 0, 0.1);
+            border-radius: 10px;
+            color: #ffaa00; 
+            font-size: 1.2rem; 
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            display: none; /* Wird nur eingeblendet wenn Cooldown aktiv */
         }
         
         .back-link { 
@@ -139,12 +141,11 @@
         </div>
         
         <div class="top10-sidebar">
-            <h2 style="color:#ff0000; margin-bottom:20px; text-shadow: 0 0 10px #f00;">🔥 POPÜLER FİLTRELER</h2>
-            <div id="top10List">Yükleniyor...</div>
+            <h2 style="color:#ff0000; margin-bottom:20px;">🔥 TOP 10 RANK</h2>
+            <div id="top10List">Laden...</div>
+            <div id="status"></div>
         </div>
     </div>
-    
-    <div id="status"></div>
 
     <script>
         const firebaseConfig = { 
@@ -160,45 +161,16 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Bilder-Mapping für die Top 10
         const filterImages = {
-            'alien': 'alien.jpg', 'ghost': 'ghost.jpg', 'cyber': 'cyber.jpg', 'matrix': 'matrix.jpg',
-            'glitch': 'glitch.jpg', 'neon': 'neon.jpg', 'retro': 'retro.jpg', 'void': 'void.jpg',
-            'pixel': 'pixel.jpg', 'vhs': 'vhs.jpg', 'noise': 'noise.jpg', 'invert': 'invert.jpg', 'fire': 'fire.jpg'
+            'alien':'alien.jpg', 'ghost':'ghost.jpg', 'cyber':'cyber.jpg', 'matrix':'matrix.jpg',
+            'glitch':'glitch.jpg', 'neon':'neon.jpg', 'retro':'retro.jpg', 'void':'void.jpg',
+            'pixel':'pixel.jpg', 'vhs':'vhs.jpg', 'noise':'noise.jpg', 'invert':'invert.jpg', 'fire':'fire.jpg'
         };
 
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                checkCooldown();
-                loadTop10();
-            }, 500);
-        });
-
-        function checkCooldown() {
-            db.ref('lastFilterTime').on('value', snap => {
-                const diff = (Date.now() - (snap.val() || 0)) / 1000;
-                const buttons = document.querySelectorAll('.filter-btn');
-                if (diff < 300) {
-                    let timeLeft = Math.ceil(300 - diff);
-                    buttons.forEach(b => b.disabled = true);
-                    updateStatus(timeLeft);
-                } else {
-                    buttons.forEach(b => b.disabled = false);
-                    document.getElementById('status').innerHTML = "";
-                }
-            });
-        }
-
-        function updateStatus(seconds) {
-            let m = Math.floor(seconds / 60);
-            let s = seconds % 60;
-            document.getElementById('status').innerHTML = `⏱️ COOLDOWN: ${m}:${s < 10 ? '0' : ''}${s}`;
-        }
-
+        // Top 10 Live-Update Funktion
         function loadTop10() {
             db.ref('filterStats').on('value', snap => {
                 const stats = snap.val() || {};
-                // Wir zählen die Einträge und sortieren
                 const sorted = Object.entries(stats)
                     .map(([id, clicks]) => [id, Object.keys(clicks).length])
                     .sort((a,b) => b[1] - a[1])
@@ -206,23 +178,55 @@
                 
                 const listDiv = document.getElementById('top10List');
                 if (sorted.length === 0) {
-                    listDiv.innerHTML = "Henüz veri yok.";
+                    listDiv.innerHTML = "Keine Daten vorhanden.";
                     return;
                 }
 
                 listDiv.innerHTML = sorted.map(([id, count], i) => `
                     <div class="top10-item">
-                        <span style="color:#f00; font-weight:bold; min-width:20px;">${i+1}</span>
-                        <img src="${filterImages[id] || 'logo.png'}" class="top10-thumb" onerror="this.src='https://via.placeholder.com/40?text=?'">
+                        <span style="color:#f00; font-weight:bold; width:20px;">${i+1}</span>
+                        <img src="${filterImages[id] || 'logo.png'}" class="top10-thumb" onerror="this.src='https://via.placeholder.com/45?text=?'">
                         <div style="flex:1; text-align:left;">
-                            <div style="text-transform:uppercase; font-size:13px; letter-spacing:1px;">${id}</div>
-                            <div style="color:#777; font-size:11px; font-family:sans-serif;">${count} KULLANIM</div>
+                            <div style="text-transform:uppercase; font-size:13px;">${id}</div>
+                            <div style="color:#777; font-size:11px;">${count} NUTZUNGEN</div>
                         </div>
                     </div>`).join('');
             });
         }
 
+        // Cooldown Checker
+        function checkCooldown() {
+            db.ref('lastFilterTime').on('value', snap => {
+                const last = snap.val() || 0;
+                const update = () => {
+                    const diff = (Date.now() - last) / 1000;
+                    const buttons = document.querySelectorAll('.filter-btn');
+                    const statusDiv = document.getElementById('status');
+                    
+                    if (diff < 300) { // 5 Minuten Cooldown
+                        let timeLeft = Math.ceil(300 - diff);
+                        let m = Math.floor(timeLeft / 60);
+                        let s = timeLeft % 60;
+                        buttons.forEach(b => b.disabled = true);
+                        statusDiv.style.display = "block";
+                        statusDiv.innerHTML = `⏱️ COOLDOWN: ${m}:${s < 10 ? '0' : ''}${s}`;
+                    } else {
+                        buttons.forEach(b => b.disabled = false);
+                        statusDiv.style.display = "none";
+                    }
+                };
+                update();
+                setInterval(update, 1000); // Timer jede Sekunde updaten
+            });
+        }
+
         async function sendFilter(filterId) {
+            // 1. Statistik sofort an Firebase
+            const timestamp = Date.now();
+            db.ref('filterStats/' + filterId).push({ t: timestamp });
+            db.ref('lastFilterTime').set(timestamp);
+
+            // 2. WebSocket an ngrok
             const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
             socket.onopen = () => {
                 socket.send(JSON.stringify({
@@ -230,15 +234,15 @@
                     "actionName": "Web_Filter_Handler",
                     "rawInput": filterId
                 }));
-                // Statistik in Firebase speichern
-                db.ref('lastFilterTime').set(Date.now());
-                db.ref('filterStats/' + filterId).push({
-                    timestamp: Date.now(),
-                    device: navigator.userAgent
-                });
-                setTimeout(() => socket.close(), 300);
+                setTimeout(() => socket.close(), 500);
             };
         }
+
+        // Initialisierung
+        window.onload = () => {
+            loadTop10();
+            checkCooldown();
+        };
     </script>
 </body>
 </html>
