@@ -21,191 +21,126 @@
         
         .logo-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: transparent;
+            top: 0; left: 0; right: 0;
             padding: 15px;
             z-index: 1000;
         }
         
-        .logo-link { display: inline-block; text-decoration: none; }
-        .logo-img { 
-            width: 100%; 
-            max-width: 180px;
-            transition: all 0.3s ease;
-            filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
-        }
+        .logo-img { width: 100%; max-width: 180px; filter: drop-shadow(0 0 10px #000); }
         
-        .logo-link:hover .logo-img {
-            filter: drop-shadow(0 0 25px #ff0000);
-            transform: scale(1.05);
-        }
-        
-        /* Layout Anpassung für Mittigkeit */
         .main-wrapper {
             display: flex;
-            justify-content: center; /* Zentriert die gesamte Gruppe */
+            justify-content: center;
             align-items: flex-start;
             gap: 40px;
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
-            padding: 120px 20px 100px;
+            padding: 140px 20px 100px;
         }
         
-        .container { 
-            flex: 0 1 900px; /* Nimmt Platz ein, aber nicht mehr als 900px */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .container { flex: 0 1 1100px; }
         
         .btn-container { 
             display: grid; 
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 20px;
-            width: 100%;
+            justify-items: center;
         }
         
         .filter-btn { 
+            width: 100%;
+            max-width: 200px;
             aspect-ratio: 9/16;
             border-radius: 16px;
             border: 2px solid rgba(255, 0, 0, 0.3); 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: 0.3s; 
             background: #1a1a1a;
             position: relative;
             overflow: hidden;
             padding: 0;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-        }
-        
-        .filter-btn::before {
-            content: '';
-            position: absolute;
-            left: 0; top: 0; bottom: 0;
-            width: 4px;
-            background: #ff0000;
-            z-index: 2;
-        }
-        
-        .filter-btn:disabled { 
-            opacity: 0.3; 
-            cursor: not-allowed; 
-            filter: grayscale(1);
         }
         
         .filter-btn:hover:not(:disabled) {
-            transform: scale(1.03);
+            transform: scale(1.05);
             border-color: #ff0000;
-            box-shadow: 0 8px 30px rgba(255, 0, 0, 0.4);
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
         }
+
+        .filter-btn:disabled { opacity: 0.2; filter: grayscale(1); }
         
         .btn-image { width: 100%; height: 100%; object-fit: cover; display: block; }
         
-        #status { 
-            position: fixed;
-            bottom: 20px;
-            left: 0; right: 0;
-            color: #ffaa00; 
-            font-size: 1.3rem;
-            z-index: 1000;
-            text-shadow: 0 2px 10px rgba(0,0,0,1);
-        }
-        
-        .back-link { 
-            display: inline-block;
-            margin-top: 40px; 
-            color: #888; 
-            text-decoration: none; 
-            padding: 12px 30px;
-            border: 2px solid #333;
-            border-radius: 12px;
-            background: rgba(0, 0, 0, 0.5);
-            transition: 0.3s;
-        }
-
-        .back-link:hover { color: #ff0000; border-color: #ff0000; }
-        
-        /* SIDEBAR STATS */
+        /* Sidebar Styling */
         .top10-sidebar {
-            width: 300px;
+            width: 320px;
             background: rgba(0, 0, 0, 0.85);
             border-radius: 20px;
             border: 2px solid rgba(255, 0, 0, 0.5);
             padding: 20px;
             backdrop-filter: blur(15px);
             position: sticky;
-            top: 120px;
-        }
-        
-        .top10-title {
-            font-size: 1.4rem;
-            color: #ff0000;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #ff0000;
-            padding-bottom: 5px;
+            top: 140px;
         }
         
         .top10-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 12px;
             background: rgba(255, 255, 255, 0.05);
-            padding: 8px;
-            margin-bottom: 8px;
-            border-radius: 10px;
-            border-left: 3px solid #ff0000;
-            transition: 0.3s;
+            padding: 8px; margin-bottom: 8px; border-radius: 12px;
+            border-left: 4px solid #ff0000;
+            transition: 0.5s ease; /* Sanftes Verschieben bei Rangänderung */
         }
 
-        .top10-item:hover { transform: translateX(5px); background: rgba(255, 0, 0, 0.1); }
-        .top10-rank { color: #ff0000; font-weight: bold; width: 20px; }
-        .top10-img { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; }
-        .top10-info { flex: 1; text-align: left; }
-        .top10-name { font-size: 0.85rem; color: #fff; }
-        .top10-count { font-size: 0.7rem; color: #888; font-family: sans-serif; }
-
-        @media (max-width: 1100px) {
-            .main-wrapper { flex-direction: column; align-items: center; }
-            .top10-sidebar { width: 100%; max-width: 900px; position: static; }
-            .btn-container { grid-template-columns: repeat(3, 1fr); }
+        .top10-thumb {
+            width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid #444;
         }
-        @media (max-width: 480px) {
-            .btn-container { grid-template-columns: repeat(2, 1fr); }
+
+        #status { 
+            position: fixed; bottom: 30px; left: 0; right: 0; 
+            color: #ffaa00; font-size: 1.5rem; text-shadow: 0 2px 10px #000; 
+        }
+        
+        .back-link { 
+            display: inline-block; margin-top: 40px; 
+            color: #888; text-decoration: none; 
+            padding: 12px 30px; border: 2px solid #333; border-radius: 12px;
+        }
+
+        @media (max-width: 1000px) { 
+            .main-wrapper { flex-direction: column; align-items: center; } 
+            .top10-sidebar { width: 100%; max-width: 1100px; position: static; }
         }
     </style>
 </head>
 <body>
 
     <div class="logo-container">
-        <a href="index.html" class="logo-link">
-            <img src="logo.png" class="logo-img" alt="Logo">
-        </a>
+        <a href="index.html"><img src="logo.png" class="logo-img"></a>
     </div>
 
     <div class="main-wrapper">
         <div class="container">
-            <div class="btn-container" id="buttonGrid">
-                <button class="filter-btn" onclick="sendFilter('alien')" id="btn-alien"><img src="alien.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/f00?text=ALIEN'"></button>
-                <button class="filter-btn" onclick="sendFilter('ghost')" id="btn-ghost"><img src="ghost.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/666?text=GHOST'"></button>
-                <button class="filter-btn" onclick="sendFilter('cyber')" id="btn-cyber"><img src="cyber.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/0ff?text=CYBER'"></button>
-                <button class="filter-btn" onclick="sendFilter('matrix')" id="btn-matrix"><img src="matrix.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/0f0?text=MATRIX'"></button>
-                <button class="filter-btn" onclick="sendFilter('glitch')" id="btn-glitch"><img src="glitch.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/f0f?text=GLITCH'"></button>
-                <button class="filter-btn" onclick="sendFilter('neon')" id="btn-neon"><img src="neon.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/c0f?text=NEON'"></button>
-                <button class="filter-btn" onclick="sendFilter('retro')" id="btn-retro"><img src="retro.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/fa0?text=RETRO'"></button>
-                <button class="filter-btn" onclick="sendFilter('void')" id="btn-void"><img src="void.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/000/fff?text=VOID'"></button>
-                <button class="filter-btn" onclick="sendFilter('pixel')" id="btn-pixel"><img src="pixel.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/fc0?text=PIXEL'"></button>
-                <button class="filter-btn" onclick="sendFilter('vhs')" id="btn-vhs"><img src="vhs.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/f06?text=VHS'"></button>
-                <button class="filter-btn" onclick="sendFilter('noise')" id="btn-noise"><img src="noise.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/888?text=NOISE'"></button>
-                <button class="filter-btn" onclick="sendFilter('invert')" id="btn-invert"><img src="invert.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/fff/000?text=INVERT'"></button>
+            <div class="btn-container">
+                <button class="filter-btn" onclick="sendFilter('alien')"><img src="alien.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=ALIEN'"></button>
+                <button class="filter-btn" onclick="sendFilter('ghost')"><img src="ghost.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=GHOST'"></button>
+                <button class="filter-btn" onclick="sendFilter('cyber')"><img src="cyber.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=CYBER'"></button>
+                <button class="filter-btn" onclick="sendFilter('matrix')"><img src="matrix.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=MATRIX'"></button>
+                <button class="filter-btn" onclick="sendFilter('glitch')"><img src="glitch.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=GLITCH'"></button>
+                <button class="filter-btn" onclick="sendFilter('neon')"><img src="neon.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=NEON'"></button>
+                <button class="filter-btn" onclick="sendFilter('retro')"><img src="retro.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=RETRO'"></button>
+                <button class="filter-btn" onclick="sendFilter('void')"><img src="void.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=VOID'"></button>
+                <button class="filter-btn" onclick="sendFilter('pixel')"><img src="pixel.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=PIXEL'"></button>
+                <button class="filter-btn" onclick="sendFilter('vhs')"><img src="vhs.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=VHS'"></button>
+                <button class="filter-btn" onclick="sendFilter('noise')"><img src="noise.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=NOISE'"></button>
+                <button class="filter-btn" onclick="sendFilter('invert')"><img src="invert.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=INVERT'"></button>
+                <button class="filter-btn" onclick="sendFilter('fire')"><img src="fire.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/200x355?text=FIRE'"></button>
             </div>
             <a href="index.html" class="back-link">← Geri Dön</a>
         </div>
         
         <div class="top10-sidebar">
-            <div class="top10-title">🔥 Top 10 Filter</div>
-            <div class="top10-list" id="top10List">Laden...</div>
+            <h2 style="color:#ff0000; margin-bottom:20px; text-shadow: 0 0 10px #f00;">🔥 POPÜLER FİLTRELER</h2>
+            <div id="top10List">Yükleniyor...</div>
         </div>
     </div>
     
@@ -224,27 +159,24 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const statusDiv = document.getElementById('status');
-        const filterData = {
-            'alien': { name: 'Alien Modu', img: 'alien.jpg' },
-            'ghost': { name: 'Hayalet Modu', img: 'ghost.jpg' },
-            'cyber': { name: 'Cyber Punk', img: 'cyber.jpg' },
-            'matrix': { name: 'Matrix', img: 'matrix.jpg' },
-            'glitch': { name: 'Glitch', img: 'glitch.jpg' },
-            'neon': { name: 'Neon', img: 'neon.jpg' },
-            'retro': { name: 'Retro 80s', img: 'retro.jpg' },
-            'void': { name: 'Void', img: 'void.jpg' },
-            'pixel': { name: 'Pixel Art', img: 'pixel.jpg' },
-            'vhs': { name: 'VHS', img: 'vhs.jpg' },
-            'noise': { name: 'TV Noise', img: 'noise.jpg' },
-            'invert': { name: 'Invert', img: 'invert.jpg' }
+
+        // Bilder-Mapping für die Top 10
+        const filterImages = {
+            'alien': 'alien.jpg', 'ghost': 'ghost.jpg', 'cyber': 'cyber.jpg', 'matrix': 'matrix.jpg',
+            'glitch': 'glitch.jpg', 'neon': 'neon.jpg', 'retro': 'retro.jpg', 'void': 'void.jpg',
+            'pixel': 'pixel.jpg', 'vhs': 'vhs.jpg', 'noise': 'noise.jpg', 'invert': 'invert.jpg', 'fire': 'fire.jpg'
         };
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                checkCooldown();
+                loadTop10();
+            }, 500);
+        });
 
         function checkCooldown() {
             db.ref('lastFilterTime').on('value', snap => {
-                const lastTime = snap.val() || 0;
-                const now = Date.now();
-                const diff = (now - lastTime) / 1000;
+                const diff = (Date.now() - (snap.val() || 0)) / 1000;
                 const buttons = document.querySelectorAll('.filter-btn');
                 if (diff < 300) {
                     let timeLeft = Math.ceil(300 - diff);
@@ -252,30 +184,39 @@
                     updateStatus(timeLeft);
                 } else {
                     buttons.forEach(b => b.disabled = false);
-                    statusDiv.innerHTML = "";
+                    document.getElementById('status').innerHTML = "";
                 }
             });
         }
-        
+
         function updateStatus(seconds) {
-            let min = Math.floor(seconds / 60);
-            let sec = seconds % 60;
-            statusDiv.innerHTML = `⏱️ COOLDOWN: ${min}:${sec < 10 ? '0' : ''}${sec}`;
+            let m = Math.floor(seconds / 60);
+            let s = seconds % 60;
+            document.getElementById('status').innerHTML = `⏱️ COOLDOWN: ${m}:${s < 10 ? '0' : ''}${s}`;
         }
 
         function loadTop10() {
             db.ref('filterStats').on('value', snap => {
                 const stats = snap.val() || {};
-                const counts = Object.entries(stats).map(([key, val]) => [key, Object.keys(val).length])
-                                    .sort((a,b) => b[1] - a[1]).slice(0, 10);
-                const list = document.getElementById('top10List');
-                list.innerHTML = counts.map(([id, count], i) => `
+                // Wir zählen die Einträge und sortieren
+                const sorted = Object.entries(stats)
+                    .map(([id, clicks]) => [id, Object.keys(clicks).length])
+                    .sort((a,b) => b[1] - a[1])
+                    .slice(0, 10);
+                
+                const listDiv = document.getElementById('top10List');
+                if (sorted.length === 0) {
+                    listDiv.innerHTML = "Henüz veri yok.";
+                    return;
+                }
+
+                listDiv.innerHTML = sorted.map(([id, count], i) => `
                     <div class="top10-item">
-                        <div class="top10-rank">${i+1}</div>
-                        <img src="${filterData[id]?.img || 'default.jpg'}" class="top10-img">
-                        <div class="top10-info">
-                            <div class="top10-name">${filterData[id]?.name || id}</div>
-                            <div class="top10-count">${count} Klicks</div>
+                        <span style="color:#f00; font-weight:bold; min-width:20px;">${i+1}</span>
+                        <img src="${filterImages[id] || 'logo.png'}" class="top10-thumb" onerror="this.src='https://via.placeholder.com/40?text=?'">
+                        <div style="flex:1; text-align:left;">
+                            <div style="text-transform:uppercase; font-size:13px; letter-spacing:1px;">${id}</div>
+                            <div style="color:#777; font-size:11px; font-family:sans-serif;">${count} KULLANIM</div>
                         </div>
                     </div>`).join('');
             });
@@ -284,21 +225,20 @@
         async function sendFilter(filterId) {
             const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
             socket.onopen = () => {
-                socket.send(JSON.stringify({"request": "ExecuteAction", "actionName": "Web_Filter_Handler", "rawInput": filterId}));
+                socket.send(JSON.stringify({
+                    "request": "ExecuteAction",
+                    "actionName": "Web_Filter_Handler",
+                    "rawInput": filterId
+                }));
+                // Statistik in Firebase speichern
                 db.ref('lastFilterTime').set(Date.now());
-                db.ref('filterStats/' + filterId).push({timestamp: Date.now()});
-                setTimeout(() => socket.close(), 500);
+                db.ref('filterStats/' + filterId).push({
+                    timestamp: Date.now(),
+                    device: navigator.userAgent
+                });
+                setTimeout(() => socket.close(), 300);
             };
         }
-
-        // ANTI-LADERÄDCHEN TRICK
-        window.onload = () => {
-            setTimeout(() => {
-                checkCooldown();
-                loadTop10();
-                console.log("Firebase Live-Mode aktiv.");
-            }, 800);
-        };
     </script>
 </body>
 </html>
