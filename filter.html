@@ -6,7 +6,331 @@
     <title>Filtre Paneli | CHAOSTITAN41</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style><!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filtre Paneli | CHAOSTITAN41</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
+        /* Grunddesign */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            background: #000 url('bg.png') no-repeat center center fixed; 
+            background-size: cover; 
+            color: #fff; 
+            font-family: 'Impact', sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            min-height: 100vh;
+            padding: 140px 20px 100px; /* Platz für Header und Footer Status */
+        }
+        
+        .logo-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 2px solid #ff0000;
+            padding: 15px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo-img { 
+            width: 100%; 
+            max-width: 180px;
+            margin: 0 auto;
+            display: block;
+            filter: drop-shadow(0 0 15px #ff0000); 
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        /* Grid System */
+        .btn-container { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        
+        /* 9:16 Format Buttons */
+        .filter-btn { 
+            aspect-ratio: 9/16;
+            border-radius: 16px; 
+            border: 2px solid rgba(255, 0, 0, 0.3); 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            background: #111;
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 100%;
+        }
+        
+        /* Roter Akzent-Streifen links */
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: #ff0000;
+            z-index: 2;
+        }
+        
+        /* Bild-Styling innerhalb der Buttons */
+        .btn-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .filter-btn:hover:not(:disabled) .btn-image {
+            transform: scale(1.1);
+        }
+        
+        .filter-btn:hover:not(:disabled) {
+            transform: translateY(-5px);
+            border-color: #ff0000;
+            box-shadow: 0 8px 30px rgba(255, 0, 0, 0.4);
+        }
+
+        .filter-btn:disabled { 
+            opacity: 0.2; 
+            cursor: not-allowed; 
+            filter: grayscale(1);
+        }
+        
+        /* Status Bar unten */
+        #status { 
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 2px solid #ff0000;
+            padding: 20px; 
+            font-family: 'Arial', sans-serif; 
+            font-weight: bold; 
+            color: #ffaa00; 
+            font-size: 1.2rem;
+            z-index: 1000;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .back-link { 
+            display: inline-block;
+            margin: 40px 0; 
+            color: #888; 
+            text-decoration: none; 
+            font-family: 'Arial', sans-serif; 
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            padding: 12px 30px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            text-transform: uppercase;
+        }
+        
+        .back-link:hover {
+            color: #fff;
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        /* Responsive Anpassungen */
+        @media (max-width: 768px) {
+            .btn-container { grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        }
+        
+        @media (max-width: 480px) {
+            .btn-container { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            body { padding-top: 110px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-container">
+        <img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo">
+    </div>
+
+    <div class="container">
+        <div class="btn-container" id="buttonGrid">
+            
+            <button class="filter-btn" onclick="sendFilter('alien')" id="btn-alien">
+                <img src="https://via.placeholder.com/270x480/1a0000/ff0000?text=ALIEN" class="btn-image" alt="Alien">
+            </button>
+            
+            <button class="filter-btn" onclick="sendFilter('ghost')" id="btn-ghost">
+                <img src="https://via.placeholder.com/270x480/0d0d0d/666666?text=GHOST" class="btn-image" alt="Ghost">
+            </button>
+            
+            <button class="filter-btn" onclick="sendFilter('cyber')" id="btn-cyber">
+                <img src="https://via.placeholder.com/270x480/000033/00ffff?text=CYBER" class="btn-image" alt="Cyber">
+            </button>
+            
+            <button class="filter-btn" onclick="sendFilter('matrix')" id="btn-matrix">
+                <img src="https://via.placeholder.com/270x480/001100/00ff00?text=MATRIX" class="btn-image" alt="Matrix">
+            </button>
+            
+            <button class="filter-btn" onclick="sendFilter('glitch')" id="btn-glitch">
+                <img src="https://via.placeholder.com/270x480/330033/ff00ff?text=GLITCH" class="btn-image" alt="Glitch">
+            </button>
+            
+            <button class="filter-btn" onclick="sendFilter('neon')" id="btn-neon">
+                <img src="https://via.placeholder.com/270x480/1a0033/cc00ff?text=NEON" class="btn-image" alt="Neon">
+            </button>
+            
+            <button class="filter-btn" onclick="sendFilter('retro')" id="btn-retro">
+                <img src="https://via.placeholder.com/270x480/331a00/ffaa00?text=RETRO" class="btn-image" alt="Retro">
+            </button>
+            
+            <button class="filter-btn" onclick="sendFilter('void')" id="btn-void">
+                <img src="https://via.placeholder.com/270x480/000000/ffffff?text=VOID" class="btn-image" alt="Void">
+            </button>
+
+        </div>
+        
+        <a href="index.html" class="back-link">← Geri Dön</a>
+    </div>
+    
+    <div id="status">Sistem Yükleniyor...</div>
+
+    <script>
+        // Firebase Konfiguration
+        const firebaseConfig = { 
+            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", 
+            authDomain: "chaostitan41-website.firebaseapp.com", 
+            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", 
+            projectId: "chaostitan41-website", 
+            storageBucket: "chaostitan41-website.firebasestorage.app", 
+            messagingSenderId: "553158677453", 
+            appId: "1:553158677453:web:2cad39890ffdedb98aaa84" 
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const statusDiv = document.getElementById('status');
+        const buttons = document.querySelectorAll('.filter-btn');
+        let timerInterval;
+
+        // Cooldown Logik
+        function checkCooldown() {
+            db.ref('lastFilterTime').on('value', snap => {
+                const lastTime = snap.val() || 0;
+                const now = Date.now();
+                const diff = (now - lastTime) / 1000;
+                clearInterval(timerInterval);
+
+                if (diff < 300) {
+                    let timeLeft = Math.ceil(300 - diff);
+                    disableAllButtons(true);
+                    updateStatus(timeLeft);
+                    
+                    timerInterval = setInterval(() => {
+                        timeLeft--;
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval);
+                            disableAllButtons(false);
+                            showTemporaryMessage("HAZIR ✓ - Filtre Seçin", 2000);
+                        } else {
+                            updateStatus(timeLeft);
+                        }
+                    }, 1000);
+                } else {
+                    disableAllButtons(false);
+                    statusDiv.innerHTML = "HAZIR ✓ - Filtre Seçin";
+                }
+            });
+        }
+        
+        function disableAllButtons(disabled) {
+            buttons.forEach(btn => btn.disabled = disabled);
+        }
+        
+        function updateStatus(seconds) {
+            let minutes = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            statusDiv.innerHTML = `⏱️ COOLDOWN: ${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        function showTemporaryMessage(msg, duration) {
+            statusDiv.innerHTML = msg;
+            if (duration) {
+                setTimeout(() => {
+                    if (statusDiv.innerHTML === msg) statusDiv.innerHTML = "";
+                }, duration);
+            }
+        }
+        
+        checkCooldown();
+
+        // Filter senden
+        async function sendFilter(filterId) {
+            let ip = "unknown";
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                ip = data.ip.replace(/\./g, '_');
+            } catch(e) { console.log("IP Error"); }
+
+            db.ref('bannedIPs/' + ip).once('value', snap => {
+                if (snap.exists()) {
+                    alert("BANLANDINIZ!");
+                    return;
+                }
+                activateFilter(filterId, ip);
+            });
+        }
+        
+        function activateFilter(filterId, ip) {
+            const now = Date.now();
+            db.ref('lastFilterTime').set(now);
+            
+            showTemporaryMessage(`🚀 ${filterId.toUpperCase()} GÖNDERILIYOR...`);
+            
+            const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
+            
+            socket.onopen = () => {
+                socket.send(JSON.stringify({
+                    "request": "ExecuteAction",
+                    "id": "1",
+                    "actionName": "Web_Filter_Handler",
+                    "rawInput": filterId
+                }));
+                
+                setTimeout(() => { 
+                    socket.close(); 
+                    showTemporaryMessage(`✅ ${filterId.toUpperCase()} AKTIF!`, 2000);
+                }, 500);
+            };
+            
+            socket.onerror = (error) => {
+                showTemporaryMessage("❌ BAĞLANTI HATASI", 3000);
+            };
+        }
+    </script>
+</body>
+</html>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body { 
