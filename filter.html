@@ -16,16 +16,38 @@
             font-family: 'Impact', sans-serif; 
             text-align: center; 
             min-height: 100vh;
+            padding-bottom: 80px; /* Platz für fixierten Status */
         }
         
+        /* Logo - KORRIGIERT mit Hover-Effekt */
         .logo-container {
             position: fixed;
-            top: 0; left: 0; right: 0;
+            top: 0; 
+            left: 0; 
+            right: 0;
             padding: 15px;
             z-index: 1000;
+            text-align: center;
         }
         
-        .logo-img { width: 100%; max-width: 180px; filter: drop-shadow(0 0 10px #000); }
+        .logo-link {
+            display: inline-block;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-img { 
+            width: 100%; 
+            max-width: 180px; 
+            filter: drop-shadow(0 0 10px #000);
+            transition: all 0.3s ease;
+        }
+        
+        /* Hover-Effekt für Logo */
+        .logo-link:hover .logo-img {
+            filter: drop-shadow(0 0 25px #ff0000) !important;
+            transform: scale(1.05) !important;
+        }
         
         .main-wrapper {
             display: flex;
@@ -34,10 +56,12 @@
             gap: 40px;
             max-width: 1600px;
             margin: 0 auto;
-            padding: 140px 20px 100px;
+            padding: 140px 20px 20px;
         }
         
-        .container { flex: 0 1 1100px; }
+        .container { 
+            flex: 0 1 1100px; 
+        }
         
         .btn-container { 
             display: grid; 
@@ -66,9 +90,18 @@
             box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
         }
 
-        .filter-btn:disabled { opacity: 0.2; filter: grayscale(1); cursor: not-allowed; }
+        .filter-btn:disabled { 
+            opacity: 0.2; 
+            filter: grayscale(1); 
+            cursor: not-allowed; 
+        }
         
-        .btn-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .btn-image { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            display: block; 
+        }
         
         .top10-sidebar {
             width: 320px;
@@ -79,51 +112,164 @@
             backdrop-filter: blur(15px);
             position: sticky;
             top: 140px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
         }
         
         .top10-item {
-            display: flex; align-items: center; gap: 12px;
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
             background: rgba(255, 255, 255, 0.05);
-            padding: 8px; margin-bottom: 8px; border-radius: 12px;
+            padding: 8px; 
+            margin-bottom: 8px; 
+            border-radius: 12px;
             border-left: 4px solid #ff0000;
         }
 
-        .top10-thumb { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
+        .top10-thumb { 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 6px; 
+            object-fit: cover; 
+        }
 
+        /* Fixierter Cooldown unten in der Mitte */
         #status { 
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 0, 0, 0.2);
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff0000;
             border-radius: 10px;
             color: #ffaa00; 
             font-size: 1.2rem; 
-            border: 1px solid rgba(255, 170, 0, 0.4);
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
             display: none; 
             text-shadow: 0 0 5px #000;
+            z-index: 1000;
+            white-space: nowrap;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
         }
         
         .back-link { 
-            display: inline-block; margin-top: 40px; 
-            color: #888; text-decoration: none; 
-            padding: 12px 30px; border: 2px solid #333; border-radius: 12px;
+            display: inline-block; 
+            margin-top: 40px; 
+            color: #888; 
+            text-decoration: none; 
+            padding: 12px 30px; 
+            border: 2px solid #333; 
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        
+        .back-link:hover {
+            color: #ff0000;
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
         }
 
-        @media (max-width: 1000px) { 
-            .main-wrapper { flex-direction: column; align-items: center; } 
-            .top10-sidebar { width: 100%; max-width: 1100px; position: static; }
+        /* MOBILE ANPASSUNGEN */
+        @media (max-width: 1200px) { 
+            .main-wrapper { 
+                flex-direction: column; 
+                align-items: center;
+                gap: 30px;
+            } 
+            
+            .top10-sidebar { 
+                width: 100%; 
+                max-width: 1100px; 
+                position: static; 
+                max-height: none;
+                order: -1; /* Top 10 kommt auf Mobile nach oben */
+            }
+            
+            .btn-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo-img {
+                max-width: 140px;
+            }
+            
+            .main-wrapper {
+                padding: 120px 15px 20px;
+            }
+            
+            .btn-container { 
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }
+            
+            .filter-btn {
+                max-width: 150px;
+                border-radius: 12px;
+            }
+            
+            .top10-sidebar {
+                padding: 15px;
+            }
+            
+            .top10-item {
+                padding: 6px;
+            }
+            
+            .top10-thumb {
+                width: 40px;
+                height: 40px;
+            }
+            
+            #status {
+                font-size: 1rem;
+                padding: 12px 25px;
+                bottom: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .btn-container { 
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .filter-btn {
+                max-width: none;
+                width: 100%;
+                border-radius: 10px;
+            }
+            
+            .back-link {
+                width: 100%;
+                margin-top: 30px;
+            }
+            
+            #status {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+                width: 90%;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
 
+    <!-- Logo mit Hover-Effekt -->
     <div class="logo-container">
-        <a href="index.html"><img src="logo.png" class="logo-img"></a>
+        <a href="index.html" class="logo-link">
+            <img src="logo.png" class="logo-img" alt="CHAOSTITAN41">
+        </a>
     </div>
 
     <div class="main-wrapper">
         <div class="container">
             <div class="btn-container" id="buttonGrid">
-                <!-- Jeder Button hat sein eigenes Bild - einzeln änderbar -->
                 
                 <!-- Button 1: ALIEN -->
                 <button class="filter-btn" onclick="sendFilter('alien')" data-filter="alien">
@@ -217,15 +363,17 @@
                 </button>
                 
             </div>
-            <a href="index.html" class="back-link">← Geri Dön</a>
+            
         </div>
         
         <div class="top10-sidebar">
             <h2 style="color:#ff0000; margin-bottom:20px;">🔥 TOP 10 RANK</h2>
             <div id="top10List">Laden...</div>
-            <div id="status"></div>
         </div>
     </div>
+
+    <!-- Fixierter Cooldown unten in der Mitte -->
+    <div id="status"></div>
 
     <script>
         const firebaseConfig = { 
@@ -242,7 +390,6 @@
         const db = firebase.database();
         let timerInterval = null;
 
-        // Bilder für Top 10 - werden automatisch aus den Buttons gelesen
         function getFilterImages() {
             const images = {};
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -253,21 +400,17 @@
             return images;
         }
 
-        // TOP 10 - KORRIGIERT ohne ständiges Neuladen
         function loadTop10() {
-            console.log("Lade Top 10...");
             const filterImages = getFilterImages();
             
             db.ref('filterStats').once('value').then((snap) => {
                 const stats = snap.val();
-                console.log("Firebase Daten:", stats);
                 updateTop10List(stats, filterImages);
             }).catch((error) => {
                 console.error("Firebase Error:", error);
                 document.getElementById('top10List').innerHTML = "Fehler beim Laden.";
             });
             
-            // Nur auf neue Klicks hören, nicht auf komplette Datenänderungen
             db.ref('filterStats').on('child_added', () => {
                 db.ref('filterStats').once('value').then((snap) => {
                     updateTop10List(snap.val(), getFilterImages());
@@ -316,13 +459,11 @@
             }).join('');
         }
 
-        // COOLDOWN - KORRIGIERT
         function checkCooldown() {
             const statusDiv = document.getElementById('status');
             const buttons = document.querySelectorAll('.filter-btn');
             
             function updateDisplay(lastTime) {
-                // Alten Timer stoppen
                 if (timerInterval) {
                     clearInterval(timerInterval);
                     timerInterval = null;
@@ -362,20 +503,16 @@
                 }
             }
             
-            // Erster Load
             db.ref('lastFilterTime').once('value').then((snap) => {
                 updateDisplay(snap.val() || 0);
             });
             
-            // Auf Änderungen hören
             db.ref('lastFilterTime').on('value', (snap) => {
                 updateDisplay(snap.val() || 0);
             });
         }
 
-        // FILTER SENDEN
         async function sendFilter(filterId) {
-            console.log("Sende Filter:", filterId);
             const timestamp = Date.now();
             
             const newClickRef = db.ref('filterStats/' + filterId).push();
@@ -402,7 +539,6 @@
         }
 
         window.onload = () => {
-            console.log("Seite geladen");
             loadTop10();
             checkCooldown();
         };
