@@ -4,37 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GIF Gönder | CHAOSTITAN41</title>
-     <link rel="icon" type="image/ico" href="image/favicon.ico">
+    <link rel="icon" type="image/ico" href="image/favicon.ico">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { background: #000 url('bg.png') no-repeat center center fixed; background-size: cover; color: #fff; font-family: 'Impact', sans-serif; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { width: 100%; max-width: 600px; padding: 40px 20px; background: rgba(0, 0, 0, 0.8); border-radius: 20px; border: 1px solid #ff0000; backdrop-filter: blur(10px); }
-        input { padding: 15px; width: 90%; border-radius: 8px; border: 1px solid #444; background: #000; color: #fff; margin-bottom: 15px; font-size: 1.1rem; text-align: center; }
-        .giphy-search-btn { display: inline-block; background: #000; color: #fff; border: 1px solid #fff; padding: 10px 20px; border-radius: 5px; text-decoration: none; margin-bottom: 20px; font-family: Arial, sans-serif; font-size: 0.9rem; transition: 0.3s; }
-        .giphy-search-btn:hover { background: #fff; color: #000; }
-        .send-btn { background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); color: #fff; border: 2px solid #ff0000; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.5rem; cursor: pointer; text-transform: uppercase; font-family: 'Impact'; transition: 0.3s; }
-        .send-btn:hover { background: #ff0000; box-shadow: 0 0 20px #ff0000; }
-        .send-btn:disabled { background: #333; border-color: #555; cursor: not-allowed; }
-        #status { margin-top: 20px; font-family: Arial; font-weight: bold; min-height: 24px; }
-        #gif-preview { max-width: 200px; display: none; margin: 15px auto; border: 2px solid red; border-radius: 10px; }
-        .header-logo a:hover .logo-img { transform: scale(1.05); /* Logo wird 5% größer */ filter: drop-shadow(0 0 25px #ff0000); /* Rotes Leuchten wird stärker */ transition: all 0.3s ease;}
+        body { 
+            background: #000 url('bg.png') no-repeat center center fixed; 
+            background-size: cover; 
+            color: #fff; 
+            font-family: 'Impact', sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 600px; 
+            padding: 40px 20px; 
+            background: rgba(0, 0, 0, 0.8); 
+            border-radius: 20px; 
+            border: 1px solid #ff0000; 
+            backdrop-filter: blur(10px); 
+        }
+        
+        input { 
+            padding: 15px; 
+            width: 90%; 
+            border-radius: 8px; 
+            border: 1px solid #444; 
+            background: #000; 
+            color: #fff; 
+            margin-bottom: 15px; 
+            font-size: 1.1rem; 
+            text-align: center; 
+        }
+        
+        .giphy-search-btn { 
+            display: inline-block; 
+            background: #000; 
+            color: #fff; 
+            border: 1px solid #fff; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            text-decoration: none; 
+            margin-bottom: 20px; 
+            font-family: Arial, sans-serif; 
+            font-size: 0.9rem; 
+            transition: 0.3s; 
+        }
+        
+        .giphy-search-btn:hover { 
+            background: #fff; 
+            color: #000; 
+        }
+        
+        .send-btn { 
+            background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); 
+            color: #fff; 
+            border: 2px solid #ff0000; 
+            padding: 20px; 
+            width: 100%; 
+            border-radius: 10px; 
+            font-size: 1.5rem; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            font-family: 'Impact'; 
+            transition: 0.3s; 
+        }
+        
+        .send-btn:hover { 
+            background: #ff0000; 
+            box-shadow: 0 0 20px #ff0000; 
+        }
+        
+        .send-btn:disabled { 
+            background: #333; 
+            border-color: #555; 
+            cursor: not-allowed; 
+        }
+        
+        #status { 
+            margin-top: 20px; 
+            font-family: Arial; 
+            font-weight: bold; 
+            min-height: 24px; 
+        }
+        
+        #gif-preview { 
+            max-width: 200px; 
+            display: none; 
+            margin: 15px auto; 
+            border: 2px solid red; 
+            border-radius: 10px; 
+        }
+        
+        /* KORRIGIERT: Logo Hover Effekt */
+        .logo-link {
+            display: inline-block;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .logo-img { 
+            max-width: 200px; 
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-link:hover .logo-img { 
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 25px #ff0000);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" style="text-decoration: none; cursor: pointer;">
-        <img src="logo.png" style="max-width:200px; margin-bottom:10px;">
-            </a>
+        <!-- KORRIGIERT: Logo mit Wrapper für Hover-Effekt -->
+        <a href="index.html" class="logo-link">
+            <img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo">
+        </a>
         <br>
+        
         <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA (GIPHY.COM)</a>
+        
         <input type="text" id="username" placeholder="ADINIZ">
         <input type="text" id="gif-url" placeholder="Giphy Linkini Buraya Yapıştır..." oninput="updatePreview()">
-        <img id="gif-preview">
+        
+        <img id="gif-preview" alt="GIF Vorschau">
+        
         <button onclick="send()" class="send-btn">YAYINA GÖNDER!</button>
         <div id="status"></div>
-    
     </div>
 
     <script>
