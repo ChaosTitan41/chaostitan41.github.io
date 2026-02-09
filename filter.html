@@ -16,10 +16,9 @@
             font-family: 'Impact', sans-serif; 
             text-align: center; 
             min-height: 100vh;
-            padding-bottom: 80px; /* Platz für fixierten Status */
+            padding-bottom: 80px;
         }
         
-        /* Logo - KORRIGIERT mit Hover-Effekt */
         .logo-container {
             position: fixed;
             top: 0; 
@@ -43,7 +42,6 @@
             transition: all 0.3s ease;
         }
         
-        /* Hover-Effekt für Logo */
         .logo-link:hover .logo-img {
             filter: drop-shadow(0 0 25px #ff0000) !important;
             transform: scale(1.05) !important;
@@ -70,18 +68,20 @@
             justify-items: center;
         }
         
+        /* Button Wrapper für Bild + Name */
         .filter-btn { 
             width: 100%;
             max-width: 200px;
-            aspect-ratio: 9/16;
             border-radius: 16px;
             border: 2px solid rgba(255, 0, 0, 0.3); 
             cursor: pointer; 
             transition: 0.3s; 
-            background: #1a1a1a;
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
             position: relative;
             overflow: hidden;
             padding: 0;
+            display: flex;
+            flex-direction: column;
         }
         
         .filter-btn:hover:not(:disabled) {
@@ -96,11 +96,29 @@
             cursor: not-allowed; 
         }
         
+        /* Bild Container - 9:16 Format */
+        .btn-image-container {
+            width: 100%;
+            aspect-ratio: 9/16;
+            overflow: hidden;
+        }
+        
         .btn-image { 
             width: 100%; 
             height: 100%; 
             object-fit: cover; 
             display: block; 
+        }
+        
+        /* Name unter dem Bild */
+        .btn-name {
+            padding: 10px 5px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 2px solid rgba(255, 0, 0, 0.3);
         }
         
         .top10-sidebar {
@@ -134,7 +152,6 @@
             object-fit: cover; 
         }
 
-        /* Fixierter Cooldown unten in der Mitte */
         #status { 
             position: fixed;
             bottom: 20px;
@@ -172,7 +189,6 @@
             background: rgba(255, 0, 0, 0.1);
         }
 
-        /* MOBILE ANPASSUNGEN */
         @media (max-width: 1200px) { 
             .main-wrapper { 
                 flex-direction: column; 
@@ -185,7 +201,7 @@
                 max-width: 1100px; 
                 position: static; 
                 max-height: none;
-                order: -1; /* Top 10 kommt auf Mobile nach oben */
+                order: -1;
             }
             
             .btn-container {
@@ -210,6 +226,11 @@
             .filter-btn {
                 max-width: 150px;
                 border-radius: 12px;
+            }
+            
+            .btn-name {
+                font-size: 0.8rem;
+                padding: 8px 3px;
             }
             
             .top10-sidebar {
@@ -244,6 +265,10 @@
                 border-radius: 10px;
             }
             
+            .btn-name {
+                font-size: 0.75rem;
+            }
+            
             .back-link {
                 width: 100%;
                 margin-top: 30px;
@@ -260,7 +285,6 @@
 </head>
 <body>
 
-    <!-- Logo mit Hover-Effekt -->
     <div class="logo-container">
         <a href="index.html" class="logo-link">
             <img src="logo.png" class="logo-img" alt="CHAOSTITAN41">
@@ -273,97 +297,136 @@
                 
                 <!-- Button 1: ALIEN -->
                 <button class="filter-btn" onclick="sendFilter('alien')" data-filter="alien">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Alien">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Alien">
+                    </div>
+                    <div class="btn-name">Alien Modu</div>
                 </button>
                 
                 <!-- Button 2: GHOST -->
                 <button class="filter-btn" onclick="sendFilter('ghost')" data-filter="ghost">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Ghost">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Ghost">
+                    </div>
+                    <div class="btn-name">Hayalet Modu</div>
                 </button>
                 
                 <!-- Button 3: CYBER -->
                 <button class="filter-btn" onclick="sendFilter('cyber')" data-filter="cyber">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Cyber">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Cyber">
+                    </div>
+                    <div class="btn-name">Cyber Punk</div>
                 </button>
                 
                 <!-- Button 4: MATRIX -->
                 <button class="filter-btn" onclick="sendFilter('matrix')" data-filter="matrix">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Matrix">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Matrix">
+                    </div>
+                    <div class="btn-name">Matrix</div>
                 </button>
                 
                 <!-- Button 5: GLITCH -->
                 <button class="filter-btn" onclick="sendFilter('glitch')" data-filter="glitch">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Glitch">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Glitch">
+                    </div>
+                    <div class="btn-name">Glitch</div>
                 </button>
                 
                 <!-- Button 6: NEON -->
                 <button class="filter-btn" onclick="sendFilter('neon')" data-filter="neon">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Neon">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Neon">
+                    </div>
+                    <div class="btn-name">Neon</div>
                 </button>
                 
                 <!-- Button 7: RETRO -->
                 <button class="filter-btn" onclick="sendFilter('retro')" data-filter="retro">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Retro">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Retro">
+                    </div>
+                    <div class="btn-name">Retro 80s</div>
                 </button>
                 
                 <!-- Button 8: VOID -->
                 <button class="filter-btn" onclick="sendFilter('void')" data-filter="void">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Void">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Void">
+                    </div>
+                    <div class="btn-name">Void</div>
                 </button>
                 
                 <!-- Button 9: PIXEL -->
                 <button class="filter-btn" onclick="sendFilter('pixel')" data-filter="pixel">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Pixel">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Pixel">
+                    </div>
+                    <div class="btn-name">Pixel Art</div>
                 </button>
                 
                 <!-- Button 10: VHS -->
                 <button class="filter-btn" onclick="sendFilter('vhs')" data-filter="vhs">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="VHS">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="VHS">
+                    </div>
+                    <div class="btn-name">VHS</div>
                 </button>
                 
                 <!-- Button 11: NOISE -->
                 <button class="filter-btn" onclick="sendFilter('noise')" data-filter="noise">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Noise">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Noise">
+                    </div>
+                    <div class="btn-name">TV Noise</div>
                 </button>
                 
                 <!-- Button 12: INVERT -->
                 <button class="filter-btn" onclick="sendFilter('invert')" data-filter="invert">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Invert">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Invert">
+                    </div>
+                    <div class="btn-name">Invert</div>
                 </button>
                 
                 <!-- Button 13: FIRE -->
                 <button class="filter-btn" onclick="sendFilter('fire')" data-filter="fire">
-                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
-                         class="btn-image" 
-                         alt="Fire">
+                    <div class="btn-image-container">
+                        <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                             class="btn-image" 
+                             alt="Fire">
+                    </div>
+                    <div class="btn-name">Fire</div>
                 </button>
                 
             </div>
-            
+            <a href="index.html" class="back-link">← Geri Dön</a>
         </div>
         
         <div class="top10-sidebar">
@@ -372,7 +435,6 @@
         </div>
     </div>
 
-    <!-- Fixierter Cooldown unten in der Mitte -->
     <div id="status"></div>
 
     <script>
