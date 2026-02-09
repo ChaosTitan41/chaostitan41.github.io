@@ -160,7 +160,7 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let timerInterval;
+        let timerInterval = null;
 
         const filterImages = {
             'alien':'alien.jpg', 'ghost':'ghost.jpg', 'cyber':'cyber.jpg', 'matrix':'matrix.jpg',
@@ -168,101 +168,173 @@
             'pixel':'pixel.jpg', 'vhs':'vhs.jpg', 'noise':'noise.jpg', 'invert':'invert.jpg', 'fire':'fire.jpg'
         };
 
+        // TOP 10 - KORRIGIERT
         function loadTop10() {
-            db.ref('filterStats').on('value', snap => {
-                const stats = snap.val() || {};
+            console.log("Lade Top 10...");
+            
+            db.ref('filterStats').on('value', (snap) => {
+                const stats = snap.val();
+                console.log("Firebase Daten:", stats);
                 
-                // KORRIGIERT: Sicherstellen dass wir die Daten korrekt zählen
+                const listDiv = document.getElementById('top10List');
+                
+                if (!stats) {
+                    listDiv.innerHTML = "Henüz veri yok.";
+                    return;
+                }
+
+                // Zähle Klicks pro Filter
                 const counts = {};
+                
                 Object.keys(stats).forEach(filterId => {
-                    // Zähle alle Einträge unter diesem Filter
-                    const clicks = stats[filterId];
-                    if (typeof clicks === 'object' && clicks !== null) {
-                        counts[filterId] = Object.keys(clicks).length;
+                    const filterData = stats[filterId];
+                    // Prüfe ob es ein Objekt mit Keys ist (die einzelnen Klicks)
+                    if (filterData && typeof filterData === 'object') {
+                        const clickCount = Object.keys(filterData).length;
+                        counts[filterId] = clickCount;
+                        console.log(`${filterId}: ${clickCount} Klicks`);
                     } else {
                         counts[filterId] = 0;
                     }
                 });
-                
-                // Sortiere nach Anzahl
+
+                // Sortiere nach Anzahl (höchste zuerst)
                 const sorted = Object.entries(counts)
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 10);
-                
-                const listDiv = document.getElementById('top10List');
+
+                console.log("Sortiert:", sorted);
+
                 if (sorted.length === 0) {
                     listDiv.innerHTML = "Henüz veri yok.";
                     return;
                 }
 
-                listDiv.innerHTML = sorted.map(([id, count], i) => `
+                // Zeige Top 10 an
+                listDiv.innerHTML = sorted.map(([id, count], i) => {
+                    const imgSrc = filterImages[id] || 'logo.png';
+                    return `
                     <div class="top10-item">
                         <span style="color:#f00; font-weight:bold; width:20px;">${i+1}</span>
-                        <img src="${filterImages[id] || 'logo.png'}" class="top10-thumb" onerror="this.src='https://via.placeholder.com/45?text=?'">
+                        <img src="${imgSrc}" class="top10-thumb" onerror="this.src='https://via.placeholder.com/45?text=?'">
                         <div style="flex:1; text-align:left;">
                             <div style="text-transform:uppercase; font-size:13px;">${id}</div>
                             <div style="color:#777; font-size:11px;">${count} KULLANIM</div>
                         </div>
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
+            }, (error) => {
+                console.error("Firebase Error:", error);
+                document.getElementById('top10List').innerHTML = "Fehler beim Laden.";
             });
         }
 
+        // COOLDOWN - KORRIGIERT
         function checkCooldown() {
-            db.ref('lastFilterTime').on('value', snap => {
-                const last = snap.val() || 0;
-                
-                if(timerInterval) clearInterval(timerInterval);
-
-                const updateTimer = () => {
-                    const now = Date.now();
-                    const diff = (now - last) / 1000;
-                    const buttons = document.querySelectorAll('.filter-btn');
-                    const statusDiv = document.getElementById('status');
-                    
-                    if (diff < 300) { 
-                        let timeLeft = Math.ceil(300 - diff);
-                        let m = Math.floor(timeLeft / 60);
-                        let s = timeLeft % 60;
-                        buttons.forEach(b => b.disabled = true);
-                        statusDiv.style.display = "block";
-                        statusDiv.innerHTML = `⏱️ COOLDOWN: ${m}:${s < 10 ? '0' : ''}${s}`;
-                    } else {
-                        buttons.forEach(b => b.disabled = false);
-                        statusDiv.style.display = "none";
-                        clearInterval(timerInterval);
-                    }
-                };
-
-                updateTimer();
-                timerInterval = setInterval(updateTimer, 1000);
+            const statusDiv = document.getElementById('status');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            // Lösche alten Timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // Einmalig den aktuellen Status laden
+            db.ref('lastFilterTime').once('value').then((snap) => {
+                const lastTime = snap.val() || 0;
+                updateTimer(lastTime);
             });
+            
+            // Und auf Änderungen hören
+            db.ref('lastFilterTime').on('value', (snap) => {
+                const lastTime = snap.val() || 0;
+                updateTimer(lastTime);
+            });
+            
+            function updateTimer(lastTime) {
+                const now = Date.now();
+                const diffSeconds = (now - lastTime) / 1000;
+                
+                // Lösche alten Interval falls vorhanden
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                
+                if (diffSeconds < 300) {
+                    // Cooldown aktiv
+                    buttons.forEach(b => b.disabled = true);
+                    statusDiv.style.display = "block";
+                    
+                    let timeLeft = Math.ceil(300 - diffSeconds);
+                    
+                    // Timer-Funktion
+                    const tick = () => {
+                        if (timeLeft <= 0) {
+                            // Cooldown vorbei
+                            buttons.forEach(b => b.disabled = false);
+                            statusDiv.style.display = "none";
+                            if (timerInterval) {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
+                            }
+                            return;
+                        }
+                        
+                        const m = Math.floor(timeLeft / 60);
+                        const s = timeLeft % 60;
+                        statusDiv.innerHTML = `⏱️ COOLDOWN: ${m}:${s < 10 ? '0' : ''}${s}`;
+                        timeLeft--;
+                    };
+                    
+                    // Sofort ausführen und dann alle 1 Sekunde
+                    tick();
+                    timerInterval = setInterval(tick, 1000);
+                    
+                } else {
+                    // Kein Cooldown
+                    buttons.forEach(b => b.disabled = false);
+                    statusDiv.style.display = "none";
+                }
+            }
         }
 
+        // FILTER SENDEN - KORRIGIERT
         async function sendFilter(filterId) {
+            console.log("Sende Filter:", filterId);
             const timestamp = Date.now();
             
-            // KORRIGIERT: Explizit unter filterStats/filterId speichern
-            // Verwende push() um einen eindeutigen Key zu generieren
-            db.ref('filterStats/' + filterId).push({
+            // 1. Statistik speichern (wichtig: unter filterStats/filterId/pushId)
+            const newClickRef = db.ref('filterStats/' + filterId).push();
+            await newClickRef.set({
                 timestamp: timestamp,
                 date: new Date().toISOString()
             });
+            console.log("Gespeichert unter:", newClickRef.key);
             
-            db.ref('lastFilterTime').set(timestamp);
-
-            // WebSocket
-            const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
-            socket.onopen = () => {
-                socket.send(JSON.stringify({
-                    "request": "ExecuteAction",
-                    "actionName": "Web_Filter_Handler",
-                    "rawInput": filterId
-                }));
-                setTimeout(() => socket.close(), 500);
-            };
+            // 2. Cooldown setzen
+            await db.ref('lastFilterTime').set(timestamp);
+            
+            // 3. WebSocket
+            try {
+                const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
+                socket.onopen = () => {
+                    socket.send(JSON.stringify({
+                        "request": "ExecuteAction",
+                        "actionName": "Web_Filter_Handler",
+                        "rawInput": filterId
+                    }));
+                    setTimeout(() => socket.close(), 500);
+                };
+            } catch(e) {
+                console.error("WebSocket Fehler:", e);
+            }
         }
 
+        // Start
         window.onload = () => {
+            console.log("Seite geladen");
             loadTop10();
             checkCooldown();
         };
