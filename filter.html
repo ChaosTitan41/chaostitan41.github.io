@@ -160,7 +160,7 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let timerInterval; // Globaler Timer-Speicher
+        let timerInterval;
 
         const filterImages = {
             'alien':'alien.jpg', 'ghost':'ghost.jpg', 'cyber':'cyber.jpg', 'matrix':'matrix.jpg',
@@ -171,9 +171,22 @@
         function loadTop10() {
             db.ref('filterStats').on('value', snap => {
                 const stats = snap.val() || {};
-                const sorted = Object.entries(stats)
-                    .map(([id, clicks]) => [id, Object.keys(clicks).length])
-                    .sort((a,b) => b[1] - a[1])
+                
+                // KORRIGIERT: Sicherstellen dass wir die Daten korrekt zählen
+                const counts = {};
+                Object.keys(stats).forEach(filterId => {
+                    // Zähle alle Einträge unter diesem Filter
+                    const clicks = stats[filterId];
+                    if (typeof clicks === 'object' && clicks !== null) {
+                        counts[filterId] = Object.keys(clicks).length;
+                    } else {
+                        counts[filterId] = 0;
+                    }
+                });
+                
+                // Sortiere nach Anzahl
+                const sorted = Object.entries(counts)
+                    .sort((a, b) => b[1] - a[1])
                     .slice(0, 10);
                 
                 const listDiv = document.getElementById('top10List');
@@ -198,7 +211,6 @@
             db.ref('lastFilterTime').on('value', snap => {
                 const last = snap.val() || 0;
                 
-                // Alten Timer löschen, falls einer läuft
                 if(timerInterval) clearInterval(timerInterval);
 
                 const updateTimer = () => {
@@ -229,11 +241,16 @@
         async function sendFilter(filterId) {
             const timestamp = Date.now();
             
-            // 1. In Firebase speichern
-            db.ref('filterStats/' + filterId).push({ t: timestamp });
+            // KORRIGIERT: Explizit unter filterStats/filterId speichern
+            // Verwende push() um einen eindeutigen Key zu generieren
+            db.ref('filterStats/' + filterId).push({
+                timestamp: timestamp,
+                date: new Date().toISOString()
+            });
+            
             db.ref('lastFilterTime').set(timestamp);
 
-            // 2. WebSocket
+            // WebSocket
             const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
             socket.onopen = () => {
                 socket.send(JSON.stringify({
