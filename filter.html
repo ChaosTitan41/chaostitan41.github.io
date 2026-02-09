@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filtre Paneli | Test Modu</title>
+    <title>Filtre Paneli | CHAOSTITAN41</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -122,20 +122,100 @@
 
     <div class="main-wrapper">
         <div class="container">
-            <div class="btn-container">
-                <button class="filter-btn" onclick="sendFilter('alien')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('ghost')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('cyber')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('matrix')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('glitch')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('neon')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('retro')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('void')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('pixel')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('vhs')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('noise')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('invert')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
-                <button class="filter-btn" onclick="sendFilter('fire')"><img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image"></button>
+            <div class="btn-container" id="buttonGrid">
+                <!-- Jeder Button hat sein eigenes Bild - einzeln änderbar -->
+                
+                <!-- Button 1: ALIEN -->
+                <button class="filter-btn" onclick="sendFilter('alien')" data-filter="alien">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Alien">
+                </button>
+                
+                <!-- Button 2: GHOST -->
+                <button class="filter-btn" onclick="sendFilter('ghost')" data-filter="ghost">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Ghost">
+                </button>
+                
+                <!-- Button 3: CYBER -->
+                <button class="filter-btn" onclick="sendFilter('cyber')" data-filter="cyber">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Cyber">
+                </button>
+                
+                <!-- Button 4: MATRIX -->
+                <button class="filter-btn" onclick="sendFilter('matrix')" data-filter="matrix">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Matrix">
+                </button>
+                
+                <!-- Button 5: GLITCH -->
+                <button class="filter-btn" onclick="sendFilter('glitch')" data-filter="glitch">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Glitch">
+                </button>
+                
+                <!-- Button 6: NEON -->
+                <button class="filter-btn" onclick="sendFilter('neon')" data-filter="neon">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Neon">
+                </button>
+                
+                <!-- Button 7: RETRO -->
+                <button class="filter-btn" onclick="sendFilter('retro')" data-filter="retro">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Retro">
+                </button>
+                
+                <!-- Button 8: VOID -->
+                <button class="filter-btn" onclick="sendFilter('void')" data-filter="void">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Void">
+                </button>
+                
+                <!-- Button 9: PIXEL -->
+                <button class="filter-btn" onclick="sendFilter('pixel')" data-filter="pixel">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Pixel">
+                </button>
+                
+                <!-- Button 10: VHS -->
+                <button class="filter-btn" onclick="sendFilter('vhs')" data-filter="vhs">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="VHS">
+                </button>
+                
+                <!-- Button 11: NOISE -->
+                <button class="filter-btn" onclick="sendFilter('noise')" data-filter="noise">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Noise">
+                </button>
+                
+                <!-- Button 12: INVERT -->
+                <button class="filter-btn" onclick="sendFilter('invert')" data-filter="invert">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Invert">
+                </button>
+                
+                <!-- Button 13: FIRE -->
+                <button class="filter-btn" onclick="sendFilter('fire')" data-filter="fire">
+                    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" 
+                         class="btn-image" 
+                         alt="Fire">
+                </button>
+                
             </div>
             <a href="index.html" class="back-link">← Geri Dön</a>
         </div>
@@ -160,81 +240,169 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let timerInterval;
+        let timerInterval = null;
 
-        const testGif = "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif";
+        // Bilder für Top 10 - werden automatisch aus den Buttons gelesen
+        function getFilterImages() {
+            const images = {};
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const filterId = btn.getAttribute('data-filter');
+                const imgSrc = btn.querySelector('.btn-image').src;
+                images[filterId] = imgSrc;
+            });
+            return images;
+        }
 
+        // TOP 10 - KORRIGIERT ohne ständiges Neuladen
         function loadTop10() {
-            db.ref('filterStats').on('value', snap => {
-                const stats = snap.val() || {};
-                const sorted = Object.entries(stats)
-                    .map(([id, clicks]) => [id, Object.keys(clicks).length])
-                    .sort((a,b) => b[1] - a[1])
-                    .slice(0, 10);
-                
-                const listDiv = document.getElementById('top10List');
-                if (sorted.length === 0) {
-                    listDiv.innerHTML = "Veri yok.";
-                    return;
+            console.log("Lade Top 10...");
+            const filterImages = getFilterImages();
+            
+            db.ref('filterStats').once('value').then((snap) => {
+                const stats = snap.val();
+                console.log("Firebase Daten:", stats);
+                updateTop10List(stats, filterImages);
+            }).catch((error) => {
+                console.error("Firebase Error:", error);
+                document.getElementById('top10List').innerHTML = "Fehler beim Laden.";
+            });
+            
+            // Nur auf neue Klicks hören, nicht auf komplette Datenänderungen
+            db.ref('filterStats').on('child_added', () => {
+                db.ref('filterStats').once('value').then((snap) => {
+                    updateTop10List(snap.val(), getFilterImages());
+                });
+            });
+        }
+        
+        function updateTop10List(stats, filterImages) {
+            const listDiv = document.getElementById('top10List');
+            
+            if (!stats) {
+                listDiv.innerHTML = "Henüz veri yok.";
+                return;
+            }
+
+            const counts = {};
+            Object.keys(stats).forEach(filterId => {
+                const filterData = stats[filterId];
+                if (filterData && typeof filterData === 'object') {
+                    counts[filterId] = Object.keys(filterData).length;
+                } else {
+                    counts[filterId] = 0;
                 }
-
-                listDiv.innerHTML = sorted.map(([id, count], i) => `
-                    <div class="top10-item">
-                        <span style="color:#f00; font-weight:bold; width:20px;">${i+1}</span>
-                        <img src="${testGif}" class="top10-thumb">
-                        <div style="flex:1; text-align:left;">
-                            <div style="text-transform:uppercase; font-size:13px;">${id}</div>
-                            <div style="color:#777; font-size:11px;">${count} KULLANIM</div>
-                        </div>
-                    </div>`).join('');
             });
+
+            const sorted = Object.entries(counts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            if (sorted.length === 0) {
+                listDiv.innerHTML = "Henüz veri yok.";
+                return;
+            }
+
+            listDiv.innerHTML = sorted.map(([id, count], i) => {
+                const imgSrc = filterImages[id] || 'logo.png';
+                return `
+                <div class="top10-item">
+                    <span style="color:#f00; font-weight:bold; width:20px;">${i+1}</span>
+                    <img src="${imgSrc}" class="top10-thumb" alt="${id}">
+                    <div style="flex:1; text-align:left;">
+                        <div style="text-transform:uppercase; font-size:13px;">${id}</div>
+                        <div style="color:#777; font-size:11px;">${count} KULLANIM</div>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
+        // COOLDOWN - KORRIGIERT
         function checkCooldown() {
-            db.ref('lastFilterTime').on('value', snap => {
-                const last = snap.val() || 0;
-                if(timerInterval) clearInterval(timerInterval);
-
-                const updateTimer = () => {
-                    const diff = (Date.now() - last) / 1000;
-                    const buttons = document.querySelectorAll('.filter-btn');
-                    const statusDiv = document.getElementById('status');
+            const statusDiv = document.getElementById('status');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            function updateDisplay(lastTime) {
+                // Alten Timer stoppen
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                
+                const now = Date.now();
+                const diffSeconds = (now - lastTime) / 1000;
+                
+                if (diffSeconds < 300) {
+                    buttons.forEach(b => b.disabled = true);
+                    statusDiv.style.display = "block";
                     
-                    if (diff < 300) { 
-                        let timeLeft = Math.ceil(300 - diff);
-                        let m = Math.floor(timeLeft / 60);
-                        let s = timeLeft % 60;
-                        buttons.forEach(b => b.disabled = true);
-                        statusDiv.style.display = "block";
+                    let timeLeft = Math.ceil(300 - diffSeconds);
+                    
+                    const tick = () => {
+                        if (timeLeft <= 0) {
+                            buttons.forEach(b => b.disabled = false);
+                            statusDiv.style.display = "none";
+                            if (timerInterval) {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
+                            }
+                            return;
+                        }
+                        
+                        const m = Math.floor(timeLeft / 60);
+                        const s = timeLeft % 60;
                         statusDiv.innerHTML = `⏱️ COOLDOWN: ${m}:${s < 10 ? '0' : ''}${s}`;
-                    } else {
-                        buttons.forEach(b => b.disabled = false);
-                        statusDiv.style.display = "none";
-                        clearInterval(timerInterval);
-                    }
-                };
-                updateTimer();
-                timerInterval = setInterval(updateTimer, 1000);
+                        timeLeft--;
+                    };
+                    
+                    tick();
+                    timerInterval = setInterval(tick, 1000);
+                } else {
+                    buttons.forEach(b => b.disabled = false);
+                    statusDiv.style.display = "none";
+                }
+            }
+            
+            // Erster Load
+            db.ref('lastFilterTime').once('value').then((snap) => {
+                updateDisplay(snap.val() || 0);
+            });
+            
+            // Auf Änderungen hören
+            db.ref('lastFilterTime').on('value', (snap) => {
+                updateDisplay(snap.val() || 0);
             });
         }
 
+        // FILTER SENDEN
         async function sendFilter(filterId) {
+            console.log("Sende Filter:", filterId);
             const timestamp = Date.now();
-            db.ref('filterStats/' + filterId).push({ t: timestamp });
-            db.ref('lastFilterTime').set(timestamp);
+            
+            const newClickRef = db.ref('filterStats/' + filterId).push();
+            await newClickRef.set({
+                timestamp: timestamp,
+                date: new Date().toISOString()
+            });
+            
+            await db.ref('lastFilterTime').set(timestamp);
 
-            const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
-            socket.onopen = () => {
-                socket.send(JSON.stringify({
-                    "request": "ExecuteAction",
-                    "actionName": "Web_Filter_Handler",
-                    "rawInput": filterId
-                }));
-                setTimeout(() => socket.close(), 500);
-            };
+            try {
+                const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
+                socket.onopen = () => {
+                    socket.send(JSON.stringify({
+                        "request": "ExecuteAction",
+                        "actionName": "Web_Filter_Handler",
+                        "rawInput": filterId
+                    }));
+                    setTimeout(() => socket.close(), 500);
+                };
+            } catch(e) {
+                console.error("WebSocket Fehler:", e);
+            }
         }
 
         window.onload = () => {
+            console.log("Seite geladen");
             loadTop10();
             checkCooldown();
         };
