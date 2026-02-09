@@ -7,36 +7,270 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { background: #000 url('bg.png') no-repeat center center fixed; background-size: cover; color: #fff; font-family: 'Impact', sans-serif; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { width: 100%; max-width: 600px; padding: 40px 20px; background: rgba(0, 0, 0, 0.6); border-radius: 20px; border: 1px solid rgba(255, 0, 0, 0.5); backdrop-filter: blur(10px); }
-        .logo-img { width: 100%; max-width: 250px; margin-bottom: 30px; filter: drop-shadow(0 0 15px #ff0000); }
-        .btn-container { display: flex; flex-direction: column; gap: 20px; }
-        .filter-btn { padding: 30px; font-size: 2rem; border-radius: 12px; border: 2px solid #333; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-family: 'Impact'; }
-        .filter-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            background: #000 url('bg.png') no-repeat center center fixed; 
+            background-size: cover; 
+            color: #fff; 
+            font-family: 'Impact', sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            min-height: 100vh;
+            padding: 40px 20px 100px;
+        }
+        
+        /* Haupt-Layout mit Sidebar */
+        .main-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .container { 
+            width: 100%;
+            max-width: 600px; 
+            padding: 40px 20px; 
+            background: rgba(0, 0, 0, 0.6); 
+            border-radius: 20px; 
+            border: 1px solid rgba(255, 0, 0, 0.5); 
+            backdrop-filter: blur(10px); 
+        }
+        
+        .logo-img { 
+            width: 100%; 
+            max-width: 250px; 
+            margin-bottom: 30px; 
+            filter: drop-shadow(0 0 15px #ff0000); 
+        }
+        
+        .btn-container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
+        
+        .filter-btn { 
+            padding: 30px; 
+            font-size: 2rem; 
+            border-radius: 12px; 
+            border: 2px solid #333; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            text-transform: uppercase; 
+            font-family: 'Impact'; 
+        }
+        
+        .filter-btn:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+            filter: grayscale(1); 
+        }
+        
         .alien { background: #00FF41; color: #000; }
         .ghost { background: #fff; color: #000; }
-        #status { margin-top: 20px; font-family: Arial; font-weight: bold; min-height: 24px; color: #ffaa00; }
-        .back-link { display: inline-block; margin-top: 40px; color: #888; text-decoration: none; font-family: 'Arial'; }
+        
+        /* Fixierter Status unten */
+        #status { 
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 2px solid #ff0000;
+            padding: 20px; 
+            font-family: Arial; 
+            font-weight: bold; 
+            min-height: 60px;
+            color: #ffaa00; 
+            font-size: 1.3rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .back-link { 
+            display: inline-block; 
+            margin-top: 40px; 
+            color: #888; 
+            text-decoration: none; 
+            font-family: 'Arial'; 
+        }
+        
+        /* TOP 10 SIDEBAR */
+        .top10-sidebar {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 0, 0, 0.5);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .top10-title {
+            font-size: 1.5rem;
+            color: #ff0000;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #ff0000;
+            padding-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        
+        .top10-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .top10-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 12px;
+            border-left: 4px solid #ff0000;
+            transition: all 0.3s;
+        }
+        
+        .top10-item:hover {
+            background: rgba(255, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .top10-rank {
+            font-size: 1.5rem;
+            color: #ff0000;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .top10-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 0, 0, 0.3);
+        }
+        
+        .top10-info {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .top10-name {
+            font-size: 1rem;
+            text-transform: uppercase;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+        
+        .top10-count {
+            font-size: 0.8rem;
+            color: #888;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        /* Responsive */
+        @media (max-width: 968px) {
+            .main-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .top10-sidebar {
+                width: 100%;
+                max-width: 600px;
+                position: relative;
+                top: 0;
+                max-height: none;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img src="logo.png" class="logo-img">
-        <div class="btn-container">
-            <button id="btn-alien" class="filter-btn alien" onclick="sendFilter('alien')">ALIEN MODU</button>
-            <button id="btn-ghost" class="filter-btn ghost" onclick="sendFilter('ghost')">HAYALET MODU</button>
+    <div class="main-wrapper">
+        <!-- Hauptbereich -->
+        <div class="container">
+            <img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo">
+            <div class="btn-container">
+                <button id="btn-alien" class="filter-btn alien" onclick="sendFilter('alien')">ALIEN MODU</button>
+                <button id="btn-ghost" class="filter-btn ghost" onclick="sendFilter('ghost')">HAYALET MODU</button>
+            </div>
+            <a href="index.html" class="back-link">← Geri Dön</a>
         </div>
-        <div id="status"></div>
-        <a href="index.html" class="back-link">← Geri Dön</a>
+        
+        <!-- Top 10 Sidebar -->
+        <div class="top10-sidebar">
+            <div class="top10-title">🔥 Top 10 Filter</div>
+            <div class="top10-list" id="top10List">
+                <!-- Wird per JavaScript gefüllt -->
+                <div class="top10-item">
+                    <div class="top10-rank">1</div>
+                    <img src="alien.jpg" class="top10-img" alt="Alien">
+                    <div class="top10-info">
+                        <div class="top10-name">Alien Modu</div>
+                        <div class="top10-count">0 Klicks</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    
+    <!-- Fixierter Status -->
+    <div id="status"></div>
+
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", authDomain: "chaostitan41-website.firebaseapp.com", databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", projectId: "chaostitan41-website", storageBucket: "chaostitan41-website.firebasestorage.app", messagingSenderId: "553158677453", appId: "1:553158677453:web:2cad39890ffdedb98aaa84" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", 
+            authDomain: "chaostitan41-website.firebaseapp.com", 
+            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", 
+            projectId: "chaostitan41-website", 
+            storageBucket: "chaostitan41-website.firebasestorage.app", 
+            messagingSenderId: "553158677453", 
+            appId: "1:553158677453:web:2cad39890ffdedb98aaa84" 
+        };
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         const statusDiv = document.getElementById('status');
         const buttons = document.querySelectorAll('.filter-btn');
         let timerInterval;
+
+        // Filter-Bilder Mapping
+        const filterImages = {
+            'alien': 'alien.jpg',
+            'ghost': 'ghost.jpg',
+            'cyber': 'cyber.jpg',
+            'matrix': 'matrix.jpg',
+            'glitch': 'glitch.jpg',
+            'neon': 'neon.jpg',
+            'retro': 'retro.jpg',
+            'void': 'void.jpg'
+        };
+        
+        const filterNames = {
+            'alien': 'Alien Modu',
+            'ghost': 'Hayalet Modu',
+            'cyber': 'Cyber Punk',
+            'matrix': 'Matrix',
+            'glitch': 'Glitch',
+            'neon': 'Neon',
+            'retro': 'Retro 80s',
+            'void': 'Void'
+        };
 
         // Globaler Cooldown Check (5 Minuten = 300 Sekunden)
         function checkCooldown() {
@@ -60,7 +294,7 @@
                         } else {
                             let minutes = Math.floor(timeLeft / 60);
                             let seconds = timeLeft % 60;
-                            statusDiv.innerHTML = `COOLDOWN: ${minutes}:${seconds < 10 ? '0' : ''}${seconds} bekleyin...`;
+                            statusDiv.innerHTML = `⏱️ COOLDOWN: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
                         }
                     }, 1000);
                 } else {
@@ -70,6 +304,52 @@
             });
         }
         checkCooldown();
+
+        // Top 10 laden und anzeigen
+        function loadTop10() {
+            db.ref('filterStats').on('value', snap => {
+                const stats = snap.val() || {};
+                const filterCounts = {};
+                
+                // Zähle Klicks pro Filter
+                Object.keys(stats).forEach(filter => {
+                    filterCounts[filter] = Object.keys(stats[filter]).length;
+                });
+                
+                // Sortiere nach Anzahl (absteigend)
+                const sorted = Object.entries(filterCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+                
+                // HTML generieren
+                const top10List = document.getElementById('top10List');
+                top10List.innerHTML = '';
+                
+                sorted.forEach((item, index) => {
+                    const [filter, count] = item;
+                    const img = filterImages[filter] || 'default.jpg';
+                    const name = filterNames[filter] || filter;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'top10-item';
+                    div.innerHTML = `
+                        <div class="top10-rank">${index + 1}</div>
+                        <img src="${img}" class="top10-img" alt="${name}" onerror="this.src='default.jpg'">
+                        <div class="top10-info">
+                            <div class="top10-name">${name}</div>
+                            <div class="top10-count">${count} Klicks</div>
+                        </div>
+                    `;
+                    top10List.appendChild(div);
+                });
+                
+                // Falls keine Daten
+                if (sorted.length === 0) {
+                    top10List.innerHTML = '<div style="color: #666; padding: 20px;">Noch keine Daten</div>';
+                }
+            });
+        }
+        loadTop10();
 
         async function sendFilter(f) {
             let ip = "unknown";
@@ -86,20 +366,28 @@
                     const now = Date.now();
                     // 1. Globalen Cooldown setzen
                     db.ref('lastFilterTime').set(now);
+                    
+                    // 2. Statistik speichern für Top 10
+                    const day = new Date().toISOString().split('T')[0];
+                    db.ref('filterStats/' + f + '/' + ip).set({
+                        timestamp: now,
+                        date: day
+                    });
 
-                    // 2. WebSocket Aktion ausführen
+                    // 3. WebSocket Aktion ausführen
                     const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
                     socket.onopen = () => {
                         socket.send(JSON.stringify({"request":"ExecuteAction","id":"1","actionName":"Web_Filter_Handler","rawInput":f}));
                         setTimeout(() => { 
                             socket.close(); 
-                            alert(f.toUpperCase() + " AKTIF!"); 
+                            statusDiv.innerHTML = `✅ ${f.toUpperCase()} AKTIF!`;
+                            setTimeout(() => statusDiv.innerHTML = "", 2000);
                         }, 200);
                     };
                     
-                    // 3. Statistik für Admin (optional, wie bei GIF)
-                    const day = new Date().toISOString().split('T')[0];
-                    db.ref('stats/filters/' + day + '/' + ip).set(true);
+                    socket.onerror = () => {
+                        statusDiv.innerHTML = "❌ BAĞLANTI HATASI";
+                    };
                 }
             });
         }
