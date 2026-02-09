@@ -15,98 +15,79 @@
             color: #fff; 
             font-family: 'Impact', sans-serif; 
             text-align: center; 
-            margin: 0; 
             min-height: 100vh;
-            /* KEIN PADDING - keine schwarzen Balken */
+            overflow-x: hidden;
         }
         
-        /* Fixiertes Logo oben - transparent */
         .logo-container {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            background: transparent; /* Kein schwarzer Balken */
+            background: transparent;
             padding: 15px;
             z-index: 1000;
         }
         
-        /* Logo Link - nur leuchten bei Hover */
-        .logo-link {
-            display: inline-block;
-            text-decoration: none;
-        }
-        
+        .logo-link { display: inline-block; text-decoration: none; }
         .logo-img { 
             width: 100%; 
             max-width: 180px;
-            margin: 0 auto;
-            display: block;
             transition: all 0.3s ease;
-            filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)); /* Schatten für Sichtbarkeit */
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
         }
         
-        /* Nur leuchten wenn Maus drauf */
         .logo-link:hover .logo-img {
             filter: drop-shadow(0 0 25px #ff0000);
             transform: scale(1.05);
         }
         
-        /* Haupt-Layout mit Sidebar - direkt unter Logo */
+        /* Layout Anpassung für Mittigkeit */
         .main-wrapper {
             display: flex;
-            justify-content: center;
+            justify-content: center; /* Zentriert die gesamte Gruppe */
             align-items: flex-start;
-            gap: 30px;
-            max-width: 1200px;
+            gap: 40px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 120px 20px 100px; /* Oben Platz für Logo, unten für Status */
-            min-height: 100vh;
+            padding: 120px 20px 100px;
         }
         
         .container { 
-            width: 100%; 
-            max-width: 900px;
-            margin: 0 auto;
+            flex: 0 1 900px; /* Nimmt Platz ein, aber nicht mehr als 900px */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
-        /* Grid - 4 Spalten */
         .btn-container { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
+            width: 100%;
         }
         
-        /* 9:16 Format Buttons - nur Bild */
         .filter-btn { 
             aspect-ratio: 9/16;
             border-radius: 16px;
             border: 2px solid rgba(255, 0, 0, 0.3); 
             cursor: pointer; 
             transition: all 0.3s ease; 
-            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            background: #1a1a1a;
             position: relative;
             overflow: hidden;
             padding: 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
         
-        /* Roter Akzent-Streifen links */
         .filter-btn::before {
             content: '';
             position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
+            left: 0; top: 0; bottom: 0;
             width: 4px;
             background: #ff0000;
             z-index: 2;
         }
-        
-        /* Verschiedene Akzentfarben */
-        .filter-btn:nth-child(4n+2)::before { background: #ff3333; }
-        .filter-btn:nth-child(4n+3)::before { background: #cc0000; }
-        .filter-btn:nth-child(4n+4)::before { background: #ff6666; }
         
         .filter-btn:disabled { 
             opacity: 0.3; 
@@ -120,32 +101,16 @@
             box-shadow: 0 8px 30px rgba(255, 0, 0, 0.4);
         }
         
-        /* Bild füllt den ganzen Button */
-        .btn-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+        .btn-image { width: 100%; height: 100%; object-fit: cover; display: block; }
         
-        /* Fixierter Status unten - transparent */
         #status { 
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: transparent; /* Kein schwarzer Balken */
-            padding: 20px; 
-            font-family: 'Arial', sans-serif; 
-            font-weight: bold; 
+            bottom: 20px;
+            left: 0; right: 0;
             color: #ffaa00; 
             font-size: 1.3rem;
             z-index: 1000;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.9); /* Schatten für Lesbarkeit */
+            text-shadow: 0 2px 10px rgba(0,0,0,1);
         }
         
         .back-link { 
@@ -153,214 +118,97 @@
             margin-top: 40px; 
             color: #888; 
             text-decoration: none; 
-            font-family: 'Arial', sans-serif; 
-            font-size: 1rem;
-            transition: all 0.3s;
-            padding: 15px 40px;
+            padding: 12px 30px;
             border: 2px solid #333;
             border-radius: 12px;
             background: rgba(0, 0, 0, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: 0.3s;
         }
+
+        .back-link:hover { color: #ff0000; border-color: #ff0000; }
         
-        .back-link:hover {
-            color: #ff0000;
-            border-color: #ff0000;
-            background: rgba(255, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        /* TOP 10 SIDEBAR */
+        /* SIDEBAR STATS */
         .top10-sidebar {
-            width: 280px;
-            background: rgba(0, 0, 0, 0.8);
+            width: 300px;
+            background: rgba(0, 0, 0, 0.85);
             border-radius: 20px;
             border: 2px solid rgba(255, 0, 0, 0.5);
             padding: 20px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
             position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 160px);
-            overflow-y: auto;
+            top: 120px;
         }
         
         .top10-title {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: #ff0000;
-            margin-bottom: 20px;
-            text-transform: uppercase;
+            margin-bottom: 15px;
             border-bottom: 2px solid #ff0000;
-            padding-bottom: 10px;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-        }
-        
-        .top10-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            padding-bottom: 5px;
         }
         
         .top10-item {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             background: rgba(255, 255, 255, 0.05);
             padding: 8px;
-            border-radius: 12px;
-            border-left: 4px solid #ff0000;
-            transition: all 0.3s;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            border-left: 3px solid #ff0000;
+            transition: 0.3s;
         }
-        
-        .top10-item:hover {
-            background: rgba(255, 0, 0, 0.1);
-            transform: translateX(5px);
-        }
-        
-        .top10-rank {
-            font-size: 1.3rem;
-            color: #ff0000;
-            font-weight: bold;
-            min-width: 25px;
-            text-align: center;
-        }
-        
-        /* Mini-Bilder im Top 10 */
-        .top10-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 2px solid rgba(255, 0, 0, 0.3);
-        }
-        
-        .top10-info {
-            flex: 1;
-            text-align: left;
-        }
-        
-        .top10-name {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            color: #fff;
-            margin-bottom: 2px;
-        }
-        
-        .top10-count {
-            font-size: 0.75rem;
-            color: #888;
-            font-family: 'Arial', sans-serif;
-        }
-        
-        /* Responsive */
+
+        .top10-item:hover { transform: translateX(5px); background: rgba(255, 0, 0, 0.1); }
+        .top10-rank { color: #ff0000; font-weight: bold; width: 20px; }
+        .top10-img { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; }
+        .top10-info { flex: 1; text-align: left; }
+        .top10-name { font-size: 0.85rem; color: #fff; }
+        .top10-count { font-size: 0.7rem; color: #888; font-family: sans-serif; }
+
         @media (max-width: 1100px) {
-            .main-wrapper {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .top10-sidebar {
-                width: 100%;
-                max-width: 900px;
-                position: relative;
-                top: 0;
-                max-height: none;
-                margin-top: 30px;
-            }
+            .main-wrapper { flex-direction: column; align-items: center; }
+            .top10-sidebar { width: 100%; max-width: 900px; position: static; }
+            .btn-container { grid-template-columns: repeat(3, 1fr); }
         }
-        
-        @media (max-width: 768px) {
-            .btn-container {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 15px;
-            }
-        }
-        
         @media (max-width: 480px) {
-            .btn-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-            .filter-btn {
-                border-radius: 12px;
-            }
+            .btn-container { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
-    <!-- Fixiertes Logo mit Link -->
+
     <div class="logo-container">
         <a href="index.html" class="logo-link">
-            <img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo">
+            <img src="logo.png" class="logo-img" alt="Logo">
         </a>
     </div>
 
-    <!-- Hauptbereich mit Sidebar -->
     <div class="main-wrapper">
         <div class="container">
             <div class="btn-container" id="buttonGrid">
-                <button class="filter-btn" onclick="sendFilter('alien')" id="btn-alien">
-                    <img src="alien.jpg" class="btn-image" alt="Alien" onerror="this.src='https://via.placeholder.com/270x480/1a0000/ff0000?text=ALIEN'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('ghost')" id="btn-ghost">
-                    <img src="ghost.jpg" class="btn-image" alt="Ghost" onerror="this.src='https://via.placeholder.com/270x480/0d0d0d/666666?text=GHOST'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('cyber')" id="btn-cyber">
-                    <img src="cyber.jpg" class="btn-image" alt="Cyber" onerror="this.src='https://via.placeholder.com/270x480/000033/00ffff?text=CYBER'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('matrix')" id="btn-matrix">
-                    <img src="matrix.jpg" class="btn-image" alt="Matrix" onerror="this.src='https://via.placeholder.com/270x480/001100/00ff00?text=MATRIX'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('glitch')" id="btn-glitch">
-                    <img src="glitch.jpg" class="btn-image" alt="Glitch" onerror="this.src='https://via.placeholder.com/270x480/330033/ff00ff?text=GLITCH'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('neon')" id="btn-neon">
-                    <img src="neon.jpg" class="btn-image" alt="Neon" onerror="this.src='https://via.placeholder.com/270x480/1a0033/cc00ff?text=NEON'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('retro')" id="btn-retro">
-                    <img src="retro.jpg" class="btn-image" alt="Retro" onerror="this.src='https://via.placeholder.com/270x480/331a00/ffaa00?text=RETRO'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('void')" id="btn-void">
-                    <img src="void.jpg" class="btn-image" alt="Void" onerror="this.src='https://via.placeholder.com/270x480/000000/ffffff?text=VOID'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('pixel')" id="btn-pixel">
-                    <img src="pixel.jpg" class="btn-image" alt="Pixel" onerror="this.src='https://via.placeholder.com/270x480/222222/ffcc00?text=PIXEL'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('vhs')" id="btn-vhs">
-                    <img src="vhs.jpg" class="btn-image" alt="VHS" onerror="this.src='https://via.placeholder.com/270x480/1a1a1a/ff0066?text=VHS'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('noise')" id="btn-noise">
-                    <img src="noise.jpg" class="btn-image" alt="Noise" onerror="this.src='https://via.placeholder.com/270x480/111111/888888?text=NOISE'">
-                </button>
-                
-                <button class="filter-btn" onclick="sendFilter('invert')" id="btn-invert">
-                    <img src="invert.jpg" class="btn-image" alt="Invert" onerror="this.src='https://via.placeholder.com/270x480/ffffff/000000?text=INVERT'">
-                </button>
+                <button class="filter-btn" onclick="sendFilter('alien')" id="btn-alien"><img src="alien.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/f00?text=ALIEN'"></button>
+                <button class="filter-btn" onclick="sendFilter('ghost')" id="btn-ghost"><img src="ghost.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/666?text=GHOST'"></button>
+                <button class="filter-btn" onclick="sendFilter('cyber')" id="btn-cyber"><img src="cyber.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/0ff?text=CYBER'"></button>
+                <button class="filter-btn" onclick="sendFilter('matrix')" id="btn-matrix"><img src="matrix.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/0f0?text=MATRIX'"></button>
+                <button class="filter-btn" onclick="sendFilter('glitch')" id="btn-glitch"><img src="glitch.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/f0f?text=GLITCH'"></button>
+                <button class="filter-btn" onclick="sendFilter('neon')" id="btn-neon"><img src="neon.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/c0f?text=NEON'"></button>
+                <button class="filter-btn" onclick="sendFilter('retro')" id="btn-retro"><img src="retro.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/fa0?text=RETRO'"></button>
+                <button class="filter-btn" onclick="sendFilter('void')" id="btn-void"><img src="void.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/000/fff?text=VOID'"></button>
+                <button class="filter-btn" onclick="sendFilter('pixel')" id="btn-pixel"><img src="pixel.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/fc0?text=PIXEL'"></button>
+                <button class="filter-btn" onclick="sendFilter('vhs')" id="btn-vhs"><img src="vhs.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/f06?text=VHS'"></button>
+                <button class="filter-btn" onclick="sendFilter('noise')" id="btn-noise"><img src="noise.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/111/888?text=NOISE'"></button>
+                <button class="filter-btn" onclick="sendFilter('invert')" id="btn-invert"><img src="invert.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480/fff/000?text=INVERT'"></button>
             </div>
-            
             <a href="index.html" class="back-link">← Geri Dön</a>
         </div>
         
-        <!-- Top 10 Sidebar -->
         <div class="top10-sidebar">
             <div class="top10-title">🔥 Top 10 Filter</div>
-            <div class="top10-list" id="top10List">
-                <!-- Wird per JavaScript gefüllt -->
-            </div>
+            <div class="top10-list" id="top10List">Laden...</div>
         </div>
     </div>
     
-    <!-- Fixierter Status -->
     <div id="status"></div>
 
     <script>
@@ -376,12 +224,7 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
         const statusDiv = document.getElementById('status');
-        const buttons = document.querySelectorAll('.filter-btn');
-        let timerInterval;
-
-        // Filter-Daten für Top 10
         const filterData = {
             'alien': { name: 'Alien Modu', img: 'alien.jpg' },
             'ghost': { name: 'Hayalet Modu', img: 'ghost.jpg' },
@@ -402,152 +245,60 @@
                 const lastTime = snap.val() || 0;
                 const now = Date.now();
                 const diff = (now - lastTime) / 1000;
-                clearInterval(timerInterval);
-
+                const buttons = document.querySelectorAll('.filter-btn');
                 if (diff < 300) {
                     let timeLeft = Math.ceil(300 - diff);
-                    disableAllButtons(true);
+                    buttons.forEach(b => b.disabled = true);
                     updateStatus(timeLeft);
-                    
-                    timerInterval = setInterval(() => {
-                        timeLeft--;
-                        if (timeLeft <= 0) {
-                            clearInterval(timerInterval);
-                            disableAllButtons(false);
-                            showTemporaryMessage("HAZIR ✓ - Filtre Seçin", 2000);
-                        } else {
-                            updateStatus(timeLeft);
-                        }
-                    }, 1000);
                 } else {
-                    disableAllButtons(false);
+                    buttons.forEach(b => b.disabled = false);
                     statusDiv.innerHTML = "";
                 }
             });
         }
         
-        function disableAllButtons(disabled) {
-            buttons.forEach(btn => btn.disabled = disabled);
-        }
-        
         function updateStatus(seconds) {
-            let minutes = Math.floor(seconds / 60);
-            let secs = seconds % 60;
-            statusDiv.innerHTML = `⏱️ COOLDOWN: ${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+            let min = Math.floor(seconds / 60);
+            let sec = seconds % 60;
+            statusDiv.innerHTML = `⏱️ COOLDOWN: ${min}:${sec < 10 ? '0' : ''}${sec}`;
         }
-        
-        function showTemporaryMessage(msg, duration) {
-            statusDiv.innerHTML = msg;
-            if (duration) {
-                setTimeout(() => {
-                    if (statusDiv.innerHTML === msg) statusDiv.innerHTML = "";
-                }, duration);
-            }
-        }
-        
-        // Top 10 laden und anzeigen - MIT ZÄHLER
+
         function loadTop10() {
             db.ref('filterStats').on('value', snap => {
                 const stats = snap.val() || {};
-                const filterCounts = {};
-                
-                // Zähle Klicks pro Filter
-                Object.keys(stats).forEach(filter => {
-                    const clicks = Object.keys(stats[filter]).length;
-                    filterCounts[filter] = clicks;
-                });
-                
-                // Sortiere nach Anzahl (absteigend)
-                const sorted = Object.entries(filterCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 10);
-                
-                // HTML generieren
-                const top10List = document.getElementById('top10List');
-                top10List.innerHTML = '';
-                
-                sorted.forEach((item, index) => {
-                    const [filter, count] = item;
-                    const data = filterData[filter] || { name: filter, img: 'default.jpg' };
-                    
-                    const div = document.createElement('div');
-                    div.className = 'top10-item';
-                    div.innerHTML = `
-                        <div class="top10-rank">${index + 1}</div>
-                        <img src="${data.img}" class="top10-img" alt="${data.name}" onerror="this.src='https://via.placeholder.com/40x40/333/fff?text=?'">
+                const counts = Object.entries(stats).map(([key, val]) => [key, Object.keys(val).length])
+                                    .sort((a,b) => b[1] - a[1]).slice(0, 10);
+                const list = document.getElementById('top10List');
+                list.innerHTML = counts.map(([id, count], i) => `
+                    <div class="top10-item">
+                        <div class="top10-rank">${i+1}</div>
+                        <img src="${filterData[id]?.img || 'default.jpg'}" class="top10-img">
                         <div class="top10-info">
-                            <div class="top10-name">${data.name}</div>
+                            <div class="top10-name">${filterData[id]?.name || id}</div>
                             <div class="top10-count">${count} Klicks</div>
                         </div>
-                    `;
-                    top10List.appendChild(div);
-                });
-                
-                if (sorted.length === 0) {
-                    top10List.innerHTML = '<div style="color: #666; padding: 20px;">Noch keine Daten</div>';
-                }
+                    </div>`).join('');
             });
         }
 
         async function sendFilter(filterId) {
-            let ip = "unknown";
-            try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                ip = data.ip.replace(/\./g, '_');
-            } catch(e) {
-                console.log("IP konnte nicht ermittelt werden");
-            }
-
-            db.ref('bannedIPs/' + ip).once('value', snap => {
-                if (snap.exists()) {
-                    alert("BANLANDINIZ! Erişim reddedildi.");
-                    return;
-                }
-                
-                activateFilter(filterId, ip);
-            });
-        }
-        
-        function activateFilter(filterId, ip) {
-            const now = Date.now();
-            
-            db.ref('lastFilterTime').set(now);
-            
-            const clickId = db.ref().push().key;
-            db.ref('filterStats/' + filterId + '/' + clickId).set({
-                timestamp: now,
-                date: new Date().toISOString().split('T')[0],
-                ip: ip
-            });
-            
-            showTemporaryMessage(`🚀 ${filterId.toUpperCase()} GÖNDERILIYOR...`);
-            
             const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
-            
             socket.onopen = () => {
-                socket.send(JSON.stringify({
-                    "request": "ExecuteAction",
-                    "id": "1",
-                    "actionName": "Web_Filter_Handler",
-                    "rawInput": filterId
-                }));
-                
-                setTimeout(() => { 
-                    socket.close(); 
-                    showTemporaryMessage(`✅ ${filterId.toUpperCase()} AKTIF!`, 2000);
-                    setTimeout(() => checkCooldown(), 2000);
-                }, 200);
-            };
-            
-            socket.onerror = (error) => {
-                console.error("WebSocket Error:", error);
-                showTemporaryMessage("❌ BAĞLANTI HATASI", 3000);
+                socket.send(JSON.stringify({"request": "ExecuteAction", "actionName": "Web_Filter_Handler", "rawInput": filterId}));
+                db.ref('lastFilterTime').set(Date.now());
+                db.ref('filterStats/' + filterId).push({timestamp: Date.now()});
+                setTimeout(() => socket.close(), 500);
             };
         }
-        
-        checkCooldown();
-        loadTop10();
+
+        // ANTI-LADERÄDCHEN TRICK
+        window.onload = () => {
+            setTimeout(() => {
+                checkCooldown();
+                loadTop10();
+                console.log("Firebase Live-Mode aktiv.");
+            }, 800);
+        };
     </script>
 </body>
 </html>
