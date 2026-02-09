@@ -90,16 +90,16 @@
 
         .top10-thumb { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
 
-        /* Cooldown Anzeige jetzt in der Sidebar */
         #status { 
             margin-top: 20px;
             padding: 15px;
-            background: rgba(255, 0, 0, 0.1);
+            background: rgba(255, 0, 0, 0.2);
             border-radius: 10px;
             color: #ffaa00; 
             font-size: 1.2rem; 
-            border: 1px solid rgba(255, 170, 0, 0.3);
-            display: none; /* Wird nur eingeblendet wenn Cooldown aktiv */
+            border: 1px solid rgba(255, 170, 0, 0.4);
+            display: none; 
+            text-shadow: 0 0 5px #000;
         }
         
         .back-link { 
@@ -160,6 +160,7 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let timerInterval; // Globaler Timer-Speicher
 
         const filterImages = {
             'alien':'alien.jpg', 'ghost':'ghost.jpg', 'cyber':'cyber.jpg', 'matrix':'matrix.jpg',
@@ -167,7 +168,6 @@
             'pixel':'pixel.jpg', 'vhs':'vhs.jpg', 'noise':'noise.jpg', 'invert':'invert.jpg', 'fire':'fire.jpg'
         };
 
-        // Top 10 Live-Update Funktion
         function loadTop10() {
             db.ref('filterStats').on('value', snap => {
                 const stats = snap.val() || {};
@@ -178,7 +178,7 @@
                 
                 const listDiv = document.getElementById('top10List');
                 if (sorted.length === 0) {
-                    listDiv.innerHTML = "Keine Daten vorhanden.";
+                    listDiv.innerHTML = "Henüz veri yok.";
                     return;
                 }
 
@@ -188,22 +188,26 @@
                         <img src="${filterImages[id] || 'logo.png'}" class="top10-thumb" onerror="this.src='https://via.placeholder.com/45?text=?'">
                         <div style="flex:1; text-align:left;">
                             <div style="text-transform:uppercase; font-size:13px;">${id}</div>
-                            <div style="color:#777; font-size:11px;">${count} NUTZUNGEN</div>
+                            <div style="color:#777; font-size:11px;">${count} KULLANIM</div>
                         </div>
                     </div>`).join('');
             });
         }
 
-        // Cooldown Checker
         function checkCooldown() {
             db.ref('lastFilterTime').on('value', snap => {
                 const last = snap.val() || 0;
-                const update = () => {
-                    const diff = (Date.now() - last) / 1000;
+                
+                // Alten Timer löschen, falls einer läuft
+                if(timerInterval) clearInterval(timerInterval);
+
+                const updateTimer = () => {
+                    const now = Date.now();
+                    const diff = (now - last) / 1000;
                     const buttons = document.querySelectorAll('.filter-btn');
                     const statusDiv = document.getElementById('status');
                     
-                    if (diff < 300) { // 5 Minuten Cooldown
+                    if (diff < 300) { 
                         let timeLeft = Math.ceil(300 - diff);
                         let m = Math.floor(timeLeft / 60);
                         let s = timeLeft % 60;
@@ -213,20 +217,23 @@
                     } else {
                         buttons.forEach(b => b.disabled = false);
                         statusDiv.style.display = "none";
+                        clearInterval(timerInterval);
                     }
                 };
-                update();
-                setInterval(update, 1000); // Timer jede Sekunde updaten
+
+                updateTimer();
+                timerInterval = setInterval(updateTimer, 1000);
             });
         }
 
         async function sendFilter(filterId) {
-            // 1. Statistik sofort an Firebase
             const timestamp = Date.now();
+            
+            // 1. In Firebase speichern
             db.ref('filterStats/' + filterId).push({ t: timestamp });
             db.ref('lastFilterTime').set(timestamp);
 
-            // 2. WebSocket an ngrok
+            // 2. WebSocket
             const socket = new WebSocket("wss://aditya-unfeudal-brock.ngrok-free.dev");
             socket.onopen = () => {
                 socket.send(JSON.stringify({
@@ -238,7 +245,6 @@
             };
         }
 
-        // Initialisierung
         window.onload = () => {
             loadTop10();
             checkCooldown();
