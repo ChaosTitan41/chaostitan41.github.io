@@ -37,10 +37,10 @@
             gap: 20px;
         }
 
-        /* RECHTE SEITE: TOP 10 STICKY */
+        /* Rechte Seite: Top 10 Sticky */
         .content-right { 
             flex: 0.8; 
-            position: sticky; /* Hält die Liste beim Scrollen fest */
+            position: sticky; 
             top: 20px; 
             height: fit-content;
             background: rgba(0, 0, 0, 0.7);
@@ -56,7 +56,6 @@
             color: #ff0000;
             margin-bottom: 15px;
             text-transform: uppercase;
-            text-align: left;
             border-bottom: 1px solid #ff0000;
             padding-bottom: 5px;
         }
@@ -72,20 +71,11 @@
             transition: 0.2s;
             font-family: 'Arial', sans-serif;
         }
+        .top10-item:hover { background: rgba(255, 0, 0, 0.2); transform: scale(1.02); }
 
-        .top10-item:hover {
-            background: rgba(255, 0, 0, 0.2);
-            transform: scale(1.02);
-        }
-
-        /* Kleine runde Bilder in der Liste */
         .top10-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid #ff0000;
-            margin-right: 12px;
+            width: 40px; height: 40px; border-radius: 50%;
+            object-fit: cover; border: 1px solid #ff0000; margin-right: 12px;
         }
 
         .top10-rank { font-weight: bold; color: #ff0000; margin-right: 8px; font-size: 0.9rem; }
@@ -93,20 +83,28 @@
         .top10-name { display: block; text-transform: uppercase; font-size: 0.85rem; font-weight: bold; }
         .top10-count { font-size: 0.7rem; color: #aaa; }
 
-        /* Große Button Styles */
+        /* Große Buttons */
         .filter-item { display: flex; flex-direction: column; align-items: center; }
         .filter-btn { 
             aspect-ratio: 9/16; border-radius: 15px; border: 2px solid rgba(255, 0, 0, 0.3); 
             cursor: pointer; transition: 0.3s; background: #111; position: relative;
             overflow: hidden; width: 100%;
         }
+        .filter-btn::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+            background: #ff0000; z-index: 3;
+        }
         .btn-image { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
-        .filter-name { margin-top: 8px; font-size: 0.9rem; text-transform: uppercase; }
-        .filter-btn:disabled { opacity: 0.2; }
+        .filter-name { margin-top: 8px; font-size: 0.9rem; text-transform: uppercase; color: #ccc; }
+        .filter-btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
-        /* Schwebender Status Balken unten */
+        /* Timer Balken */
         #status-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 2000; }
-        #status { background: rgba(0, 0, 0, 0.9); border: 2px solid #ff0000; border-radius: 50px; padding: 12px 35px; color: #fff; font-weight: bold; backdrop-filter: blur(15px); }
+        #status { 
+            background: rgba(0, 0, 0, 0.9); border: 2px solid #ff0000; border-radius: 50px; 
+            padding: 12px 35px; color: #fff; font-weight: bold; backdrop-filter: blur(15px);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
 
         @media (max-width: 900px) {
             .main-wrapper { flex-direction: column; }
@@ -123,20 +121,76 @@
 
     <div class="main-wrapper">
         <div class="content-left">
-            <div class="btn-container">
+            <div class="btn-container" id="buttonGrid">
                 
                 <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('alien')">
-                        <img src="images/alien.jpg" class="btn-image">
+                    <button class="filter-btn" onclick="sendFilter('filter1')">
+                        <img src="images/filter1.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+1'">
                     </button>
-                    <div class="filter-name">Alien</div>
+                    <div class="filter-name">Filter 1</div>
                 </div>
 
                 <div class="filter-item">
-                    <button class="filter-btn" onclick="sendFilter('ghost')">
-                        <img src="images/ghost.jpg" class="btn-image">
+                    <button class="filter-btn" onclick="sendFilter('filter2')">
+                        <img src="images/filter2.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+2'">
                     </button>
-                    <div class="filter-name">Ghost</div>
+                    <div class="filter-name">Filter 2</div>
+                </div>
+
+                <div class="filter-item">
+                    <button class="filter-btn" onclick="sendFilter('filter3')">
+                        <img src="images/filter3.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+3'">
+                    </button>
+                    <div class="filter-name">Filter 3</div>
+                </div>
+
+                <div class="filter-item">
+                    <button class="filter-btn" onclick="sendFilter('filter4')">
+                        <img src="images/filter4.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+4'">
+                    </button>
+                    <div class="filter-name">Filter 4</div>
+                </div>
+
+                <div class="filter-item">
+                    <button class="filter-btn" onclick="sendFilter('filter5')">
+                        <img src="images/filter5.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+5'">
+                    </button>
+                    <div class="filter-name">Filter 5</div>
+                </div>
+
+                <div class="filter-item">
+                    <button class="filter-btn" onclick="sendFilter('filter6')">
+                        <img src="images/filter6.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+6'">
+                    </button>
+                    <div class="filter-name">Filter 6</div>
+                </div>
+
+                <div class="filter-item">
+                    <button class="filter-btn" onclick="sendFilter('filter7')">
+                        <img src="images/filter7.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+7'">
+                    </button>
+                    <div class="filter-name">Filter 7</div>
+                </div>
+
+                <div class="filter-item">
+                    <button class="filter-btn" onclick="sendFilter('filter8')">
+                        <img src="images/filter8.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+8'">
+                    </button>
+                    <div class="filter-name">Filter 8</div>
+                </div>
+
+                <div class="filter-item">
+                    <button class="filter-btn" onclick="sendFilter('filter9')">
+                        <img src="images/filter9.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+9'">
+                    </button>
+                    <div class="filter-name">Filter 9</div>
+                </div>
+
+                <div class="filter-item">
+                    <button class="filter-btn" onclick="sendFilter('filter10')">
+                        <img src="images/filter10.jpg" class="btn-image" onerror="this.src='https://via.placeholder.com/270x480?text=Filter+10'">
+                    </button>
+                    <div class="filter-name">Filter 10</div>
                 </div>
 
             </div>
@@ -144,8 +198,7 @@
 
         <div class="content-right">
             <h2 class="top10-title">TOP 10 POPÜLER</h2>
-            <div id="top10-list">
-                </div>
+            <div id="top10-list"></div>
         </div>
     </div>
 
@@ -167,12 +220,10 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Top 10 Live Update
         function updateTop10() {
             db.ref('filterStats').on('value', snap => {
                 const data = snap.val() || {};
                 const listDiv = document.getElementById('top10-list');
-                
                 const sorted = Object.entries(data)
                     .map(([name, count]) => ({ name, count }))
                     .sort((a, b) => b.count - a.count)
@@ -183,14 +234,12 @@
                     const div = document.createElement('div');
                     div.className = 'top10-item';
                     div.onclick = () => sendFilter(item.name);
-                    
-                    // Wir nehmen an, dass das Bild im images/ Ordner genauso heißt wie die ID + .jpg
                     div.innerHTML = `
                         <span class="top10-rank">${index + 1}</span>
-                        <img src="images/${item.name}.jpg" class="top10-img" onerror="this.src='images/default.jpg'">
+                        <img src="images/${item.name}.jpg" class="top10-img" onerror="this.src='https://via.placeholder.com/50?text=? '">
                         <div class="top10-info">
                             <span class="top10-name">${item.name}</span>
-                            <span class="top10-count">${item.count} kez kullanıldı</span>
+                            <span class="top10-count">${item.count} kez</span>
                         </div>
                     `;
                     listDiv.appendChild(div);
@@ -198,7 +247,6 @@
             });
         }
 
-        // Timer & Logik
         function checkCooldown() {
             db.ref('lastFilterTime').on('value', snap => {
                 const diff = (Date.now() - (snap.val() || 0)) / 1000;
