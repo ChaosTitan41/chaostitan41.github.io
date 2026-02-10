@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaosBOT Trigger | CHAOSTITAN41</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        
+        body { 
+            background: #000 url('https://raw.githubusercontent.com/CHAOSTITAN41/chaostitan41.github.io/main/bg.png') no-repeat center center fixed; 
+            background-size: cover; 
+            color: #fff; 
+            font-family: 'Impact', sans-serif; 
+            text-align: center; 
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        /* LOGO OBEN */
+        .logo-container {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            right: 0;
+            padding: 15px;
+            z-index: 1000;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            border-bottom: 2px solid rgba(255, 0, 0, 0.3);
+        }
+        
+        .logo-link {
+            display: inline-block;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-img { 
+            width: 100%; 
+            max-width: 180px; 
+            filter: drop-shadow(0 0 10px #000);
+            transition: all 0.3s ease;
+        }
+        
+        .logo-link:hover .logo-img {
+            filter: drop-shadow(0 0 25px #ff0000) !important;
+            transform: scale(1.05) !important;
+        }
+        
+        /* HEADER MIT STATUS */
+        .header-wrapper {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px;
+            border-bottom: 2px solid rgba(255, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            color: #ff0000;
+            text-shadow: 0 0 15px #ff0000;
+            letter-spacing: 2px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #666;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 0, 0, 0.3);
+        }
+        
+        #status-dot {
+            font-size: 24px;
+            line-height: 1;
+            transition: all 0.3s;
+        }
+        
+        /* MAIN LAYOUT */
+        .main-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 180px 20px 20px;
+        }
+        
+        .container { 
+            flex: 0 1 1100px; 
+        }
+        
+        /* BUTTONS GRID */
+        .btn-container { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            justify-items: center;
+        }
+        
+        /* BUTTON WRAPPER */
+        .trigger-button { 
+            width: 100%;
+            max-width: 200px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 0, 0, 0.3); 
+            cursor: pointer; 
+            transition: 0.3s; 
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .trigger-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            border-color: #ff0000;
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
+        }
+
+        .trigger-button:disabled { 
+            opacity: 0.3; 
+            filter: grayscale(1); 
+            cursor: not-allowed; 
+        }
+        
+        /* BILD CONTAINER - 9:16 FORMAT */
+        .btn-image-container {
+            width: 100%;
+            aspect-ratio: 9/16;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .btn-image { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            display: block; 
+        }
+        
+        /* NAME UNTER DEM BILD */
+        .btn-name {
+            padding: 10px 5px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 2px solid rgba(255, 0, 0, 0.3);
+        }
+        
+        /* TOP 10 SIDEBAR */
+        .top10-sidebar {
+            width: 320px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 0, 0, 0.5);
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            position: sticky;
+            top: 200px;
+            max-height: calc(100vh - 260px);
+            overflow-y: auto;
+        }
+        
+        .top10-title {
+            color: #ff0000;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px #ff0000;
+        }
+        
+        .top10-item {
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px; 
+            margin-bottom: 8px; 
+            border-radius: 12px;
+            border-left: 4px solid #ff0000;
+            transition: all 0.3s;
+        }
+        
+        .top10-item:hover {
+            background: rgba(255, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .top10-thumb { 
+            width: 45px; 
+            height: 80px; 
+            border-radius: 6px; 
+            object-fit: cover; 
+        }
+        
+        .top10-info {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .top10-name {
+            text-transform: uppercase;
+            font-size: 13px;
+            color: #fff;
+        }
+        
+        .top10-count {
+            color: #777;
+            font-size: 11px;
+        }
+        
+        .top10-rank {
+            color: #f00;
+            font-weight: bold;
+            width: 20px;
+            font-size: 16px;
+        }
+
+        /* NOTIFICATION UNTEN */
+        .notification { 
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            color: #ffaa00; 
+            font-size: 1.2rem; 
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-shadow: 0 0 5px #000;
+            z-index: 1000;
+            white-space: nowrap;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        /* EMPTY STATE */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #999;
+            padding: 60px;
+            font-size: 18px;
+        }
+        
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #fff;
+            padding: 60px;
+            font-size: 18px;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 1200px) { 
+            .main-wrapper { 
+                flex-direction: column; 
+                align-items: center;
+                gap: 30px;
+            } 
+            
+            .top10-sidebar { 
+                width: 100%; 
+                max-width: 1100px; 
+                position: static; 
+                max-height: none;
+                order: -1;
+            }
+            
+            .btn-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo-img {
+                max-width: 140px;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .main-wrapper {
+                padding: 220px 15px 20px;
+            }
+            
+            .btn-container { 
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }
+            
+            .trigger-button {
+                max-width: 150px;
+                border-radius: 12px;
+            }
+            
+            .btn-name {
+                font-size: 0.8rem;
+                padding: 8px 3px;
+            }
+            
+            .top10-sidebar {
+                padding: 15px;
+            }
+            
+            .top10-item {
+                padding: 6px;
+            }
+            
+            .top10-thumb {
+                width: 40px;
+                height: 71px;
+            }
+            
+            .notification {
+                font-size: 1rem;
+                padding: 12px 25px;
+                bottom: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .btn-container { 
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .trigger-button {
+                max-width: none;
+                width: 100%;
+                border-radius: 10px;
+            }
+            
+            .btn-name {
+                font-size: 0.75rem;
+            }
+            
+            .notification {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+                width: 90%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGO -->
+    <div class="logo-container">
+        <a href="http://localhost:3000/manager.html" class="logo-link">
+            <img src="https://raw.githubusercontent.com/CHAOSTITAN41/chaostitan41.github.io/main/logo.png" class="logo-img" alt="CHAOSBOT">
+        </a>
+    </div>
+
+    <!-- HEADER MIT STATUS -->
+    <div class="header-wrapper">
+        <div class="header-content">
+            <div class="page-title">🎮 BUTTON TRIGGER</div>
+            <div class="status-indicator">
+                <span id="status-dot">●</span>
+                <span id="status-text">Verbinde...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="btn-container" id="buttonsGrid">
+                <div class="loading">
+                    <p>Lade Buttons...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TOP 10 SIDEBAR -->
+        <div class="top10-sidebar">
+            <h2 class="top10-title">🔥 TOP 10 RANK</h2>
+            <div id="top10List">Laden...</div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // ============================================
+        // GLOBALE VARIABLEN
+        // ============================================
+        
+        const buttonsGrid = document.getElementById('buttonsGrid');
+        const notification = document.getElementById('notification');
+        const top10List = document.getElementById('top10List');
+        let isPlaying = false;
+        let buttonStats = {}; // Speichert Klick-Statistiken
+
+        // ============================================
+        // OBS STATUS PRÜFEN
+        // ============================================
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/obs-status');
+                const data = await response.json();
+                
+                const indicator = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                
+                if (data.connected) {
+                    indicator.style.color = '#4CAF50';
+                    statusText.textContent = 'Bereit!';
+                } else {
+                    indicator.style.color = '#f44336';
+                    statusText.textContent = 'OBS offline';
+                }
+            } catch (error) {
+                console.error('Status-Check fehlgeschlagen:', error);
+                const indicator = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                indicator.style.color = '#f44336';
+                statusText.textContent = 'Server offline';
+            }
+        }
+
+        setInterval(checkStatus, 3000);
+        checkStatus();
+
+        // ============================================
+        // BUTTONS LADEN
+        // ============================================
+
+        async function loadButtons() {
+            try {
+                const response = await fetch('/api/buttons');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayButtons(data.buttons);
+                    updateTop10();
+                }
+            } catch (error) {
+                buttonsGrid.innerHTML = '<p class="empty-state">❌ Fehler beim Laden der Buttons</p>';
+            }
+        }
+
+        function displayButtons(buttons) {
+            if (buttons.length === 0) {
+                buttonsGrid.innerHTML = '<p class="empty-state">Noch keine Buttons vorhanden.<br>Erstelle welche im Button Manager!</p>';
+                return;
+            }
+
+            buttonsGrid.innerHTML = buttons.map(button => `
+                <button class="trigger-button" onclick="triggerButton('${button.id}', '${button.name.replace(/'/g, "\\'")}')">
+                    <div class="btn-image-container">
+                        <img src="/buttons/thumbnails/${button.thumbnailFile}" 
+                             class="btn-image" 
+                             alt="${button.name}"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22356%22%3E%3Crect fill=%22%231a1a1a%22 width=%22200%22 height=%22356%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23666%22 text-anchor=%22middle%22 dy=%22.3em%22%3E${button.name}%3C/text%3E%3C/svg%3E'">
+                    </div>
+                    <div class="btn-name">${button.name}</div>
+                </button>
+            `).join('');
+        }
+
+        // ============================================
+        // BUTTON AUSLÖSEN
+        // ============================================
+
+        async function triggerButton(buttonId, buttonName) {
+            if (isPlaying) {
+                showNotification('⏸️ Ein Video läuft bereits!', 'warning');
+                return;
+            }
+
+            isPlaying = true;
+            
+            // Button visuell deaktivieren
+            const allButtons = document.querySelectorAll('.trigger-button');
+            allButtons.forEach(btn => btn.disabled = true);
+            
+            showNotification('▶️ Spiele ab: ' + buttonName, 'info');
+
+            try {
+                const response = await fetch(`/api/trigger/${buttonId}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Statistik erhöhen
+                    if (!buttonStats[buttonId]) {
+                        buttonStats[buttonId] = { name: buttonName, count: 0, thumbnail: '' };
+                    }
+                    buttonStats[buttonId].count++;
+                    
+                    // Thumbnail URL speichern
+                    const btn = document.querySelector(`[onclick*="${buttonId}"]`);
+                    if (btn) {
+                        const img = btn.querySelector('.btn-image');
+                        buttonStats[buttonId].thumbnail = img.src;
+                    }
+                    
+                    updateTop10();
+                    
+                    // Nach Video-Dauer wieder freigeben
+                    setTimeout(() => {
+                        isPlaying = false;
+                        allButtons.forEach(btn => btn.disabled = false);
+                        showNotification('✓ Video beendet', 'success');
+                    }, (data.duration + 1) * 1000);
+                } else {
+                    isPlaying = false;
+                    allButtons.forEach(btn => btn.disabled = false);
+                    showNotification('✗ Fehler: ' + data.error, 'error');
+                }
+            } catch (error) {
+                isPlaying = false;
+                allButtons.forEach(btn => btn.disabled = false);
+                showNotification('✗ Verbindungsfehler', 'error');
+            }
+        }
+
+        // ============================================
+        // TOP 10 LISTE AKTUALISIEREN
+        // ============================================
+
+        function updateTop10() {
+            // Sortiere nach Klicks
+            const sorted = Object.entries(buttonStats)
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 10);
+
+            if (sorted.length === 0) {
+                top10List.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Noch keine Buttons geklickt</p>';
+                return;
+            }
+
+            top10List.innerHTML = sorted.map(([id, data], i) => `
+                <div class="top10-item">
+                    <span class="top10-rank">${i + 1}</span>
+                    <img src="${data.thumbnail || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2245%22 height=%2280%22%3E%3Crect fill=%22%231a1a1a%22 width=%2245%22 height=%2280%22/%3E%3C/svg%3E'}" 
+                         class="top10-thumb" 
+                         alt="${data.name}">
+                    <div class="top10-info">
+                        <div class="top10-name">${data.name}</div>
+                        <div class="top10-count">${data.count} KLICKS</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============================================
+        // BENACHRICHTIGUNG ANZEIGEN
+        // ============================================
+
+        function showNotification(message, type) {
+            notification.textContent = message;
+            notification.className = 'notification show';
+            
+            // Farbe je nach Typ
+            switch(type) {
+                case 'info':
+                    notification.style.color = '#2196F3';
+                    notification.style.borderColor = '#2196F3';
+                    break;
+                case 'success':
+                    notification.style.color = '#4CAF50';
+                    notification.style.borderColor = '#4CAF50';
+                    break;
+                case 'warning':
+                    notification.style.color = '#FF9800';
+                    notification.style.borderColor = '#FF9800';
+                    break;
+                case 'error':
+                    notification.style.color = '#f44336';
+                    notification.style.borderColor = '#f44336';
+                    break;
+                default:
+                    notification.style.color = '#ffaa00';
+                    notification.style.borderColor = '#ff0000';
+            }
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // ============================================
+        // LOKALEN STORAGE FÜR STATISTIKEN NUTZEN
+        // ============================================
+
+        function loadStats() {
+            const saved = localStorage.getItem('chaosbot-stats');
+            if (saved) {
+                try {
+                    buttonStats = JSON.parse(saved);
+                    updateTop10();
+                } catch(e) {
+                    console.error('Fehler beim Laden der Stats:', e);
+                }
+            }
+        }
+
+        function saveStats() {
+            localStorage.setItem('chaosbot-stats', JSON.stringify(buttonStats));
+        }
+
+        // Stats nach jedem Klick speichern
+        window.addEventListener('beforeunload', saveStats);
+
+        // ============================================
+        // INITIALISIERUNG
+        // ============================================
+
+        loadStats();
+        loadButtons();
+        
+        // Aktualisiere Buttons alle 10 Sekunden
+        setInterval(loadButtons, 10000);
+    </script>
+</body>
+</html>
