@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        /* ===== DEIN COOLES FILTER.HTML DESIGN ===== */
+        /* ===== DEIN COOLES FILTER.HTML DESIGN (unverändert) ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body { 
@@ -377,9 +377,9 @@
         const db = firebase.database();
         
         // ============================================
-        // KONFIGURATION – DEINE NGROK-URL (HTTP!)
+        // NEUE BASE-URL (LocalTunnel) – kein Header nötig!
         // ============================================
-        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev'; // ✅ Port 3000, Header wird unten gesetzt
+        const API_BASE_URL = 'https://chaosbot.loca.lt';
         
         // ============================================
         // GLOBALE VARIABLEN
@@ -388,18 +388,29 @@
         let buttonClickCounts = {};
         
         // ============================================
+        // HILFSFUNKTION: Bild als Blob laden (robust gegen Warnseiten)
+        // ============================================
+        async function loadThumbnailAsBlob(thumbUrl) {
+            try {
+                const response = await fetch(thumbUrl);
+                if (!response.ok) throw new Error('Bild konnte nicht geladen werden');
+                const blob = await response.blob();
+                return URL.createObjectURL(blob);
+            } catch (error) {
+                console.warn('Fehler beim Laden des Thumbnails:', thumbUrl, error);
+                return null;
+            }
+        }
+        
+        // ============================================
         // BUTTONS LADEN (von ChaosBOT)
         // ============================================
         async function loadButtons() {
             const grid = document.getElementById('buttonGrid');
             
             try {
-                // 🔥 FETCH MIT NGROK-HEADER
-                const response = await fetch(NGROK_URL + '/api/buttons', {
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true'  // Wichtig: Umgeht die Ngrok-Warnseite
-                    }
-                });
+                // Kein spezieller Header nötig – LocalTunnel zeigt keine Warnseite
+                const response = await fetch(API_BASE_URL + '/api/buttons');
                 const data = await response.json();
                 
                 if (!data.buttons || data.buttons.length === 0) {
@@ -412,45 +423,68 @@
                 // Lade Klick-Statistiken aus Firebase
                 await loadClickStats();
                 
-                // Zeige Buttons an
-                renderButtons(currentButtons);
+                // Zeige Buttons an (async, weil wir Bilder laden müssen)
+                await renderButtons(currentButtons);
                 
             } catch (error) {
                 console.error('Fehler beim Laden:', error);
                 grid.innerHTML = `
                     <div class="no-buttons">
                         ❌ ChaosBOT nicht erreichbar<br>
-                        <small style="color:#666;">Starte ChaosBOT und Ngrok neu</small>
+                        <small style="color:#666;">Starte ChaosBOT und LocalTunnel neu</small>
                     </div>
                 `;
             }
         }
         
-        function renderButtons(buttons) {
+        async function renderButtons(buttons) {
             const grid = document.getElementById('buttonGrid');
             grid.innerHTML = '';
             
-            buttons.forEach(button => {
+            const buttonPromises = buttons.map(async (button) => {
                 const clickCount = buttonClickCounts[button.id] || 0;
-                // Thumbnail-URL: Entweder von ChaosBOT oder Fallback-GIF
-                const thumbUrl = button.thumbnailFile 
-                    ? NGROK_URL + '/thumbnails/' + button.thumbnailFile
-                    : 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif';
                 
-                const buttonHtml = `
-                    <button class="filter-btn" onclick="triggerButton('${button.id}', '${button.name}')">
-                        ${clickCount > 0 ? `<div class="btn-click-count">${clickCount}</div>` : ''}
-                        <div class="btn-image-container">
-                            <img src="${thumbUrl}" 
-                                 class="btn-image" 
-                                 alt="${button.name}"
-                                 onerror="this.src='https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif'">
-                        </div>
-                        <div class="btn-name">${button.name}</div>
-                    </button>
-                `;
-                grid.innerHTML += buttonHtml;
+                const fallbackUrl = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif';
+                
+                let thumbUrl = fallbackUrl;
+                if (button.thumbnailFile) {
+                    const loadedUrl = await loadThumbnailAsBlob(API_BASE_URL + '/thumbnails/' + button.thumbnailFile);
+                    if (loadedUrl) thumbUrl = loadedUrl;
+                }
+                
+                const buttonDiv = document.createElement('button');
+                buttonDiv.className = 'filter-btn';
+                buttonDiv.setAttribute('onclick', `triggerButton('${button.id}', '${button.name}')`);
+                
+                if (clickCount > 0) {
+                    const countSpan = document.createElement('div');
+                    countSpan.className = 'btn-click-count';
+                    countSpan.textContent = clickCount;
+                    buttonDiv.appendChild(countSpan);
+                }
+                
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'btn-image-container';
+                
+                const img = document.createElement('img');
+                img.className = 'btn-image';
+                img.src = thumbUrl;
+                img.alt = button.name;
+                img.onerror = function() { this.src = fallbackUrl; };
+                
+                imgContainer.appendChild(img);
+                buttonDiv.appendChild(imgContainer);
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'btn-name';
+                nameDiv.textContent = button.name;
+                buttonDiv.appendChild(nameDiv);
+                
+                return buttonDiv;
             });
+            
+            const buttonElements = await Promise.all(buttonPromises);
+            buttonElements.forEach(el => grid.appendChild(el));
         }
         
         // ============================================
@@ -462,7 +496,6 @@
                     const stats = snap.val() || {};
                     buttonClickCounts = {};
                     
-                    // Zähle Klicks pro Button
                     Object.keys(stats).forEach(buttonId => {
                         const buttonData = stats[buttonId];
                         if (buttonData && typeof buttonData === 'object') {
@@ -488,23 +521,19 @@
         // ============================================
         // TOP 10 LISTE
         // ============================================
-        function updateTop10() {
+        async function updateTop10() {
             const listDiv = document.getElementById('top10List');
             
-            // Erstelle Array aus den Click-Counts
             const clickArray = Object.entries(buttonClickCounts).map(([id, count]) => {
                 const button = currentButtons.find(b => b.id === id);
                 return {
                     id: id,
                     name: button ? button.name : id,
                     count: count,
-                    thumbnail: button?.thumbnailFile 
-                        ? NGROK_URL + '/thumbnails/' + button.thumbnailFile
-                        : 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif'
+                    thumbnailFile: button?.thumbnailFile
                 };
             });
             
-            // Sortieren nach Anzahl (absteigend)
             const sorted = clickArray.sort((a, b) => b.count - a.count).slice(0, 10);
             
             if (sorted.length === 0) {
@@ -512,16 +541,29 @@
                 return;
             }
             
-            listDiv.innerHTML = sorted.map((item, index) => {
+            const fallbackUrl = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif';
+            
+            const top10Promises = sorted.map(async (item, index) => {
+                let thumbUrl = fallbackUrl;
+                if (item.thumbnailFile) {
+                    const loadedUrl = await loadThumbnailAsBlob(API_BASE_URL + '/thumbnails/' + item.thumbnailFile);
+                    if (loadedUrl) thumbUrl = loadedUrl;
+                }
+                
                 const medalColor = index === 0 ? '#ffd700' : (index === 1 ? '#c0c0c0' : (index === 2 ? '#cd7f32' : '#ff0000'));
+                
                 return `
-                <div class="top10-item">
-                    <span class="top10-number" style="color:${medalColor};">${index+1}</span>
-                    <img src="${item.thumbnail}" class="top10-thumb" alt="${item.name}" onerror="this.src='https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif'">
-                    <div class="top10-name">${item.name}</div>
-                    <span class="top10-count">${item.count}</span>
-                </div>
-            `}).join('');
+                    <div class="top10-item">
+                        <span class="top10-number" style="color:${medalColor};">${index+1}</span>
+                        <img src="${thumbUrl}" class="top10-thumb" alt="${item.name}" onerror="this.src='${fallbackUrl}'">
+                        <div class="top10-name">${item.name}</div>
+                        <span class="top10-count">${item.count}</span>
+                    </div>
+                `;
+            });
+            
+            const top10Html = (await Promise.all(top10Promises)).join('');
+            listDiv.innerHTML = top10Html;
         }
         
         // ============================================
@@ -535,27 +577,19 @@
                 statusDiv.className = 'status-message';
                 statusDiv.innerHTML = '⏳ Button wird ausgelöst...';
                 
-                // 1. ChaosBOT trigger (mit Ngrok-Header!)
-                const response = await fetch(NGROK_URL + '/api/trigger/' + buttonId, {
+                // Auch hier kein Header nötig
+                const response = await fetch(API_BASE_URL + '/api/trigger/' + buttonId, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'   // 🔥 Wichtig!
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ force: false, source: 'web_buttons' })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    // 2. Klick in Firebase speichern
                     await saveClickToFirebase(buttonId);
-                    
-                    // 3. Statistiken neu laden
                     await loadClickStats();
-                    
-                    // 4. Buttons neu rendern (mit aktuellen Klick-Zahlen)
-                    renderButtons(currentButtons);
+                    await renderButtons(currentButtons);
                     
                     statusDiv.innerHTML = `✅ ${buttonName} wurde ausgelöst!`;
                     statusDiv.classList.add('success');
@@ -564,7 +598,6 @@
                     statusDiv.classList.add('error');
                 }
                 
-                // Status nach 3 Sekunden ausblenden
                 setTimeout(() => {
                     statusDiv.style.display = 'none';
                 }, 3000);
@@ -585,11 +618,9 @@
         // LIVE-UPDATES von Firebase
         // ============================================
         function setupFirebaseListener() {
-            // Bei jeder Änderung in buttonStats, aktualisiere die Top 10
-            db.ref('buttonStats').on('value', () => {
-                loadClickStats().then(() => {
-                    renderButtons(currentButtons);
-                });
+            db.ref('buttonStats').on('value', async () => {
+                await loadClickStats();
+                await renderButtons(currentButtons);
             });
         }
         
@@ -600,7 +631,7 @@
             loadButtons();
             setupFirebaseListener();
             
-            // Alle 60 Sekunden Buttons neu laden (für neue Buttons in ChaosBOT)
+            // Alle 60 Sekunden Buttons neu laden
             setInterval(loadButtons, 60000);
         };
     </script>
