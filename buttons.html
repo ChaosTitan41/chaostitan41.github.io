@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        /* === DEIN EXISTIERENDES STYLE (bleibt 100% gleich) === */
+        /* ===== DEIN COOLES FILTER.HTML DESIGN ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body { 
@@ -91,12 +91,6 @@
             box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
         }
 
-        .filter-btn:disabled { 
-            opacity: 0.2; 
-            filter: grayscale(1); 
-            cursor: not-allowed; 
-        }
-        
         .btn-image-container {
             width: 100%;
             aspect-ratio: 9/16;
@@ -120,6 +114,25 @@
             border-top: 2px solid rgba(255, 0, 0, 0.3);
         }
         
+        .btn-click-count {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff0000;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(255,0,0,0.5);
+            z-index: 10;
+        }
+        
         .top10-sidebar {
             width: 320px;
             background: rgba(0, 0, 0, 0.85);
@@ -131,6 +144,14 @@
             top: 140px;
             max-height: calc(100vh - 200px);
             overflow-y: auto;
+        }
+        
+        .top10-title {
+            color: #ff0000;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            text-align: center;
         }
         
         .top10-item {
@@ -150,8 +171,31 @@
             border-radius: 6px; 
             object-fit: cover; 
         }
+        
+        .top10-number {
+            color: #ff0000;
+            font-weight: bold;
+            width: 25px;
+            text-align: center;
+        }
+        
+        .top10-name {
+            flex: 1;
+            text-align: left;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        
+        .top10-count {
+            background: #ff0000;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
 
-        #status { 
+        .status-message { 
             position: fixed;
             bottom: 20px;
             left: 50%;
@@ -162,14 +206,14 @@
             border-radius: 10px;
             color: #ffaa00; 
             font-size: 1.2rem; 
-            font-family: 'Arial', sans-serif;
-            font-weight: bold;
             display: none; 
-            text-shadow: 0 0 5px #000;
             z-index: 1000;
             white-space: nowrap;
             box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
         }
+        
+        .status-message.success { color: #00ff00; }
+        .status-message.error { color: #ff6666; }
         
         .back-link { 
             display: inline-block; 
@@ -186,6 +230,22 @@
             color: #ff0000;
             border-color: #ff0000;
             background: rgba(255, 0, 0, 0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #ff0000;
+            font-size: 1.5rem;
+            grid-column: 1 / -1;
+        }
+
+        .no-buttons {
+            text-align: center;
+            padding: 50px;
+            color: #888;
+            font-size: 1.2rem;
+            grid-column: 1 / -1;
         }
 
         @media (max-width: 1200px) { 
@@ -245,7 +305,7 @@
                 height: 40px;
             }
             
-            #status {
+            .status-message {
                 font-size: 1rem;
                 padding: 12px 25px;
                 bottom: 15px;
@@ -272,13 +332,6 @@
                 width: 100%;
                 margin-top: 30px;
             }
-            
-            #status {
-                font-size: 0.9rem;
-                padding: 10px 20px;
-                width: 90%;
-                text-align: center;
-            }
         }
     </style>
 </head>
@@ -292,23 +345,23 @@
 
     <div class="main-wrapper">
         <div class="container">
-            <h1 style="color: #ff0000; margin-bottom: 30px; text-align: left;">🎮 BUTTON PANEL</h1>
+            <h1 style="color:#ff0000; margin-bottom:30px; text-align:left;">🎮 BUTTON PANEL</h1>
             <div class="btn-container" id="buttonGrid">
-                <!-- Buttons werden per JavaScript geladen -->
+                <div class="loading">Buttons werden geladen...</div>
             </div>
         </div>
         
         <div class="top10-sidebar">
-            <h2 style="color:#ff0000; margin-bottom:20px;">🔥 TOP 10 RANK</h2>
+            <div class="top10-title">🔥 TOP 10 BUTTONS</div>
             <div id="top10List">Laden...</div>
         </div>
     </div>
 
-    <div id="status"></div>
+    <div id="statusMessage" class="status-message"></div>
 
     <script>
         // ============================================
-        // FIREBASE KONFIGURATION (GLEICH WIE BEI FILTER.HTML)
+        // FIREBASE KONFIGURATION (deine bestehende!)
         // ============================================
         const firebaseConfig = { 
             apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", 
@@ -322,44 +375,71 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let timerInterval = null;
-
+        
         // ============================================
-        // BUTTONS AUS CHAOSBOT LADEN (NEU!)
+        // KONFIGURATION – HIER DEINE NGROK-URL (HTTP!)
         // ============================================
-        async function loadChaosBOTButtons() {
+        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev'; // <-- Deine Ngrok-URL (ohne / am Ende)
+        
+        // ============================================
+        // GLOBALE VARIABLEN
+        // ============================================
+        let currentButtons = [];
+        let buttonClickCounts = {};
+        
+        // ============================================
+        // BUTTONS LADEN (von ChaosBOT)
+        // ============================================
+        async function loadButtons() {
+            const grid = document.getElementById('buttonGrid');
+            
             try {
-                // Hier musst du deine aktuelle Ngrok-URL eintragen!
-                const ngrokUrl = 'https://deine-aktuelle-ngrok-url.ngrok.io'; // <-- HIER ANPASSEN!
-                
-                const response = await fetch(ngrokUrl + '/api/buttons');
+                const response = await fetch(NGROK_URL + '/api/buttons');
                 const data = await response.json();
                 
-                if (data.buttons && data.buttons.length > 0) {
-                    renderButtons(data.buttons);
-                } else {
-                    showFallbackButtons();
+                if (!data.buttons || data.buttons.length === 0) {
+                    grid.innerHTML = '<div class="no-buttons">Noch keine Buttons vorhanden.</div>';
+                    return;
                 }
+                
+                currentButtons = data.buttons;
+                
+                // Lade Klick-Statistiken aus Firebase
+                await loadClickStats();
+                
+                // Zeige Buttons an
+                renderButtons(currentButtons);
+                
             } catch (error) {
-                console.error('Fehler beim Laden der ChaosBOT-Buttons:', error);
-                showFallbackButtons();
+                console.error('Fehler beim Laden:', error);
+                grid.innerHTML = `
+                    <div class="no-buttons">
+                        ❌ ChaosBOT nicht erreichbar<br>
+                        <small style="color:#666;">Starte ChaosBOT und Ngrok neu</small>
+                    </div>
+                `;
             }
         }
-
+        
         function renderButtons(buttons) {
             const grid = document.getElementById('buttonGrid');
             grid.innerHTML = '';
             
             buttons.forEach(button => {
-                // Thumbnail-URL aus ChaosBOT oder Fallback
+                const clickCount = buttonClickCounts[button.id] || 0;
+                // Thumbnail-URL: Entweder von ChaosBOT oder Fallback-GIF
                 const thumbUrl = button.thumbnailFile 
-                    ? `/thumbnails/${button.thumbnailFile}`
+                    ? NGROK_URL + '/thumbnails/' + button.thumbnailFile
                     : 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif';
                 
                 const buttonHtml = `
-                    <button class="filter-btn" onclick="sendButton('${button.id}', '${button.name}')" data-filter="${button.id}">
+                    <button class="filter-btn" onclick="triggerButton('${button.id}', '${button.name}')">
+                        ${clickCount > 0 ? `<div class="btn-click-count">${clickCount}</div>` : ''}
                         <div class="btn-image-container">
-                            <img src="${thumbUrl}" class="btn-image" alt="${button.name}" onerror="this.src='https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif'">
+                            <img src="${thumbUrl}" 
+                                 class="btn-image" 
+                                 alt="${button.name}"
+                                 onerror="this.src='https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif'">
                         </div>
                         <div class="btn-name">${button.name}</div>
                     </button>
@@ -367,209 +447,153 @@
                 grid.innerHTML += buttonHtml;
             });
         }
-
-        function showFallbackButtons() {
-            // Deine bestehenden 13 Beispiel-Buttons als Fallback
-            const fallbackFilters = [
-                'alien', 'ghost', 'cyber', 'matrix', 'glitch', 
-                'neon', 'retro', 'void', 'pixel', 'vhs', 
-                'noise', 'invert', 'fire'
-            ];
-            
-            const grid = document.getElementById('buttonGrid');
-            grid.innerHTML = '';
-            
-            fallbackFilters.forEach(filter => {
-                const buttonHtml = `
-                    <button class="filter-btn" onclick="sendFilter('${filter}')" data-filter="${filter}">
-                        <div class="btn-image-container">
-                            <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image" alt="${filter}">
-                        </div>
-                        <div class="btn-name">${filter}</div>
-                    </button>
-                `;
-                grid.innerHTML += buttonHtml;
-            });
-        }
-
+        
         // ============================================
-        // FUNKTIONEN FÜR TOP 10 STATISTIK
+        // KLICK-STATISTIK (Firebase)
         // ============================================
-        function getFilterImages() {
-            const images = {};
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                const filterId = btn.getAttribute('data-filter');
-                const imgSrc = btn.querySelector('.btn-image').src;
-                images[filterId] = imgSrc;
-            });
-            return images;
-        }
-
-        function loadTop10() {
-            const filterImages = getFilterImages();
-            
-            db.ref('filterStats').once('value').then((snap) => {
-                const stats = snap.val();
-                updateTop10List(stats, filterImages);
-            }).catch((error) => {
-                console.error("Firebase Error:", error);
-                document.getElementById('top10List').innerHTML = "Fehler beim Laden.";
-            });
-            
-            db.ref('filterStats').on('child_added', () => {
-                db.ref('filterStats').once('value').then((snap) => {
-                    updateTop10List(snap.val(), getFilterImages());
+        async function loadClickStats() {
+            return new Promise((resolve) => {
+                db.ref('buttonStats').once('value', (snap) => {
+                    const stats = snap.val() || {};
+                    buttonClickCounts = {};
+                    
+                    // Zähle Klicks pro Button
+                    Object.keys(stats).forEach(buttonId => {
+                        const buttonData = stats[buttonId];
+                        if (buttonData && typeof buttonData === 'object') {
+                            buttonClickCounts[buttonId] = Object.keys(buttonData).length;
+                        }
+                    });
+                    
+                    updateTop10();
+                    resolve();
                 });
             });
         }
         
-        function updateTop10List(stats, filterImages) {
-            const listDiv = document.getElementById('top10List');
-            
-            if (!stats) {
-                listDiv.innerHTML = "Henüz veri yok.";
-                return;
-            }
-
-            const counts = {};
-            Object.keys(stats).forEach(filterId => {
-                const filterData = stats[filterId];
-                if (filterData && typeof filterData === 'object') {
-                    counts[filterId] = Object.keys(filterData).length;
-                } else {
-                    counts[filterId] = 0;
-                }
-            });
-
-            const sorted = Object.entries(counts)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
-
-            if (sorted.length === 0) {
-                listDiv.innerHTML = "Henüz veri yok.";
-                return;
-            }
-
-            listDiv.innerHTML = sorted.map(([id, count], i) => {
-                const imgSrc = filterImages[id] || 'logo.png';
-                return `
-                <div class="top10-item">
-                    <span style="color:#f00; font-weight:bold; width:20px;">${i+1}</span>
-                    <img src="${imgSrc}" class="top10-thumb" alt="${id}">
-                    <div style="flex:1; text-align:left;">
-                        <div style="text-transform:uppercase; font-size:13px;">${id}</div>
-                        <div style="color:#777; font-size:11px;">${count} KULLANIM</div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        // ============================================
-        // COOLDOWN FUNKTION (GLEICH WIE BEI FILTER.HTML)
-        // ============================================
-        function checkCooldown() {
-            const statusDiv = document.getElementById('status');
-            const buttons = document.querySelectorAll('.filter-btn');
-            
-            function updateDisplay(lastTime) {
-                if (timerInterval) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                }
-                
-                const now = Date.now();
-                const diffSeconds = (now - lastTime) / 1000;
-                
-                if (diffSeconds < 300) {
-                    buttons.forEach(b => b.disabled = true);
-                    statusDiv.style.display = "block";
-                    
-                    let timeLeft = Math.ceil(300 - diffSeconds);
-                    
-                    const tick = () => {
-                        if (timeLeft <= 0) {
-                            buttons.forEach(b => b.disabled = false);
-                            statusDiv.style.display = "none";
-                            if (timerInterval) {
-                                clearInterval(timerInterval);
-                                timerInterval = null;
-                            }
-                            return;
-                        }
-                        
-                        const m = Math.floor(timeLeft / 60);
-                        const s = timeLeft % 60;
-                        statusDiv.innerHTML = `⏱️ COOLDOWN: ${m}:${s < 10 ? '0' : ''}${s}`;
-                        timeLeft--;
-                    };
-                    
-                    tick();
-                    timerInterval = setInterval(tick, 1000);
-                } else {
-                    buttons.forEach(b => b.disabled = false);
-                    statusDiv.style.display = "none";
-                }
-            }
-            
-            db.ref('lastFilterTime').once('value').then((snap) => {
-                updateDisplay(snap.val() || 0);
-            });
-            
-            db.ref('lastFilterTime').on('value', (snap) => {
-                updateDisplay(snap.val() || 0);
-            });
-        }
-
-        // ============================================
-        // BUTTON KLICK FUNKTION (NEU)
-        // ============================================
-        async function sendButton(buttonId, buttonName) {
+        async function saveClickToFirebase(buttonId) {
             const timestamp = Date.now();
-            
-            // 1. Firebase-Updates (gleiche Struktur wie bei filter.html)
-            const newClickRef = db.ref('filterStats/' + buttonId).push();
+            const newClickRef = db.ref('buttonStats/' + buttonId).push();
             await newClickRef.set({
                 timestamp: timestamp,
                 date: new Date().toISOString()
             });
+        }
+        
+        // ============================================
+        // TOP 10 LISTE
+        // ============================================
+        function updateTop10() {
+            const listDiv = document.getElementById('top10List');
             
-            await db.ref('lastFilterTime').set(timestamp);
-
-            // 2. ChaosBOT via Ngrok aufrufen
+            // Erstelle Array aus den Click-Counts
+            const clickArray = Object.entries(buttonClickCounts).map(([id, count]) => {
+                const button = currentButtons.find(b => b.id === id);
+                return {
+                    id: id,
+                    name: button ? button.name : id,
+                    count: count,
+                    thumbnail: button?.thumbnailFile 
+                        ? NGROK_URL + '/thumbnails/' + button.thumbnailFile
+                        : 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif'
+                };
+            });
+            
+            // Sortieren nach Anzahl (absteigend)
+            const sorted = clickArray.sort((a, b) => b.count - a.count).slice(0, 10);
+            
+            if (sorted.length === 0) {
+                listDiv.innerHTML = '<div style="color:#888; text-align:center;">Noch keine Klicks</div>';
+                return;
+            }
+            
+            listDiv.innerHTML = sorted.map((item, index) => {
+                const medalColor = index === 0 ? '#ffd700' : (index === 1 ? '#c0c0c0' : (index === 2 ? '#cd7f32' : '#ff0000'));
+                return `
+                <div class="top10-item">
+                    <span class="top10-number" style="color:${medalColor};">${index+1}</span>
+                    <img src="${item.thumbnail}" class="top10-thumb" alt="${item.name}" onerror="this.src='https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif'">
+                    <div class="top10-name">${item.name}</div>
+                    <span class="top10-count">${item.count}</span>
+                </div>
+            `}).join('');
+        }
+        
+        // ============================================
+        // BUTTON TRIGGERN
+        // ============================================
+        async function triggerButton(buttonId, buttonName) {
+            const statusDiv = document.getElementById('statusMessage');
+            
             try {
-                const ngrokUrl = 'https://deine-aktuelle-ngrok-url.ngrok.io'; // <-- HIER ANPASSEN!
-                const socket = new WebSocket(ngrokUrl.replace('https', 'wss'));
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'status-message';
+                statusDiv.innerHTML = '⏳ Button wird ausgelöst...';
                 
-                socket.onopen = () => {
-                    socket.send(JSON.stringify({
-                        "request": "ExecuteAction",
-                        "actionName": "Web_Filter_Handler",
-                        "rawInput": buttonId
-                    }));
-                    setTimeout(() => socket.close(), 500);
-                };
+                // 1. ChaosBOT trigger
+                const response = await fetch(NGROK_URL + '/api/trigger/' + buttonId, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ force: false, source: 'web_buttons' })
+                });
                 
-                socket.onerror = (error) => {
-                    console.error("WebSocket Fehler:", error);
-                };
-            } catch(e) {
-                console.error("WebSocket Fehler:", e);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 2. Klick in Firebase speichern
+                    await saveClickToFirebase(buttonId);
+                    
+                    // 3. Statistiken neu laden
+                    await loadClickStats();
+                    
+                    // 4. Buttons neu rendern (mit aktuellen Klick-Zahlen)
+                    renderButtons(currentButtons);
+                    
+                    statusDiv.innerHTML = `✅ ${buttonName} wurde ausgelöst!`;
+                    statusDiv.classList.add('success');
+                } else {
+                    statusDiv.innerHTML = `❌ Fehler: ${data.error || 'Unbekannter Fehler'}`;
+                    statusDiv.classList.add('error');
+                }
+                
+                // Status nach 3 Sekunden ausblenden
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Fehler:', error);
+                statusDiv.innerHTML = '❌ ChaosBOT nicht erreichbar';
+                statusDiv.classList.add('error');
+                statusDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
             }
         }
-
-        // Fallback-Funktion für die alten Filter (falls ChaosBOT nicht erreichbar)
-        async function sendFilter(filterId) {
-            await sendButton(filterId, filterId);
+        
+        // ============================================
+        // LIVE-UPDATES von Firebase
+        // ============================================
+        function setupFirebaseListener() {
+            // Bei jeder Änderung in buttonStats, aktualisiere die Top 10
+            db.ref('buttonStats').on('value', () => {
+                loadClickStats().then(() => {
+                    renderButtons(currentButtons);
+                });
+            });
         }
-
+        
         // ============================================
         // INITIALISIERUNG
         // ============================================
         window.onload = () => {
-            // Versuche ChaosBOT-Buttons zu laden, sonst Fallback
-            loadChaosBOTButtons();
-            loadTop10();
-            checkCooldown();
+            loadButtons();
+            setupFirebaseListener();
+            
+            // Alle 60 Sekunden Buttons neu laden (für neue Buttons in ChaosBOT)
+            setInterval(loadButtons, 60000);
         };
     </script>
 </body>
