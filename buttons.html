@@ -377,9 +377,9 @@
         const db = firebase.database();
         
         // ============================================
-        // KONFIGURATION – HIER DEINE NGROK-URL (HTTP!)
+        // KONFIGURATION – DEINE NGROK-URL (HTTP!)
         // ============================================
-        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev'; // <-- Deine Ngrok-URL (ohne / am Ende)
+        const NGROK_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev'; // ✅ Port 3000, Header wird unten gesetzt
         
         // ============================================
         // GLOBALE VARIABLEN
@@ -394,7 +394,12 @@
             const grid = document.getElementById('buttonGrid');
             
             try {
-                const response = await fetch(NGROK_URL + '/api/buttons');
+                // 🔥 FETCH MIT NGROK-HEADER
+                const response = await fetch(NGROK_URL + '/api/buttons', {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'  // Wichtig: Umgeht die Ngrok-Warnseite
+                    }
+                });
                 const data = await response.json();
                 
                 if (!data.buttons || data.buttons.length === 0) {
@@ -530,10 +535,13 @@
                 statusDiv.className = 'status-message';
                 statusDiv.innerHTML = '⏳ Button wird ausgelöst...';
                 
-                // 1. ChaosBOT trigger
+                // 1. ChaosBOT trigger (mit Ngrok-Header!)
                 const response = await fetch(NGROK_URL + '/api/trigger/' + buttonId, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'   // 🔥 Wichtig!
+                    },
                     body: JSON.stringify({ force: false, source: 'web_buttons' })
                 });
                 
