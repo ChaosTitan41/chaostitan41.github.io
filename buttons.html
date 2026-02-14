@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Paneli | CHAOSTITAN41</title>
+    <link rel="icon" type="image/ico" href="image/favicon.ico">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        /* === DEIN EXISTIERENDES STYLE (bleibt 100% gleich) === */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            background: #000 url('bg.png') no-repeat center center fixed; 
+            background-size: cover; 
+            color: #fff; 
+            font-family: 'Impact', sans-serif; 
+            text-align: center; 
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        .logo-container {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            right: 0;
+            padding: 15px;
+            z-index: 1000;
+            text-align: center;
+        }
+        
+        .logo-link {
+            display: inline-block;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-img { 
+            width: 100%; 
+            max-width: 180px; 
+            filter: drop-shadow(0 0 10px #000);
+            transition: all 0.3s ease;
+        }
+        
+        .logo-link:hover .logo-img {
+            filter: drop-shadow(0 0 25px #ff0000) !important;
+            transform: scale(1.05) !important;
+        }
+        
+        .main-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 140px 20px 20px;
+        }
+        
+        .container { 
+            flex: 0 1 1100px; 
+        }
+        
+        .btn-container { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            justify-items: center;
+        }
+        
+        .filter-btn { 
+            width: 100%;
+            max-width: 200px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 0, 0, 0.3); 
+            cursor: pointer; 
+            transition: 0.3s; 
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            border-color: #ff0000;
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
+        }
+
+        .filter-btn:disabled { 
+            opacity: 0.2; 
+            filter: grayscale(1); 
+            cursor: not-allowed; 
+        }
+        
+        .btn-image-container {
+            width: 100%;
+            aspect-ratio: 9/16;
+            overflow: hidden;
+        }
+        
+        .btn-image { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            display: block; 
+        }
+        
+        .btn-name {
+            padding: 10px 5px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 2px solid rgba(255, 0, 0, 0.3);
+        }
+        
+        .top10-sidebar {
+            width: 320px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 0, 0, 0.5);
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            position: sticky;
+            top: 140px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        
+        .top10-item {
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px; 
+            margin-bottom: 8px; 
+            border-radius: 12px;
+            border-left: 4px solid #ff0000;
+        }
+
+        .top10-thumb { 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 6px; 
+            object-fit: cover; 
+        }
+
+        #status { 
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            color: #ffaa00; 
+            font-size: 1.2rem; 
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            display: none; 
+            text-shadow: 0 0 5px #000;
+            z-index: 1000;
+            white-space: nowrap;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+        
+        .back-link { 
+            display: inline-block; 
+            margin-top: 40px; 
+            color: #888; 
+            text-decoration: none; 
+            padding: 12px 30px; 
+            border: 2px solid #333; 
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        
+        .back-link:hover {
+            color: #ff0000;
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        @media (max-width: 1200px) { 
+            .main-wrapper { 
+                flex-direction: column; 
+                align-items: center;
+                gap: 30px;
+            } 
+            
+            .top10-sidebar { 
+                width: 100%; 
+                max-width: 1100px; 
+                position: static; 
+                max-height: none;
+                order: -1;
+            }
+            
+            .btn-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo-img {
+                max-width: 140px;
+            }
+            
+            .main-wrapper {
+                padding: 120px 15px 20px;
+            }
+            
+            .btn-container { 
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }
+            
+            .filter-btn {
+                max-width: 150px;
+                border-radius: 12px;
+            }
+            
+            .btn-name {
+                font-size: 0.8rem;
+                padding: 8px 3px;
+            }
+            
+            .top10-sidebar {
+                padding: 15px;
+            }
+            
+            .top10-item {
+                padding: 6px;
+            }
+            
+            .top10-thumb {
+                width: 40px;
+                height: 40px;
+            }
+            
+            #status {
+                font-size: 1rem;
+                padding: 12px 25px;
+                bottom: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .btn-container { 
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .filter-btn {
+                max-width: none;
+                width: 100%;
+                border-radius: 10px;
+            }
+            
+            .btn-name {
+                font-size: 0.75rem;
+            }
+            
+            .back-link {
+                width: 100%;
+                margin-top: 30px;
+            }
+            
+            #status {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+                width: 90%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-container">
+        <a href="index.html" class="logo-link">
+            <img src="logo.png" class="logo-img" alt="CHAOSTITAN41">
+        </a>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <h1 style="color: #ff0000; margin-bottom: 30px; text-align: left;">🎮 BUTTON PANEL</h1>
+            <div class="btn-container" id="buttonGrid">
+                <!-- Buttons werden per JavaScript geladen -->
+            </div>
+        </div>
+        
+        <div class="top10-sidebar">
+            <h2 style="color:#ff0000; margin-bottom:20px;">🔥 TOP 10 RANK</h2>
+            <div id="top10List">Laden...</div>
+        </div>
+    </div>
+
+    <div id="status"></div>
+
+    <script>
+        // ============================================
+        // FIREBASE KONFIGURATION (GLEICH WIE BEI FILTER.HTML)
+        // ============================================
+        const firebaseConfig = { 
+            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", 
+            authDomain: "chaostitan41-website.firebaseapp.com", 
+            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app", 
+            projectId: "chaostitan41-website", 
+            storageBucket: "chaostitan41-website.firebasestorage.app", 
+            messagingSenderId: "553158677453", 
+            appId: "1:553158677453:web:2cad39890ffdedb98aaa84" 
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let timerInterval = null;
+
+        // ============================================
+        // BUTTONS AUS CHAOSBOT LADEN (NEU!)
+        // ============================================
+        async function loadChaosBOTButtons() {
+            try {
+                // Hier musst du deine aktuelle Ngrok-URL eintragen!
+                const ngrokUrl = 'https://deine-aktuelle-ngrok-url.ngrok.io'; // <-- HIER ANPASSEN!
+                
+                const response = await fetch(ngrokUrl + '/api/buttons');
+                const data = await response.json();
+                
+                if (data.buttons && data.buttons.length > 0) {
+                    renderButtons(data.buttons);
+                } else {
+                    showFallbackButtons();
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der ChaosBOT-Buttons:', error);
+                showFallbackButtons();
+            }
+        }
+
+        function renderButtons(buttons) {
+            const grid = document.getElementById('buttonGrid');
+            grid.innerHTML = '';
+            
+            buttons.forEach(button => {
+                // Thumbnail-URL aus ChaosBOT oder Fallback
+                const thumbUrl = button.thumbnailFile 
+                    ? `/thumbnails/${button.thumbnailFile}`
+                    : 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif';
+                
+                const buttonHtml = `
+                    <button class="filter-btn" onclick="sendButton('${button.id}', '${button.name}')" data-filter="${button.id}">
+                        <div class="btn-image-container">
+                            <img src="${thumbUrl}" class="btn-image" alt="${button.name}" onerror="this.src='https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif'">
+                        </div>
+                        <div class="btn-name">${button.name}</div>
+                    </button>
+                `;
+                grid.innerHTML += buttonHtml;
+            });
+        }
+
+        function showFallbackButtons() {
+            // Deine bestehenden 13 Beispiel-Buttons als Fallback
+            const fallbackFilters = [
+                'alien', 'ghost', 'cyber', 'matrix', 'glitch', 
+                'neon', 'retro', 'void', 'pixel', 'vhs', 
+                'noise', 'invert', 'fire'
+            ];
+            
+            const grid = document.getElementById('buttonGrid');
+            grid.innerHTML = '';
+            
+            fallbackFilters.forEach(filter => {
+                const buttonHtml = `
+                    <button class="filter-btn" onclick="sendFilter('${filter}')" data-filter="${filter}">
+                        <div class="btn-image-container">
+                            <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif" class="btn-image" alt="${filter}">
+                        </div>
+                        <div class="btn-name">${filter}</div>
+                    </button>
+                `;
+                grid.innerHTML += buttonHtml;
+            });
+        }
+
+        // ============================================
+        // FUNKTIONEN FÜR TOP 10 STATISTIK
+        // ============================================
+        function getFilterImages() {
+            const images = {};
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const filterId = btn.getAttribute('data-filter');
+                const imgSrc = btn.querySelector('.btn-image').src;
+                images[filterId] = imgSrc;
+            });
+            return images;
+        }
+
+        function loadTop10() {
+            const filterImages = getFilterImages();
+            
+            db.ref('filterStats').once('value').then((snap) => {
+                const stats = snap.val();
+                updateTop10List(stats, filterImages);
+            }).catch((error) => {
+                console.error("Firebase Error:", error);
+                document.getElementById('top10List').innerHTML = "Fehler beim Laden.";
+            });
+            
+            db.ref('filterStats').on('child_added', () => {
+                db.ref('filterStats').once('value').then((snap) => {
+                    updateTop10List(snap.val(), getFilterImages());
+                });
+            });
+        }
+        
+        function updateTop10List(stats, filterImages) {
+            const listDiv = document.getElementById('top10List');
+            
+            if (!stats) {
+                listDiv.innerHTML = "Henüz veri yok.";
+                return;
+            }
+
+            const counts = {};
+            Object.keys(stats).forEach(filterId => {
+                const filterData = stats[filterId];
+                if (filterData && typeof filterData === 'object') {
+                    counts[filterId] = Object.keys(filterData).length;
+                } else {
+                    counts[filterId] = 0;
+                }
+            });
+
+            const sorted = Object.entries(counts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            if (sorted.length === 0) {
+                listDiv.innerHTML = "Henüz veri yok.";
+                return;
+            }
+
+            listDiv.innerHTML = sorted.map(([id, count], i) => {
+                const imgSrc = filterImages[id] || 'logo.png';
+                return `
+                <div class="top10-item">
+                    <span style="color:#f00; font-weight:bold; width:20px;">${i+1}</span>
+                    <img src="${imgSrc}" class="top10-thumb" alt="${id}">
+                    <div style="flex:1; text-align:left;">
+                        <div style="text-transform:uppercase; font-size:13px;">${id}</div>
+                        <div style="color:#777; font-size:11px;">${count} KULLANIM</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ============================================
+        // COOLDOWN FUNKTION (GLEICH WIE BEI FILTER.HTML)
+        // ============================================
+        function checkCooldown() {
+            const statusDiv = document.getElementById('status');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            function updateDisplay(lastTime) {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                
+                const now = Date.now();
+                const diffSeconds = (now - lastTime) / 1000;
+                
+                if (diffSeconds < 300) {
+                    buttons.forEach(b => b.disabled = true);
+                    statusDiv.style.display = "block";
+                    
+                    let timeLeft = Math.ceil(300 - diffSeconds);
+                    
+                    const tick = () => {
+                        if (timeLeft <= 0) {
+                            buttons.forEach(b => b.disabled = false);
+                            statusDiv.style.display = "none";
+                            if (timerInterval) {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
+                            }
+                            return;
+                        }
+                        
+                        const m = Math.floor(timeLeft / 60);
+                        const s = timeLeft % 60;
+                        statusDiv.innerHTML = `⏱️ COOLDOWN: ${m}:${s < 10 ? '0' : ''}${s}`;
+                        timeLeft--;
+                    };
+                    
+                    tick();
+                    timerInterval = setInterval(tick, 1000);
+                } else {
+                    buttons.forEach(b => b.disabled = false);
+                    statusDiv.style.display = "none";
+                }
+            }
+            
+            db.ref('lastFilterTime').once('value').then((snap) => {
+                updateDisplay(snap.val() || 0);
+            });
+            
+            db.ref('lastFilterTime').on('value', (snap) => {
+                updateDisplay(snap.val() || 0);
+            });
+        }
+
+        // ============================================
+        // BUTTON KLICK FUNKTION (NEU)
+        // ============================================
+        async function sendButton(buttonId, buttonName) {
+            const timestamp = Date.now();
+            
+            // 1. Firebase-Updates (gleiche Struktur wie bei filter.html)
+            const newClickRef = db.ref('filterStats/' + buttonId).push();
+            await newClickRef.set({
+                timestamp: timestamp,
+                date: new Date().toISOString()
+            });
+            
+            await db.ref('lastFilterTime').set(timestamp);
+
+            // 2. ChaosBOT via Ngrok aufrufen
+            try {
+                const ngrokUrl = 'https://deine-aktuelle-ngrok-url.ngrok.io'; // <-- HIER ANPASSEN!
+                const socket = new WebSocket(ngrokUrl.replace('https', 'wss'));
+                
+                socket.onopen = () => {
+                    socket.send(JSON.stringify({
+                        "request": "ExecuteAction",
+                        "actionName": "Web_Filter_Handler",
+                        "rawInput": buttonId
+                    }));
+                    setTimeout(() => socket.close(), 500);
+                };
+                
+                socket.onerror = (error) => {
+                    console.error("WebSocket Fehler:", error);
+                };
+            } catch(e) {
+                console.error("WebSocket Fehler:", e);
+            }
+        }
+
+        // Fallback-Funktion für die alten Filter (falls ChaosBOT nicht erreichbar)
+        async function sendFilter(filterId) {
+            await sendButton(filterId, filterId);
+        }
+
+        // ============================================
+        // INITIALISIERUNG
+        // ============================================
+        window.onload = () => {
+            // Versuche ChaosBOT-Buttons zu laden, sonst Fallback
+            loadChaosBOTButtons();
+            loadTop10();
+            checkCooldown();
+        };
+    </script>
+</body>
+</html>
