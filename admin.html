@@ -20,6 +20,7 @@
         .ban-btn { background: #ff0000; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .unban-btn { background: #00FF41; color: #000; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         input { width:100%; padding:15px; margin-bottom:20px; background:#000; color:#fff; border:1px solid #444; text-align:center; border-radius: 8px; }
+        .button-name { color: #ffaa00; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -38,10 +39,18 @@
         </div>
 
         <div class="section">
-            <h2>CANLI AKIŞ (SON GELENLER)</h2>
+            <h2>CANLI AKIŞ (SON GELEN GİFLER)</h2>
             <table>
                 <thead><tr><th>Zaman</th><th>Kullanıcı</th><th>IP Adresi</th><th>İşlem</th></tr></thead>
                 <tbody id="l-body"></tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2 style="color:#ffaa00">BUTON TIKLAMALARI (SON 15)</h2>
+            <table>
+                <thead><tr><th>Zaman</th><th>Buton</th><th>IP Adresi</th><th>İşlem</th></tr></thead>
+                <tbody id="button-body"></tbody>
             </table>
         </div>
 
@@ -84,7 +93,7 @@
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
 
-            // STATS LOGIC
+            // STATS LOGIC (wie gehabt)
             db.ref('stats/daily').on('value', snap => {
                 const data = snap.val() || {}; const now = new Date(); const todayStr = now.toISOString().split('T')[0];
                 let todayCount = 0; const weekSet = new Set(), monthSet = new Set(), yearSet = new Set();
@@ -99,7 +108,7 @@
                 document.getElementById('s-month').innerText = monthSet.size; document.getElementById('s-year').innerText = yearSet.size;
             });
 
-            // LIVE GIFS TABLE
+            // LIVE GIFS TABLE (wie gehabt)
             db.ref('activeGifs').limitToLast(15).on('value', s => {
                 const b = document.getElementById('l-body'); b.innerHTML = "";
                 s.forEach(c => { 
@@ -115,7 +124,24 @@
                 });
             });
 
-            // BLOCKED ATTEMPTS TABLE
+            // 🔥 NEU: BUTTON CLICKS TABLE
+            db.ref('buttonClicks').limitToLast(15).on('value', s => {
+                const b = document.getElementById('button-body'); b.innerHTML = "";
+                s.forEach(c => { 
+                    const d = c.val(); 
+                    const displayIP = (d.ip || "unknown").replace(/_/g,'.');
+                    const rawIP = d.ip || "unknown";
+                    const time = d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : '-';
+                    b.insertAdjacentHTML('afterbegin', `<tr>
+                        <td>${time}</td>
+                        <td class="button-name">${d.buttonName || d.buttonId || '?'}</td>
+                        <td class="ip-text">${displayIP}</td>
+                        <td><button class="ban-btn" onclick="bn('${rawIP}')">BANLA</button></td>
+                    </tr>`); 
+                });
+            });
+
+            // BLOCKED ATTEMPTS TABLE (wie gehabt)
             db.ref('bannedRequests').limitToLast(10).on('value', s => {
                 const b = document.getElementById('blocked-body'); b.innerHTML = "";
                 s.forEach(c => { 
@@ -131,7 +157,7 @@
                 });
             });
 
-            // BAN LIST TABLE
+            // BAN LIST TABLE (wie gehabt)
             db.ref('bannedIPs').on('value', s => {
                 const b = document.getElementById('b-body'); b.innerHTML = "";
                 s.forEach(c => { 
