@@ -405,24 +405,20 @@
                 const ipRes = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipRes.json();
                 const ip = ipData.ip;
-                // Firebase anahtarı için noktaları alt çizgi ile değiştir
                 const ipKey = ip.replace(/\./g, '_');
                 currentIp = ip;
                 
-                const bannedSnap = await db.ref('bannedIps/' + ipKey).once('value');
+                const bannedSnap = await db.ref('bannedIPs/' + ipKey).once('value'); // 🔥 Hier 'bannedIPs' (großes I) wie in admin.html
                 if (bannedSnap.exists() && bannedSnap.val() === true) {
                     isBanned = true;
                     document.getElementById('bannedMessage').style.display = 'block';
-                    // Butonları devre dışı bırak
                     document.querySelectorAll('.filter-btn').forEach(btn => btn.disabled = true);
-                    // Cooldown gizle
                     document.getElementById('cooldownMessage').style.display = 'none';
                 } else {
                     isBanned = false;
                 }
             } catch (e) {
                 console.error('IP kontrolü hatası:', e);
-                // IP alınamazsa engelleme? Varsayılan olarak izin ver
                 isBanned = false;
             }
         }
@@ -431,7 +427,7 @@
         // COOLDOWN YÖNETİMİ (filter.html'deki gibi)
         // ============================================
         function startCooldown(lastTime) {
-            if (isBanned) return; // Ban varsa cooldown çalıştırma
+            if (isBanned) return;
             
             const cooldownDiv = document.getElementById('cooldownMessage');
             const buttons = document.querySelectorAll('.filter-btn');
@@ -471,7 +467,6 @@
             }
         }
         
-        // Firebase'den lastButtonTime oku ve dinle
         function setupCooldownListener() {
             db.ref('lastButtonTime').once('value', (snap) => {
                 startCooldown(snap.val() || 0);
@@ -573,7 +568,6 @@
                 nameDiv.textContent = button.name;
                 buttonDiv.appendChild(nameDiv);
                 
-                // Ban durumunda devre dışı bırak
                 if (isBanned) buttonDiv.disabled = true;
                 
                 return buttonDiv;
@@ -581,8 +575,6 @@
             
             const buttonElements = await Promise.all(buttonPromises);
             buttonElements.forEach(el => grid.appendChild(el));
-            
-            // Cooldown durumunda da devre dışı bırak (zaten startCooldown yapar)
         }
         
         // ============================================
@@ -661,15 +653,13 @@
         }
         
         // ============================================
-        // BUTON TETİKLEME
+        // BUTON TETİKLEME (mit IP-Erfassung)
         // ============================================
         async function triggerButton(buttonId, buttonName) {
             const statusDiv = document.getElementById('statusMessage');
             
-            // Ban kontrolü
             if (isBanned) return;
             
-            // Cooldown kontrolü
             const snap = await db.ref('lastButtonTime').once('value');
             const lastTime = snap.val() || 0;
             if (lastTime && (Date.now() - lastTime) < COOLDOWN_SECONDS * 1000) {
@@ -685,6 +675,7 @@
                 statusDiv.className = 'status-message';
                 statusDiv.innerHTML = '⏳ Buton tetikleniyor...';
                 
+                // 1. ChaosBOT trigger
                 const response = await fetch(API_BASE_URL + '/api/trigger/' + buttonId, {
                     method: 'POST',
                     headers: { 
@@ -697,10 +688,29 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Cooldown başlat
+                    // 2. Cooldown setzen
                     await db.ref('lastButtonTime').set(Date.now());
                     
+                    // 3. Button-Statistik (wie gehabt)
                     await saveClickToFirebase(buttonId);
+                    
+                    // 4. 🔥 NEU: IP-Adresse erfassen und unter buttonClicks speichern
+                    try {
+                        const ipRes = await fetch('https://api.ipify.org?format=json');
+                        const ipData = await ipRes.json();
+                        const ip = ipData.ip;
+                        const ipKey = ip.replace(/\./g, '_');
+                        const clickData = {
+                            buttonId: buttonId,
+                            buttonName: buttonName,
+                            ip: ipKey,
+                            timestamp: Date.now()
+                        };
+                        await db.ref('buttonClicks').push(clickData);
+                    } catch (ipErr) {
+                        console.error('IP konnte nicht erfasst werden:', ipErr);
+                    }
+                    
                     await loadClickStats();
                     await renderButtons(currentButtons);
                     
@@ -736,17 +746,14 @@
         // BAŞLANGIÇ
         // ============================================
         window.onload = async () => {
-            // Önce ban durumunu kontrol et
             await checkBan();
             
             if (!isBanned) {
                 setupCooldownListener();
                 loadButtons();
                 setupFirebaseListener();
-                // Her 60 saniyede butonları yeniden yükle
                 setInterval(loadButtons, 60000);
             } else {
-                // Banlı ise sadece engel mesajını göster
                 document.getElementById('buttonGrid').innerHTML = '<div class="banned-message" style="display:block; position:static; margin-top:50px;">🚫 ERİŞİMİNİZ ENGELLENDİ</div>';
                 document.getElementById('cooldownMessage').style.display = 'none';
             }
