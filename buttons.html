@@ -91,6 +91,13 @@
             box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
         }
 
+        .filter-btn:disabled {
+            opacity: 0.2; 
+            filter: grayscale(1); 
+            cursor: not-allowed; 
+            pointer-events: none;
+        }
+        
         .btn-image-container {
             width: 100%;
             aspect-ratio: 9/16;
@@ -214,6 +221,21 @@
         
         .status-message.success { color: #00ff00; }
         .status-message.error { color: #ff6666; }
+
+        /* 🔥 NEU: Cooldown-Meldung (unter den Buttons) */
+        .cooldown-message {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ffaa00;
+            border-radius: 10px;
+            color: #ffaa00;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: none;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
+        }
         
         .back-link { 
             display: inline-block; 
@@ -310,6 +332,10 @@
                 padding: 12px 25px;
                 bottom: 15px;
             }
+
+            .cooldown-message {
+                font-size: 1.2rem;
+            }
         }
         
         @media (max-width: 480px) {
@@ -349,6 +375,9 @@
             <div class="btn-container" id="buttonGrid">
                 <div class="loading">Buttons werden geladen...</div>
             </div>
+
+            <!-- 🔥 NEU: Cooldown-Anzeige -->
+            <div id="cooldownMessage" class="cooldown-message"></div>
         </div>
         
         <div class="top10-sidebar">
@@ -361,7 +390,7 @@
 
     <script>
         // ============================================
-        // FIREBASE KONFIGURATION (deine bestehende!)
+        // FIREBASE KONFIGURATION
         // ============================================
         const firebaseConfig = { 
             apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg", 
@@ -377,9 +406,9 @@
         const db = firebase.database();
         
         // ============================================
-        // KONFIGURATION – DEINE FESTE NGROK-DOMAIN!
+        // KONFIGURATION – DEINE FESTE NGROK-DOMAIN
         // ============================================
-        const API_BASE_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev'; // ✅ Einmal eintragen – für immer gültig!
+        const API_BASE_URL = 'https://aditya-unfeudal-brock.ngrok-free.dev';
         
         // ============================================
         // GLOBALE VARIABLEN
@@ -387,15 +416,18 @@
         let currentButtons = [];
         let buttonClickCounts = {};
         
+        // 🔥 Cooldown-Variablen
+        let cooldownEnd = null; // Zeitstempel (ms)
+        let cooldownInterval = null;
+        const COOLDOWN_SECONDS = 90; // 90 Sekunden
+        
         // ============================================
         // HILFSFUNKTION: Lade Bild mit Header als Blob und gib ObjectURL zurück
         // ============================================
         async function loadThumbnailAsBlob(thumbUrl) {
             try {
                 const response = await fetch(thumbUrl, {
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true' // Für Ngrok (optional, aber harmlos)
-                    }
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 if (!response.ok) throw new Error('Bild konnte nicht geladen werden');
                 const blob = await response.blob();
@@ -407,16 +439,79 @@
         }
         
         // ============================================
-        // BUTTONS LADEN (von ChaosBOT)
+        // COOLDOWN-LOGIK
+        // ============================================
+        function startCooldown() {
+            cooldownEnd = Date.now() + COOLDOWN_SECONDS * 1000;
+            localStorage.setItem('cooldownEnd', cooldownEnd.toString());
+            disableAllButtons(true);
+            showCooldownMessage();
+            if (cooldownInterval) clearInterval(cooldownInterval);
+            cooldownInterval = setInterval(updateCooldown, 1000);
+        }
+
+        function disableAllButtons(disabled) {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.disabled = disabled);
+        }
+
+        function showCooldownMessage() {
+            const msgDiv = document.getElementById('cooldownMessage');
+            msgDiv.style.display = 'block';
+        }
+
+        function hideCooldownMessage() {
+            const msgDiv = document.getElementById('cooldownMessage');
+            msgDiv.style.display = 'none';
+        }
+
+        function updateCooldown() {
+            if (!cooldownEnd) return;
+            const now = Date.now();
+            const remainingMs = cooldownEnd - now;
+            if (remainingMs <= 0) {
+                // Cooldown beenden
+                clearInterval(cooldownInterval);
+                cooldownInterval = null;
+                localStorage.removeItem('cooldownEnd');
+                cooldownEnd = null;
+                disableAllButtons(false);
+                hideCooldownMessage();
+                return;
+            }
+            const remainingSec = Math.ceil(remainingMs / 1000);
+            const minutes = Math.floor(remainingSec / 60);
+            const seconds = remainingSec % 60;
+            const timeStr = minutes > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${seconds}s`;
+            document.getElementById('cooldownMessage').innerHTML = `⏳ Cooldown: ${timeStr}`;
+        }
+
+        function checkCooldown() {
+            const stored = localStorage.getItem('cooldownEnd');
+            if (stored) {
+                const end = parseInt(stored);
+                if (end > Date.now()) {
+                    cooldownEnd = end;
+                    disableAllButtons(true);
+                    showCooldownMessage();
+                    if (cooldownInterval) clearInterval(cooldownInterval);
+                    cooldownInterval = setInterval(updateCooldown, 1000);
+                    updateCooldown(); // sofort anzeigen
+                } else {
+                    localStorage.removeItem('cooldownEnd');
+                }
+            }
+        }
+        
+        // ============================================
+        // BUTTONS LADEN
         // ============================================
         async function loadButtons() {
             const grid = document.getElementById('buttonGrid');
             
             try {
                 const response = await fetch(API_BASE_URL + '/api/buttons', {
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true'
-                    }
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await response.json();
                 
@@ -427,10 +522,7 @@
                 
                 currentButtons = data.buttons;
                 
-                // Lade Klick-Statistiken aus Firebase
                 await loadClickStats();
-                
-                // Zeige Buttons an (async, weil wir Bilder laden müssen)
                 await renderButtons(currentButtons);
                 
             } catch (error) {
@@ -446,7 +538,7 @@
         
         async function renderButtons(buttons) {
             const grid = document.getElementById('buttonGrid');
-            grid.innerHTML = ''; // leeren
+            grid.innerHTML = '';
             
             const fallbackUrl = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzVhNWNxZGw1eW96NXZuZzkwbzRmdnE1eWYxcHZoaHM1YWs0ZzNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L556NMrX2yWiAtDPqf/giphy.gif';
             
@@ -487,6 +579,11 @@
                 nameDiv.textContent = button.name;
                 buttonDiv.appendChild(nameDiv);
                 
+                // Cooldown-Status beim Rendern beachten
+                if (cooldownEnd && cooldownEnd > Date.now()) {
+                    buttonDiv.disabled = true;
+                }
+                
                 return buttonDiv;
             });
             
@@ -519,14 +616,11 @@
         async function saveClickToFirebase(buttonId) {
             const timestamp = Date.now();
             const newClickRef = db.ref('buttonStats/' + buttonId).push();
-            await newClickRef.set({
-                timestamp: timestamp,
-                date: new Date().toISOString()
-            });
+            await newClickRef.set({ timestamp, date: new Date().toISOString() });
         }
         
         // ============================================
-        // TOP 10 LISTE (mit Thumbnails)
+        // TOP 10 LISTE
         // ============================================
         async function updateTop10() {
             const listDiv = document.getElementById('top10List');
@@ -574,10 +668,20 @@
         }
         
         // ============================================
-        // BUTTON TRIGGERN
+        // BUTTON TRIGGERN (mit Cooldown-Prüfung)
         // ============================================
         async function triggerButton(buttonId, buttonName) {
             const statusDiv = document.getElementById('statusMessage');
+            
+            // Cooldown-Prüfung
+            if (cooldownEnd && cooldownEnd > Date.now()) {
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'status-message';
+                statusDiv.innerHTML = '⏳ Bitte warte den Cooldown ab.';
+                statusDiv.classList.add('error');
+                setTimeout(() => statusDiv.style.display = 'none', 2000);
+                return;
+            }
             
             try {
                 statusDiv.style.display = 'block';
@@ -597,6 +701,10 @@
                 
                 if (data.success) {
                     await saveClickToFirebase(buttonId);
+                    
+                    // Cooldown starten NACH erfolgreichem Klick
+                    startCooldown();
+                    
                     await loadClickStats();
                     await renderButtons(currentButtons);
                     
@@ -616,10 +724,7 @@
                 statusDiv.innerHTML = '❌ ChaosBOT nicht erreichbar';
                 statusDiv.classList.add('error');
                 statusDiv.style.display = 'block';
-                
-                setTimeout(() => {
-                    statusDiv.style.display = 'none';
-                }, 3000);
+                setTimeout(() => statusDiv.style.display = 'none', 3000);
             }
         }
         
@@ -637,6 +742,7 @@
         // INITIALISIERUNG
         // ============================================
         window.onload = () => {
+            checkCooldown(); // Bestehenden Cooldown wiederherstellen
             loadButtons();
             setupFirebaseListener();
             
