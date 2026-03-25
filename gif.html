@@ -53,23 +53,23 @@
             document.getElementById('audio-unlocker').style.display = 'none';
         }
 
-        // Versucht, die MP4-URL aus der Vlipsy-Seite zu extrahieren
+        // Extrahiert die MP4-URL aus dem HTML der Vlipsy-Seite (über CORS-Proxy)
         async function getVlipsyMp4(gifId) {
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://vlipsy.com/clips/' + gifId)}`;
+            // Verwende corsproxy.io – dieser liefert CORS-Header
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://vlipsy.com/clips/' + gifId)}`;
             try {
                 const response = await fetch(proxyUrl);
-                const data = await response.json();
-                const html = data.contents;
+                const html = await response.text();
 
-                // Muster 1: og:video meta-tag
+                // Suche nach og:video
                 let match = html.match(/<meta\s+property="og:video"\s+content="([^"]+\.mp4)"/i);
                 if (match) return match[1];
 
-                // Muster 2: videoUrl in einem script (häufig)
+                // Suche nach videoUrl im JavaScript
                 match = html.match(/videoUrl\s*:\s*"([^"]+\.mp4)"/i);
                 if (match) return match[1];
 
-                // Muster 3: src in einem video-Tag
+                // Suche nach src in einem video-Tag
                 match = html.match(/<video[^>]*src="([^"]+\.mp4)"/i);
                 if (match) return match[1];
 
@@ -80,10 +80,22 @@
             }
         }
 
-        // Zeigt den Vlipsy-Clip an – zuerst MP4, sonst Iframe
+        // Zeigt den Vlipsy-Clip an – zuerst Iframe, dann versuchen wir die MP4 nachzuladen
         async function showVlipsy(gifId, userName, containerDiv) {
+            // Sofort einen Iframe mit der Vlipsy-Clip-Seite anzeigen (als Fallback)
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://vlipsy.com/clips/${gifId}?autoplay=1`;
+            iframe.width = "450";
+            iframe.height = "253";
+            iframe.frameBorder = "0";
+            iframe.allow = "autoplay; fullscreen";
+            iframe.style.pointerEvents = "none";
+            containerDiv.appendChild(iframe);
+
+            // Im Hintergrund versuchen, die MP4-URL zu laden
             const mp4 = await getVlipsyMp4(gifId);
             if (mp4) {
+                // Wenn MP4 gefunden, Iframe ersetzen
                 const video = document.createElement('video');
                 video.src = mp4;
                 video.autoplay = true;
@@ -92,17 +104,8 @@
                 video.style.width = "450px";
                 video.muted = !audioAllowed;
                 if (audioAllowed) video.volume = 0.7;
+                containerDiv.innerHTML = '';   // Iframe entfernen
                 containerDiv.appendChild(video);
-            } else {
-                // Fallback: Iframe mit direkter Vlipsy-Seite (versuchen wir)
-                const iframe = document.createElement('iframe');
-                iframe.src = `https://vlipsy.com/clips/${gifId}?autoplay=1`;
-                iframe.width = "450";
-                iframe.height = "253";
-                iframe.frameBorder = "0";
-                iframe.allow = "autoplay; fullscreen";
-                iframe.style.pointerEvents = "none";
-                containerDiv.appendChild(iframe);
             }
         }
 
@@ -125,7 +128,7 @@
                 nameDiv.innerText = data.userName;
                 div.appendChild(nameDiv);
             } else {
-                // GIPHY bleibt unverändert
+                // GIPHY: Video + Fallback GIF
                 const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
                 const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
                 const video = document.createElement('video');
