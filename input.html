@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIF Gönder | CHAOSTITAN41</title>
+    <title>GIF & MEME Gönder | CHAOSTITAN41</title>
     <link rel="icon" type="image/ico" href="image/favicon.ico">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         body { background: #000 url('bg.png') no-repeat center center fixed; background-size: cover; color: #fff; font-family: 'Impact', sans-serif; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .container { width: 100%; max-width: 600px; padding: 40px 20px; background: rgba(0, 0, 0, 0.8); border-radius: 20px; border: 1px solid #ff0000; backdrop-filter: blur(10px); }
+        
+        .search-links { margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; }
+        .btn-link { background: #222; color: #fff; border: 1px solid #ff0000; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-size: 0.9rem; transition: 0.3s; font-family: Arial, sans-serif; }
+        .btn-link:hover { background: #ff0000; color: #fff; }
+
         input { padding: 15px; width: 90%; border-radius: 8px; border: 1px solid #444; background: #000; color: #fff; margin-bottom: 15px; font-size: 1.1rem; text-align: center; }
         .send-btn { background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); color: #fff; border: 2px solid #ff0000; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.5rem; cursor: pointer; text-transform: uppercase; font-family: 'Impact'; transition: 0.3s; }
         .send-btn:hover { background: #ff0000; box-shadow: 0 0 20px #ff0000; }
-        .send-btn:disabled { background: #333; border-color: #555; cursor: not-allowed; }
         #status { margin-top: 20px; font-family: Arial; font-weight: bold; min-height: 24px; }
         #gif-preview { max-width: 200px; display: none; margin: 15px auto; border: 2px solid red; border-radius: 10px; }
         .logo-img { max-width: 200px; margin-bottom: 10px; transition: 0.3s; }
@@ -23,8 +27,14 @@
 <body>
     <div class="container">
         <a href="index.html" class="logo-link"><img src="logo.png" class="logo-img" alt="Logo"></a><br>
+        
+        <div class="search-links">
+            <a href="https://giphy.com" target="_blank" class="btn-link">🔍 GIPHY (GIF)</a>
+            <a href="https://vlipsy.com" target="_blank" class="btn-link">🔊 VLIPSY (MEME)</a>
+        </div>
+
         <input type="text" id="username" placeholder="ADINIZ">
-        <input type="text" id="gif-url" placeholder="Giphy veya Vlipsy Linkini Yapıştır..." oninput="updatePreview()">
+        <input type="text" id="gif-url" placeholder="Linkini Buraya Yapıştır..." oninput="updatePreview()">
         <img id="gif-preview" alt="Vorschau">
         <button onclick="send()" class="send-btn">YAYINA GÖNDER!</button>
         <div id="status"></div>
@@ -42,8 +52,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const statusDiv = document.getElementById('status');
-        const sendBtn = document.querySelector('.send-btn');
 
         function getID(url) {
             try {
@@ -73,7 +81,7 @@
         async function send() {
             const res = getID(document.getElementById('gif-url').value);
             const name = document.getElementById('username').value || "Anonim";
-            if(!res) return alert("Hata: Sadece Giphy veya Vlipsy Linki!");
+            if(!res) return alert("Hata: Geçersiz Link! Sadece Giphy veya Vlipsy.");
 
             let userIP = "unknown";
             try {
@@ -89,7 +97,7 @@
                 userIP: userIP,
                 timestamp: Date.now()
             }).then(() => {
-                statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
+                document.getElementById('status').innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
                 document.getElementById('gif-url').value = "";
                 document.getElementById('gif-preview').style.display = "none";
             });
