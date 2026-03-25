@@ -6,50 +6,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body {
-            background: transparent;
-            margin: 0;
-            overflow: hidden;
-        }
-        #display {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-        }
-        #audio-unlocker {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            z-index: 10000;
-        }
-        .media-container {
-            position: absolute;
-            bottom: 50px;
-            right: 50px;
-            text-align: center;
-            animation: fadeInOut 8.5s forwards;
-        }
-        img, video {
-            max-width: 450px;
-            border-radius: 15px;
-            border: 4px solid #ff0000;
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
-            display: block;
-        }
-        .name-label {
-            color: white;
-            font-family: 'Impact', sans-serif;
-            font-size: 50px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 15px #ff0000, 2px 2px 5px #000;
-            margin-top: 15px;
-        }
+        body { background: transparent; margin: 0; overflow: hidden; }
+        #display { position: relative; width: 100vw; height: 100vh; }
+        #audio-unlocker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; border: none; cursor: pointer; z-index: 10000; }
+        .media-container { position: absolute; bottom: 50px; right: 50px; text-align: center; animation: fadeInOut 8.5s forwards; }
+        img, video, iframe { max-width: 450px; border-radius: 15px; border: 4px solid #ff0000; box-shadow: 0 0 30px rgba(255, 0, 0, 0.6); display: block; }
+        iframe { width: 450px; height: 253px; background: #000; }
+        .name-label { color: white; font-family: 'Impact', sans-serif; font-size: 50px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 15px #ff0000, 2px 2px 5px #000; margin-top: 15px; }
         @keyframes fadeInOut {
             0% { opacity: 0; transform: scale(0.9) translateY(20px); }
             8% { opacity: 1; transform: scale(1) translateY(0); }
@@ -82,29 +45,80 @@
         function activateAudio() {
             if (audioAllowed) return;
             audioAllowed = true;
-
-            // Alle bereits existierenden Videos auf Laut stellen
-            document.querySelectorAll('video').forEach(video => {
-                video.muted = false;
-                video.play().catch(e => console.log("play failed", e));
+            document.querySelectorAll('video').forEach(v => { v.muted = false; v.play().catch(e => {}); });
+            document.querySelectorAll('iframe').forEach(iframe => {
+                // Iframe neu laden, damit Autoplay mit Ton funktioniert
+                const src = iframe.src;
+                iframe.src = '';
+                iframe.src = src;
             });
-
-            // Kurzer Sound, um den Audio-Kontext zu aktivieren
             notificationSound.play().then(() => {
                 notificationSound.pause();
                 notificationSound.currentTime = 0;
             }).catch(e => console.log("sound play", e));
-
-            // Unsichtbaren Button entfernen
             document.getElementById('audio-unlocker').style.display = 'none';
         }
 
-        // Auf neue Einträge in Firebase lauschen
+        // Vlipsy mit Fallback: erst Embed, bei Fehler direkt die Clip-Seite
+        function createVlipsyElement(gifId, userName) {
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            
+            // Versuche zuerst das offizielle Embed
+            const embedIframe = document.createElement('iframe');
+            embedIframe.src = `https://vlipsy.com/embed/${gifId}?autoplay=1&controls=0&loop=0`;
+            embedIframe.width = "450";
+            embedIframe.height = "253";
+            embedIframe.frameBorder = "0";
+            embedIframe.allow = "autoplay; fullscreen";
+            embedIframe.style.pointerEvents = "none";
+            container.appendChild(embedIframe);
+
+            // Fallback: Falls Embed nicht lädt, ersetze durch Direkt-Link zur Clip-Seite
+            let fallbackUsed = false;
+            const fallbackTimer = setTimeout(() => {
+                if (!fallbackUsed && embedIframe.contentWindow === null) {
+                    fallbackUsed = true;
+                    const directIframe = document.createElement('iframe');
+                    directIframe.src = `https://vlipsy.com/clips/${gifId}?autoplay=1`;
+                    directIframe.width = "450";
+                    directIframe.height = "253";
+                    directIframe.frameBorder = "0";
+                    directIframe.allow = "autoplay; fullscreen";
+                    directIframe.style.pointerEvents = "none";
+                    container.innerHTML = '';
+                    container.appendChild(directIframe);
+                }
+            }, 4000); // 4 Sekunden warten, ob Embed lädt
+
+            // Wenn Embed erfolgreich geladen wird, Timer abbrechen
+            embedIframe.onload = () => {
+                clearTimeout(fallbackTimer);
+            };
+            // Fehlerfall: sofort Fallback
+            embedIframe.onerror = () => {
+                clearTimeout(fallbackTimer);
+                if (!fallbackUsed) {
+                    fallbackUsed = true;
+                    const directIframe = document.createElement('iframe');
+                    directIframe.src = `https://vlipsy.com/clips/${gifId}?autoplay=1`;
+                    directIframe.width = "450";
+                    directIframe.height = "253";
+                    directIframe.frameBorder = "0";
+                    directIframe.allow = "autoplay; fullscreen";
+                    directIframe.style.pointerEvents = "none";
+                    container.innerHTML = '';
+                    container.appendChild(directIframe);
+                }
+            };
+            
+            return container;
+        }
+
         db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
             const data = snap.val();
             if (data.timestamp < start) return;
 
-            // Pop-Sound abspielen
             notificationSound.currentTime = 0;
             notificationSound.volume = 0.6;
             notificationSound.play().catch(() => {});
@@ -114,41 +128,14 @@
             div.className = "media-container";
 
             if (data.type === "vlipsy") {
-                // Vlipsy: Direktes Video-Tag mit MP4-URL (funktioniert zuverlässiger als iframe)
-                const videoUrl = `https://vlipsy.com/videos/${data.gifId}.mp4`;
-                const video = document.createElement('video');
-                video.src = videoUrl;
-                video.autoplay = true;
-                video.loop = false;          // Nur einmal abspielen
-                video.playsInline = true;
-                video.style.width = "450px";
-                video.muted = !audioAllowed;  // Stumm, wenn noch nicht geklickt
-
-                if (audioAllowed) {
-                    video.muted = false;
-                    video.volume = 0.7;
-                }
-
-                // Falls MP4 nicht verfügbar, Fallback auf Poster-Bild
-                video.onerror = () => {
-                    const img = document.createElement('img');
-                    img.src = `https://vlipsy.com/embed/${data.gifId}/poster.jpg`;
-                    img.style.width = "450px";
-                    div.innerHTML = '';
-                    div.appendChild(img);
-                    const nameDiv = document.createElement('div');
-                    nameDiv.className = "name-label";
-                    nameDiv.innerText = data.userName;
-                    div.appendChild(nameDiv);
-                };
-
-                div.appendChild(video);
+                const mediaWrapper = createVlipsyElement(data.gifId, data.userName);
+                div.appendChild(mediaWrapper);
                 const nameDiv = document.createElement('div');
                 nameDiv.className = "name-label";
                 nameDiv.innerText = data.userName;
                 div.appendChild(nameDiv);
             } else {
-                // GIPHY: Standard mit Video + Fallback auf GIF
+                // GIPHY: wie gehabt mit Video + Fallback
                 const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
                 const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
                 const video = document.createElement('video');
@@ -181,7 +168,6 @@
             }
 
             box.appendChild(div);
-            // Nach 8,5 Sekunden wieder ausblenden
             setTimeout(() => div.remove(), 8500);
         });
     </script>
