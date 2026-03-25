@@ -46,12 +46,6 @@
             if (audioAllowed) return;
             audioAllowed = true;
             document.querySelectorAll('video').forEach(v => { v.muted = false; v.play().catch(e => {}); });
-            document.querySelectorAll('iframe').forEach(iframe => {
-                // Iframe neu laden, damit Autoplay mit Ton funktioniert
-                const src = iframe.src;
-                iframe.src = '';
-                iframe.src = src;
-            });
             notificationSound.play().then(() => {
                 notificationSound.pause();
                 notificationSound.currentTime = 0;
@@ -59,60 +53,57 @@
             document.getElementById('audio-unlocker').style.display = 'none';
         }
 
-        // Vlipsy mit Fallback: erst Embed, bei Fehler direkt die Clip-Seite
-        function createVlipsyElement(gifId, userName) {
-            const container = document.createElement('div');
-            container.style.position = 'relative';
-            
-            // Versuche zuerst das offizielle Embed
-            const embedIframe = document.createElement('iframe');
-            embedIframe.src = `https://vlipsy.com/embed/${gifId}?autoplay=1&controls=0&loop=0`;
-            embedIframe.width = "450";
-            embedIframe.height = "253";
-            embedIframe.frameBorder = "0";
-            embedIframe.allow = "autoplay; fullscreen";
-            embedIframe.style.pointerEvents = "none";
-            container.appendChild(embedIframe);
+        // Versucht, die MP4-URL aus der Vlipsy-Seite zu extrahieren
+        async function getVlipsyMp4(gifId) {
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://vlipsy.com/clips/' + gifId)}`;
+            try {
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                const html = data.contents;
 
-            // Fallback: Falls Embed nicht lädt, ersetze durch Direkt-Link zur Clip-Seite
-            let fallbackUsed = false;
-            const fallbackTimer = setTimeout(() => {
-                if (!fallbackUsed && embedIframe.contentWindow === null) {
-                    fallbackUsed = true;
-                    const directIframe = document.createElement('iframe');
-                    directIframe.src = `https://vlipsy.com/clips/${gifId}?autoplay=1`;
-                    directIframe.width = "450";
-                    directIframe.height = "253";
-                    directIframe.frameBorder = "0";
-                    directIframe.allow = "autoplay; fullscreen";
-                    directIframe.style.pointerEvents = "none";
-                    container.innerHTML = '';
-                    container.appendChild(directIframe);
-                }
-            }, 4000); // 4 Sekunden warten, ob Embed lädt
+                // Muster 1: og:video meta-tag
+                let match = html.match(/<meta\s+property="og:video"\s+content="([^"]+\.mp4)"/i);
+                if (match) return match[1];
 
-            // Wenn Embed erfolgreich geladen wird, Timer abbrechen
-            embedIframe.onload = () => {
-                clearTimeout(fallbackTimer);
-            };
-            // Fehlerfall: sofort Fallback
-            embedIframe.onerror = () => {
-                clearTimeout(fallbackTimer);
-                if (!fallbackUsed) {
-                    fallbackUsed = true;
-                    const directIframe = document.createElement('iframe');
-                    directIframe.src = `https://vlipsy.com/clips/${gifId}?autoplay=1`;
-                    directIframe.width = "450";
-                    directIframe.height = "253";
-                    directIframe.frameBorder = "0";
-                    directIframe.allow = "autoplay; fullscreen";
-                    directIframe.style.pointerEvents = "none";
-                    container.innerHTML = '';
-                    container.appendChild(directIframe);
-                }
-            };
-            
-            return container;
+                // Muster 2: videoUrl in einem script (häufig)
+                match = html.match(/videoUrl\s*:\s*"([^"]+\.mp4)"/i);
+                if (match) return match[1];
+
+                // Muster 3: src in einem video-Tag
+                match = html.match(/<video[^>]*src="([^"]+\.mp4)"/i);
+                if (match) return match[1];
+
+                return null;
+            } catch (err) {
+                console.error("Proxy-Fehler:", err);
+                return null;
+            }
+        }
+
+        // Zeigt den Vlipsy-Clip an – zuerst MP4, sonst Iframe
+        async function showVlipsy(gifId, userName, containerDiv) {
+            const mp4 = await getVlipsyMp4(gifId);
+            if (mp4) {
+                const video = document.createElement('video');
+                video.src = mp4;
+                video.autoplay = true;
+                video.loop = false;
+                video.playsInline = true;
+                video.style.width = "450px";
+                video.muted = !audioAllowed;
+                if (audioAllowed) video.volume = 0.7;
+                containerDiv.appendChild(video);
+            } else {
+                // Fallback: Iframe mit direkter Vlipsy-Seite (versuchen wir)
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://vlipsy.com/clips/${gifId}?autoplay=1`;
+                iframe.width = "450";
+                iframe.height = "253";
+                iframe.frameBorder = "0";
+                iframe.allow = "autoplay; fullscreen";
+                iframe.style.pointerEvents = "none";
+                containerDiv.appendChild(iframe);
+            }
         }
 
         db.ref('activeGifs').limitToLast(1).on('child_added', (snap) => {
@@ -128,14 +119,13 @@
             div.className = "media-container";
 
             if (data.type === "vlipsy") {
-                const mediaWrapper = createVlipsyElement(data.gifId, data.userName);
-                div.appendChild(mediaWrapper);
+                showVlipsy(data.gifId, data.userName, div);
                 const nameDiv = document.createElement('div');
                 nameDiv.className = "name-label";
                 nameDiv.innerText = data.userName;
                 div.appendChild(nameDiv);
             } else {
-                // GIPHY: wie gehabt mit Video + Fallback
+                // GIPHY bleibt unverändert
                 const videoUrl = `https://media.giphy.com/media/${data.gifId}/giphy.mp4`;
                 const imageUrl = `https://media.giphy.com/media/${data.gifId}/giphy.gif`;
                 const video = document.createElement('video');
