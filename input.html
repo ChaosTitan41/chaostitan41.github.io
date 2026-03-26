@@ -3,105 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIF & MEME Gönder | CHAOSTITAN41</title>
+    <title>GIF & Meme Gönder | CHAOSTITAN41</title>
     <link rel="icon" type="image/ico" href="image/favicon.ico">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { background: #000 url('bg.png') no-repeat center center fixed; background-size: cover; color: #fff; font-family: 'Impact', sans-serif; text-align: center; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { width: 100%; max-width: 600px; padding: 40px 20px; background: rgba(0, 0, 0, 0.8); border-radius: 20px; border: 1px solid #ff0000; backdrop-filter: blur(10px); }
-        
-        .search-links { margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; }
-        .btn-link { background: #222; color: #fff; border: 1px solid #ff0000; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-size: 0.9rem; transition: 0.3s; font-family: Arial, sans-serif; }
-        .btn-link:hover { background: #ff0000; color: #fff; }
+        /* (Dein bestehendes CSS – unverändert) */
+        body {
+            background: #000 url('bg.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            font-family: 'Impact', sans-serif;
+            text-align: center;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        input { padding: 15px; width: 90%; border-radius: 8px; border: 1px solid #444; background: #000; color: #fff; margin-bottom: 15px; font-size: 1.1rem; text-align: center; }
-        .send-btn { background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%); color: #fff; border: 2px solid #ff0000; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.5rem; cursor: pointer; text-transform: uppercase; font-family: 'Impact'; transition: 0.3s; }
-        .send-btn:hover { background: #ff0000; box-shadow: 0 0 20px #ff0000; }
-        #status { margin-top: 20px; font-family: Arial; font-weight: bold; min-height: 24px; }
-        #gif-preview { max-width: 200px; display: none; margin: 15px auto; border: 2px solid red; border-radius: 10px; }
-        .logo-img { max-width: 200px; margin-bottom: 10px; transition: 0.3s; }
-        .logo-link:hover .logo-img { transform: scale(1.05); filter: drop-shadow(0 0 25px #ff0000); }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            border: 1px solid #ff0000;
+            backdrop-filter: blur(10px);
+        }
+
+        input, select {
+            padding: 15px;
+            width: 90%;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #000;
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .giphy-search-btn {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+            .giphy-search-btn:hover {
+                background: #fff;
+                color: #000;
+            }
+
+        .send-btn {
+            background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%);
+            color: #fff;
+            border: 2px solid #ff0000;
+            padding: 20px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Impact';
+            transition: 0.3s;
+        }
+
+            .send-btn:hover {
+                background: #ff0000;
+                box-shadow: 0 0 20px #ff0000;
+            }
+
+            .send-btn:disabled {
+                background: #333;
+                border-color: #555;
+                cursor: not-allowed;
+            }
+
+        #status {
+            margin-top: 20px;
+            font-family: Arial;
+            font-weight: bold;
+            min-height: 24px;
+        }
+
+        #preview {
+            max-width: 200px;
+            display: none;
+            margin: 15px auto;
+            border: 2px solid red;
+            border-radius: 10px;
+        }
+
+        .logo-link {
+            display: inline-block;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .logo-img {
+            max-width: 200px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .logo-link:hover .logo-img {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 25px #ff0000);
+        }
+
+        .type-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+            .type-selector label {
+                font-family: Arial;
+                font-size: 1.1rem;
+                cursor: pointer;
+            }
+
+            .type-selector input {
+                width: auto;
+                margin-right: 5px;
+            }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="logo-link"><img src="logo.png" class="logo-img" alt="Logo"></a><br>
-        
-        <div class="search-links">
-            <a href="https://giphy.com" target="_blank" class="btn-link">🔍 GIPHY (GIF)</a>
-            <a href="https://vlipsy.com" target="_blank" class="btn-link">🔊 VLIPSY (MEME)</a>
+        <a href="index.html" class="logo-link"><img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo"></a><br>
+        <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA (GIPHY.COM)</a>
+        <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA (VLIPSY.COM)</a>
+        <div class="type-selector">
+            <label><input type="radio" name="mediaType" value="gif" checked> GIF (Giphy)</label>
+            <label><input type="radio" name="mediaType" value="vlipsy"> Meme (Vlipsy)</label>
         </div>
-
         <input type="text" id="username" placeholder="ADINIZ">
-        <input type="text" id="gif-url" placeholder="Linkini Buraya Yapıştır..." oninput="updatePreview()">
-        <img id="gif-preview" alt="Vorschau">
+        <div id="gif-fields"><input type="text" id="media-url" placeholder="Giphy Linkini Buraya Yapıştır..." oninput="updatePreview()"></div>
+        <div id="vlipsy-fields" style="display:none;"><input type="text" id="vlipsy-url" placeholder="Vlipsy Clip Linkini Buraya Yapıştır..." oninput="updatePreview()"><input type="text" id="clip-name" placeholder="Clip Adı (opsiyonel)"></div>
+        <img id="preview" alt="Vorschau">
         <button onclick="send()" class="send-btn">YAYINA GÖNDER!</button>
         <div id="status"></div>
     </div>
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
-            authDomain: "chaostitan41-website.firebaseapp.com",
-            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "chaostitan41-website",
-            storageBucket: "chaostitan41-website.firebasestorage.app",
-            messagingSenderId: "553158677453",
-            appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
+        apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
+        authDomain: "chaostitan41-website.firebaseapp.com",
+        databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "chaostitan41-website",
+        storageBucket: "chaostitan41-website.firebasestorage.app",
+        messagingSenderId: "553158677453",
+        appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const statusDiv = document.getElementById('status');
+        const sendBtn = document.querySelector('.send-btn');
+        let timerInterval;
 
-        function getID(url) {
-            try {
-                if (!url) return null;
-                if (url.includes("vlipsy.com")) {
-                    const id = url.split("/").pop().split("?")[0];
-                    return { id: id, type: "vlipsy" };
-                }
-                if (url.includes("giphy.com")) {
-                    const parts = url.split("/");
-                    let id = url.includes("/gifs/") ? url.split("-").pop().split("/")[0] : parts[parts.length - 2];
-                    return { id: id.split("?")[0], type: "giphy" };
-                }
-                return null;
-            } catch(e) { return null; }
+        const radioGif = document.querySelector('input[value="gif"]');
+        const radioVlipsy = document.querySelector('input[value="vlipsy"]');
+        const gifFields = document.getElementById('gif-fields');
+        const vlipsyFields = document.getElementById('vlipsy-fields');
+
+        radioGif.addEventListener('change', () => { gifFields.style.display = 'block'; vlipsyFields.style.display = 'none'; updatePreview(); });
+        radioVlipsy.addEventListener('change', () => { gifFields.style.display = 'none'; vlipsyFields.style.display = 'block'; updatePreview(); });
+
+        function getGiphyId(url) {
+        try {
+        // Moderne Giphy-URLs haben oft die ID am Ende oder als letzten Teil
+        // Beispiel: https://media.giphy.com/media/v1.../R6gvnAxj2ISzJdbA63/giphy.gif
+        let id = null;
+        // Versuche zuerst einen Match auf den letzten Teil vor /giphy
+        const match = url.match(/\/media\/[^\/]+\/([a-zA-Z0-9]+)\/giphy/);
+        if (match && match[1]) return match[1];
+        // Fallback: alte URL-Struktur
+        const parts = url.split("/");
+        let lastPart = parts[parts.length - 1];
+        if (lastPart.includes("?")) lastPart = lastPart.split("?")[0];
+        if (lastPart === "giphy.gif") lastPart = parts[parts.length - 2];
+        if (lastPart.match(/^[a-zA-Z0-9]+$/)) id = lastPart;
+        return id;
+        } catch(e) { return null; }
         }
 
-        function updatePreview() {
-            const res = getID(document.getElementById('gif-url').value);
-            const img = document.getElementById('gif-preview');
-            if(res && res.type === "giphy") {
-                img.src = `https://media.giphy.com/media/${res.id}/giphy.gif`;
-                img.style.display = "block";
-            } else { img.style.display = "none"; }
+        function getVlipsyId(url) {
+        const match = url.match(/vlipsy\.com\/clips\/([a-zA-Z0-9]+)/);
+        return match ? match[1] : null;
+        }
+
+        async function checkGiphyExists(id) {
+        if (!id || id.length < 3) return false;
+        const testUrl = `https://media.giphy.com/media/${id}/giphy.gif`;
+        return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = testUrl;
+        });
+        }
+
+        async function updatePreview() {
+        const isGif = radioGif.checked;
+        const previewImg = document.getElementById('preview');
+        if (isGif) {
+        const url = document.getElementById('media-url').value;
+        const id = getGiphyId(url);
+        if (id && await checkGiphyExists(id)) {
+        previewImg.src = `https://media.giphy.com/media/${id}/giphy.gif`;
+        previewImg.style.display = 'block';
+        } else {
+        previewImg.style.display = 'none';
+        }
+        } else {
+        const url = document.getElementById('vlipsy-url').value;
+        const id = getVlipsyId(url);
+        if (id) {
+        previewImg.src = 'https://via.placeholder.com/200x112?text=VLIPSY+CLIP';
+        previewImg.style.display = 'block';
+        } else {
+        previewImg.style.display = 'none';
+        }
+        }
+        }
+
+        function checkCooldown() {
+        db.ref('lastMediaTime').once('value', snap => {
+        const lastTime = snap.val() || 0;
+        const diff = (Date.now() - lastTime) / 1000;
+        clearInterval(timerInterval);
+        if (diff < 60) {
+        let timeLeft = Math.ceil(60 - diff);
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = "0.5";
+        timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = "1";
+        statusDiv.innerHTML = "";
+        } else {
+        statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s bekleyin...</span>`;
+        }
+        }, 1000);
+        } else {
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = "1";
+        }
+        });
+        }
+        checkCooldown();
+
+        async function getUserIP() {
+        try {
+        const res = await fetch('https://api64.ipify.org?format=json');
+        const data = await res.json();
+        return data.ip.replace(/\./g, '_');
+        } catch(e) { return "unknown"; }
         }
 
         async function send() {
-            const res = getID(document.getElementById('gif-url').value);
-            const name = document.getElementById('username').value || "Anonim";
-            if(!res) return alert("Hata: Geçersiz Link! Sadece Giphy veya Vlipsy.");
+        const isGif = radioGif.checked;
+        const username = document.getElementById('username').value.trim() || "Anonim";
+        let mediaData = null, targetPath = "";
 
-            let userIP = "unknown";
-            try {
-                const r = await fetch('https://api64.ipify.org?format=json');
-                const d = await r.json();
-                userIP = d.ip.replace(/\./g, '_');
-            } catch(e) {}
-
-            db.ref('activeGifs').push({
-                gifId: res.id,
-                type: res.type,
-                userName: name,
-                userIP: userIP,
-                timestamp: Date.now()
-            }).then(() => {
-                document.getElementById('status').innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
-                document.getElementById('gif-url').value = "";
-                document.getElementById('gif-preview').style.display = "none";
-            });
+        if (isGif) {
+        const url = document.getElementById('media-url').value.trim();
+        const gifId = getGiphyId(url);
+        if (!gifId) { alert("Hata: Geçersiz Giphy Linki!"); return; }
+        const exists = await checkGiphyExists(gifId);
+        if (!exists) { alert("Hata: GIF bulunamadı!"); return; }
+        mediaData = { gifId: gifId, userName: username };
+        targetPath = 'activeGifs';
+        } else {
+        const url = document.getElementById('vlipsy-url').value.trim();
+        const clipId = getVlipsyId(url);
+        if (!clipId) { alert("Hata: Geçersiz Vlipsy Linki!"); return; }
+        const embedUrl = `https://vlipsy.com/embed/${clipId}`;
+        const clipName = document.getElementById('clip-name').value.trim() || username + " - Vlipsy";
+        mediaData = {
+        embedUrl: embedUrl,
+        clipName: clipName,
+        userName: username
+        };
+        targetPath = 'activeVlipsy';
         }
+
+        const userIP = await getUserIP();
+        db.ref('bannedIPs/' + userIP).once('value', snap => {
+        if (snap.exists()) {
+        statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
+        db.ref('bannedRequests').push({ userName: username, userIP: userIP, timestamp: firebase.database.ServerValue.TIMESTAMP });
+        return;
+        }
+        const now = Date.now();
+        db.ref('lastMediaTime').set(now);
+        const entry = { ...mediaData, userIP: userIP, timestamp: now };
+        db.ref(targetPath).push(entry).then(() => {
+        statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
+        if (isGif) document.getElementById('media-url').value = "";
+        else { document.getElementById('vlipsy-url').value = ""; document.getElementById('clip-name').value = ""; }
+        document.getElementById('preview').style.display = "none";
+        const day = new Date().toISOString().split('T')[0];
+        db.ref('stats/daily/' + day + '/' + userIP).set(true);
+        });
+        });
+        }
+
+        db.ref('lastMediaTime').on('value', () => checkCooldown());
+        document.getElementById('media-url').addEventListener('input', updatePreview);
+        document.getElementById('vlipsy-url').addEventListener('input', updatePreview);
     </script>
 </body>
 </html>
