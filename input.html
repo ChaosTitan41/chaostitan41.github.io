@@ -1,225 +1,390 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>ChaosBOT OBS Overlay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIF & Meme Gönder | CHAOSTITAN41</title>
+    <link rel="icon" type="image/ico" href="image/favicon.ico">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         body {
+            background: #000 url('bg.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            font-family: 'Impact', sans-serif;
+            text-align: center;
             margin: 0;
-            background: transparent;
-            overflow: hidden;
-        }
-
-        #videoContainer {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            pointer-events: none;
         }
-
-        video {
-            max-width: 100%;
-            max-height: 100%;
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            border: 1px solid #ff0000;
+            backdrop-filter: blur(10px);
         }
-
-        #debug {
+        input {
+            padding: 15px;
+            width: 90%;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #000;
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .giphy-search-btn {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        .giphy-search-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+        .send-btn {
+            background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%);
+            color: #fff;
+            border: 2px solid #ff0000;
+            padding: 20px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Impact';
+            transition: 0.3s;
+        }
+        .send-btn:hover {
+            background: #ff0000;
+            box-shadow: 0 0 20px #ff0000;
+        }
+        .send-btn:disabled {
+            background: #333;
+            border-color: #555;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            font-family: Arial;
+            font-weight: bold;
+            min-height: 24px;
+        }
+        #preview {
+            max-width: 200px;
             display: none;
+            margin: 15px auto;
+            border: 2px solid red;
+            border-radius: 10px;
+        }
+        .logo-link {
+            display: inline-block;
+        }
+        .logo-img {
+            max-width: 200px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        .logo-link:hover .logo-img {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 25px #ff0000);
         }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
+<div class="container">
+    <a href="index.html" class="logo-link">
+        <img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo">
+    </a><br>
+    
+    <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA (GIPHY)</a>
+    <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA (VLIPSY)</a>
+    <a href="https://www.myinstants.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">SOUND (MYINSTANTS)</a>
+    
+    <input type="text" id="username" placeholder="ADINIZ">
+    <input type="text" id="media-url" placeholder="Giphy, Vlipsy oder MyInstants Link..." oninput="validateInput()">
+    
+    <img id="preview" alt="Vorschau">
+    
+    <button onclick="send()" class="send-btn" disabled>YAYINA GÖNDER!</button>
+    
+    <div id="status"></div>
+</div>
 
-    <div id="debug">Firebase wird initialisiert...</div>
+<script>
+// ── FIX: databaseURL auf .app vereinheitlicht (gleich wie overlay.html) ──
+const firebaseConfig = {
+    apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
+    authDomain: "chaostitan41-website.firebaseapp.com",
+    databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "chaostitan41-website",
+    storageBucket: "chaostitan41-website.firebasestorage.app",
+    messagingSenderId: "553158677453",
+    appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
+};
 
-    <div id="videoContainer">
-        <video id="overlayVideo" autoplay muted playsinline></video>
-    </div>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    <audio id="overlayAudio"></audio>
+const sendBtn = document.querySelector('.send-btn');
+const statusDiv = document.getElementById('status');
+const previewImg = document.getElementById('preview');
+let timerInterval;
 
-    <script>
-        const debugEl = document.getElementById('debug');
-        function log(msg) {
-            console.log(msg);
-            debugEl.innerHTML += '<br>' + msg;
-            // Maximal 20 Zeilen im Debug behalten
-            const lines = debugEl.innerHTML.split('<br>');
-            if (lines.length > 20) {
-                debugEl.innerHTML = lines.slice(-20).join('<br>');
+let currentType = null;
+let currentGifId = null;
+let currentVlipsyId = null;
+let currentMyInstantsUrl = null;
+
+function getGiphyId(url) {
+    try {
+        const patterns = [
+            /\/media\/[^\/]+\/([a-zA-Z0-9]+)\/giphy/,
+            /giphy\.com\/gifs\/(?:[^\/]+\-)?([a-zA-Z0-9]+)/,
+            /giphy\.com\/embed\/([a-zA-Z0-9]+)/,
+            /giphy\.com\/clips\/(?:[^\/]+\-)?([a-zA-Z0-9]+)/
+        ];
+        for (const p of patterns) {
+            const m = url.match(p);
+            if (m && m[1]) return m[1];
+        }
+        const parts = url.split("/");
+        let last = parts[parts.length - 1];
+        if (last.includes("?")) last = last.split("?")[0];
+        if (last === "giphy.gif") last = parts[parts.length - 2];
+        if (last.match(/^[a-zA-Z0-9]+$/)) return last;
+        return null;
+    } catch(e) { return null; }
+}
+
+function getVlipsyId(url) {
+    try {
+        const patterns = [
+            /vlipsy\.com\/clip\/([a-zA-Z0-9]+)/,
+            /vlipsy\.com\/clips\/([a-zA-Z0-9]+)/,
+            /vlipsy\.com\/embed\/([a-zA-Z0-9]+)/
+        ];
+        for (const p of patterns) {
+            const m = url.match(p);
+            if (m && m[1]) return m[1];
+        }
+        return null;
+    } catch(e) { return null; }
+}
+
+function isMyInstants(url) {
+    try {
+        const clean = url.split('?')[0];
+        return clean.includes("myinstants.com/instant/") ||
+               /myinstants\.com\/[a-z]{2}\/instant\//.test(clean);
+    } catch(e) { return false; }
+}
+
+async function checkGiphyExists(id) {
+    if (!id || id.length < 3) return false;
+    const testUrl = `https://media.giphy.com/media/${id}/giphy.gif`;
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = testUrl;
+    });
+}
+
+async function validateInput() {
+    const url = document.getElementById('media-url').value.trim();
+    
+    currentType = null;
+    currentGifId = null;
+    currentVlipsyId = null;
+    currentMyInstantsUrl = null;
+    previewImg.style.display = 'none';
+    
+    if (!url) {
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = "0.5";
+        return;
+    }
+    
+    // 1) Giphy
+    const gifId = getGiphyId(url);
+    if (gifId && await checkGiphyExists(gifId)) {
+        currentType = "gif";
+        currentGifId = gifId;
+        previewImg.src = `https://media.giphy.com/media/${gifId}/giphy.gif`;
+        previewImg.style.display = 'block';
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = "1";
+        return;
+    }
+    
+    // 2) Vlipsy
+    const vlipsyId = getVlipsyId(url);
+    if (vlipsyId) {
+        currentType = "vlipsy";
+        currentVlipsyId = vlipsyId;
+        previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+CLIP';
+        previewImg.style.display = 'block';
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = "1";
+        return;
+    }
+    
+    // 3) MyInstants
+    if (isMyInstants(url)) {
+        currentType = "myinstants";
+        currentMyInstantsUrl = url;
+        previewImg.src = 'https://via.placeholder.com/200x112/000000/FF007F?text=MYINSTANTS+SOUND';
+        previewImg.style.display = 'block';
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = "1";
+        return;
+    }
+    
+    sendBtn.disabled = true;
+    sendBtn.style.opacity = "0.5";
+}
+
+function checkCooldown() {
+    db.ref('lastMediaTime').once('value', snap => {
+        const lastTime = snap.val() || 0;
+        const diff = (Date.now() - lastTime) / 1000;
+        clearInterval(timerInterval);
+        
+        if (diff < 30) {
+            let timeLeft = Math.ceil(30 - diff);
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = "0.5";
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (currentType !== null) {
+                        sendBtn.disabled = false;
+                        sendBtn.style.opacity = "1";
+                    }
+                    statusDiv.innerHTML = "";
+                } else {
+                    statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s bekleyin...</span>`;
+                }
+            }, 1000);
+        } else {
+            if (currentType !== null) {
+                sendBtn.disabled = false;
+                sendBtn.style.opacity = "1";
             }
         }
+    });
+}
 
-        // ── FIX 1: databaseURL auf .app vereinheitlicht (gleich wie send.html) ──
-        const firebaseConfig = {
-            apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
-            authDomain: "chaostitan41-website.firebaseapp.com",
-            databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "chaostitan41-website",
-            storageBucket: "chaostitan41-website.firebasestorage.app",
-            messagingSenderId: "553158677453",
-            appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
+async function getUserIP() {
+    try {
+        const res = await fetch('https://api64.ipify.org?format=json');
+        const data = await res.json();
+        return data.ip.replace(/\./g, '_');
+    } catch(e) { return "unknown"; }
+}
+
+async function send() {
+    const username = document.getElementById('username').value.trim() || "Anonim";
+    
+    if (!currentType) return;
+    
+    let mediaData = null;
+    let targetPath = "";
+    
+    if (currentType === "gif" && currentGifId) {
+        const exists = await checkGiphyExists(currentGifId);
+        if (!exists) {
+            alert("Hata: GIF bulunamadı!");
+            return;
+        }
+        mediaData = { gifId: currentGifId, userName: username };
+        targetPath = 'activeGifs';
+    } 
+    else if (currentType === "vlipsy" && currentVlipsyId) {
+        mediaData = {
+            embedUrl: `https://vlipsy.com/embed/${currentVlipsyId}`,
+            clipName: username + " - Vlipsy",
+            userName: username
         };
-
-        try {
-            firebase.initializeApp(firebaseConfig);
-            log('Firebase initialisiert');
-        } catch (e) {
-            log('Firebase Fehler: ' + e.message);
+        targetPath = 'activeVlipsy';
+    } 
+    else if (currentType === "myinstants" && currentMyInstantsUrl) {
+        mediaData = {
+            embedUrl: currentMyInstantsUrl,
+            clipName: username + " - MyInstants",
+            userName: username
+        };
+        targetPath = 'activeMyInstants';
+    } 
+    else {
+        return;
+    }
+    
+    const userIP = await getUserIP();
+    
+    db.ref('bannedIPs/' + userIP).once('value', snap => {
+        if (snap.exists()) {
+            statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
+            db.ref('bannedRequests').push({
+                userName: username,
+                userIP: userIP,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            return;
         }
-
-        const db = firebase.database();
-        const videoEl = document.getElementById('overlayVideo');
-        const audioEl = document.getElementById('overlayAudio');
-        let currentTimeout = null;
-
-        // ── FIX 2: Startzeitpunkt merken – nur NEUE Events verarbeiten ──
-        const startTime = Date.now();
-        log('Startzeit: ' + startTime);
-
-        function clearTimers() {
-            if (currentTimeout) {
-                clearTimeout(currentTimeout);
-                currentTimeout = null;
-            }
-        }
-
-        function stopAll() {
-            clearTimers();
-            try {
-                videoEl.pause();
-                videoEl.removeAttribute('src');
-                videoEl.load();
-            } catch {}
-            try {
-                audioEl.pause();
-                audioEl.removeAttribute('src');
-                audioEl.load();
-            } catch {}
-        }
-
-        async function playGiphy(gifId) {
-            log('GIF empfangen: ' + gifId);
-            stopAll();
-            if (!gifId) return;
-
-            try {
-                const res = await fetch(`/api/giphy/${gifId}`);
-                const data = await res.json();
-                if (!data.success) {
-                    log('Giphy Fehler: ' + data.error);
-                    return;
-                }
-
-                videoEl.src = data.videoUrl;
-                videoEl.loop = false;
-                videoEl.muted = false;
-                videoEl.play().catch(e => log('Giphy Play Error: ' + e.message));
-
-                clearTimers();
-                currentTimeout = setTimeout(stopAll, 8500);
-            } catch (err) {
-                log('Giphy Request Error: ' + err.message);
-            }
-        }
-
-        async function playVlipsyFromEmbedUrl(embedUrl) {
-            log('Vlipsy empfangen: ' + embedUrl);
-            stopAll();
-            if (!embedUrl) return;
-
-            try {
-                const clipId = embedUrl.split('/').pop();
-                const res = await fetch(`/api/vlipsy/${clipId}`);
-                const data = await res.json();
-
-                if (!data.success) {
-                    log('Vlipsy Fehler: ' + data.error);
-                    return;
-                }
-
-                videoEl.src = data.videoUrl;
-                videoEl.loop = false;
-                videoEl.muted = false;
-                videoEl.play().catch(e => log('Vlipsy Play Error: ' + e.message));
-
-                clearTimers();
-                currentTimeout = setTimeout(stopAll, 8500);
-            } catch (err) {
-                log('Vlipsy Request Error: ' + err.message);
-            }
-        }
-
-        async function playMyInstantsFromUrl(pageUrl) {
-            log('MyInstants empfangen: ' + pageUrl);
-            stopAll();
-            if (!pageUrl) return;
-
-            try {
-                const res = await fetch(`/api/myinstants?url=${encodeURIComponent(pageUrl)}`);
-                const data = await res.json();
-
-                if (!data.success) {
-                    log('MyInstants Fehler: ' + data.error);
-                    return;
-                }
-
-                audioEl.src = data.audioUrl;
-                audioEl.loop = false;
-                audioEl.play().catch(e => log('MyInstants Play Error: ' + e.message));
-
-                clearTimers();
-                currentTimeout = setTimeout(stopAll, 8500);
-            } catch (err) {
-                log('MyInstants Request Error: ' + err.message);
-            }
-        }
-
-        // ── FIX 3: Timestamp-Check – alte Einträge beim Start ignorieren ──
-        function isNew(val) {
-            if (!val || !val.timestamp) return false;
-            const age = Date.now() - val.timestamp;
-            // Ignoriere Einträge älter als 10 Sekunden (Puffer für Ladezeit)
-            if (age > 10000) {
-                log('Alten Eintrag ignoriert (Alter: ' + Math.round(age/1000) + 's)');
-                return false;
-            }
-            return true;
-        }
-
-        log('Richte Listener ein...');
-
-        db.ref('.info/connected').on('value', (snap) => {
-            log('Firebase verbunden: ' + snap.val());
+        
+        // ── FIX: ServerValue.TIMESTAMP verwenden statt Date.now() ──
+        // Damit Overlay den echten Server-Zeitstempel zum Filtern benutzen kann
+        const entry = { 
+            ...mediaData, 
+            userIP: userIP, 
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
+        
+        db.ref(targetPath).push(entry).then(() => {
+            // lastMediaTime NACH dem Push setzen
+            db.ref('lastMediaTime').set(Date.now());
+            
+            statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
+            document.getElementById('media-url').value = "";
+            previewImg.style.display = "none";
+            currentType = null;
+            currentGifId = null;
+            currentVlipsyId = null;
+            currentMyInstantsUrl = null;
+            
+            const day = new Date().toISOString().split('T')[0];
+            db.ref('stats/daily/' + day + '/' + userIP).set(true);
+            
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = "0.5";
+        }).catch(err => {
+            statusDiv.innerHTML = "<span style='color:red'>Hata: " + err.message + "</span>";
         });
+    });
+}
 
-        // ── FIX 4: limitToLast(1) + Timestamp-Filter kombiniert ──
-        db.ref('activeGifs').limitToLast(1).on('child_added', snap => {
-            const val = snap.val();
-            log('GIF Event: ' + JSON.stringify(val));
-            if (isNew(val) && val.gifId) playGiphy(val.gifId);
-        });
-
-        db.ref('activeVlipsy').limitToLast(1).on('child_added', snap => {
-            const val = snap.val();
-            log('Vlipsy Event: ' + JSON.stringify(val));
-            if (isNew(val) && val.embedUrl) playVlipsyFromEmbedUrl(val.embedUrl);
-        });
-
-        db.ref('activeMyInstants').limitToLast(1).on('child_added', snap => {
-            const val = snap.val();
-            log('MyInstants Event: ' + JSON.stringify(val));
-            if (isNew(val) && val.embedUrl) playMyInstantsFromUrl(val.embedUrl);
-        });
-
-        log('Setup abgeschlossen');
-    </script>
-
+db.ref('lastMediaTime').on('value', () => checkCooldown());
+checkCooldown();
+</script>
 </body>
 </html>
