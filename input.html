@@ -158,7 +158,7 @@
         let timerInterval;
         let isCooldownActive = false;
 
-        // ID-Extraktions-Funktionen (unverändert)
+        // ID-Extraktions-Funktionen
         function getGiphyId(url) {
             const match = url.match(/(?:giphy\.com\/(?:gifs|stickers|clips)\/(?:.*-)?|media\.giphy\.com\/media\/(?:v1\.[^\/]+\/)?|giphy\.com\/embed\/)([a-zA-Z0-9]+)/i);
             return match ? match[1] : null;
@@ -174,6 +174,7 @@
             return match ? match[1] : null;
         }
 
+        // Giphy-Validierung
         async function checkGiphyExists(id) {
             return new Promise(resolve => {
                 const img = new Image();
@@ -183,6 +184,7 @@
             });
         }
 
+        // Input-Validierung und Vorschau
         async function validateInput() {
             const url = document.getElementById('media-url').value.trim();
             const preview = document.getElementById('preview');
@@ -192,6 +194,7 @@
 
             if (!url) return;
 
+            // Giphy-Check (mit Vorschau)
             const giphyId = getGiphyId(url);
             if (giphyId) {
                 const exists = await checkGiphyExists(giphyId);
@@ -203,12 +206,14 @@
                 return;
             }
 
+            // Vlipsy-Check
             const vlipsyId = getVlipsyId(url);
             if (vlipsyId) {
                 if (!isCooldownActive) sendBtn.disabled = false;
                 return;
             }
 
+            // MyInstants-Check
             const myInstantsId = getMyInstantsId(url);
             if (myInstantsId) {
                 if (!isCooldownActive) sendBtn.disabled = false;
@@ -216,6 +221,7 @@
             }
         }
 
+        // Cooldown-System
         function checkCooldown() {
             db.ref('lastMediaTime').once('value', snap => {
                 const lastTime = snap.val() || 0;
@@ -242,6 +248,7 @@
             });
         }
 
+        // User-IP abrufen
         async function getUserIP() {
             try {
                 const res = await fetch('https://api64.ipify.org?format=json');
@@ -250,7 +257,7 @@
             } catch(e) { return "unknown"; }
         }
 
-        // KORRIGIERT: Senden-Funktion mit richtigen Firebase-Pfaden und Vlipsy-Timing
+        // Haupt-Sende-Funktion
         async function send() {
             const username = document.getElementById('username').value.trim() || "Anonim";
             const url = document.getElementById('media-url').value.trim();
@@ -263,29 +270,30 @@
             let targetPath = "";
 
             if (giphyId) {
+                // Giphy-Handling (unverändert)
                 const exists = await checkGiphyExists(giphyId);
                 if (!exists) { alert("GIF nicht gefunden!"); return; }
                 mediaData = { gifId: giphyId, userName: username };
                 targetPath = 'activeGifs';
             } else if (vlipsyId) {
+                // Vlipsy-Handling (mit Timing-Kontrolle)
                 mediaData = {
                     embedUrl: `https://vlipsy.com/embed/${vlipsyId}`,
                     clipName: username + " - Vlipsy",
                     userName: username,
-                    // NEU: Zusätzliche Steuerungsparameter für Vlipsy
-                    maxDuration: 8.5, // Maximale Abspieldauer in Sekunden
-                    loop: false, // Kein Loop
-                    autoStop: true // Automatisches Stoppen
+                    maxDuration: 8.5,
+                    loop: false,
+                    autoStop: true
                 };
                 targetPath = 'activeVlipsy';
             } else if (myInstantsId) {
+                // MyInstants-Handling (gleiche Struktur wie Vlipsy)
                 mediaData = {
-                    // KORRIGIERT: Richtige URL-Struktur für MyInstants
-                    embedUrl: `https://www.myinstants.com/instant/${myInstantsId}/embed/`,
-                    soundName: username + " - MyInstants",
+                    embedUrl: `https://www.myinstants.com/instant/${myInstantsId}/`,
+                    clipName: username + " - MyInstants",
                     userName: username
                 };
-                targetPath = 'activeMyInstants'; // KORRIGIERT: Richtiger Firebase-Pfad
+                targetPath = 'activeVlipsy'; // Gleicher Firebase-Pfad wie Vlipsy
             } else {
                 alert("Ungültiger Link!");
                 return;
@@ -293,6 +301,7 @@
 
             const userIP = await getUserIP();
             
+            // Ban-Check und Senden
             db.ref('bannedIPs/' + userIP).once('value', snap => {
                 if (snap.exists()) {
                     statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
@@ -317,6 +326,7 @@
             });
         }
 
+        // Initialisierung
         checkCooldown();
         db.ref('lastMediaTime').on('value', () => checkCooldown());
     </script>
