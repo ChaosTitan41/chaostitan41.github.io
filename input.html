@@ -128,7 +128,6 @@
 </div>
 
 <script>
-// ── FIX: databaseURL auf .app vereinheitlicht (gleich wie overlay.html) ──
 const firebaseConfig = {
     apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
     authDomain: "chaostitan41-website.firebaseapp.com",
@@ -152,7 +151,9 @@ let currentGifId = null;
 let currentVlipsyId = null;
 let currentMyInstantsUrl = null;
 
+// --- FIX: GIPHY-ERKENNUNG VERBESSERT ---
 function getGiphyId(url) {
+    if (!url.includes("giphy.com")) return null; // Verhindert, dass Vlipsy-Links als Giphy erkannt werden
     try {
         const patterns = [
             /\/media\/[^\/]+\/([a-zA-Z0-9]+)\/giphy/,
@@ -178,6 +179,7 @@ function getVlipsyId(url) {
         const patterns = [
             /vlipsy\.com\/clip\/([a-zA-Z0-9]+)/,
             /vlipsy\.com\/clips\/([a-zA-Z0-9]+)/,
+            /vlipsy\.com\/v\/([a-zA-Z0-9]+)/, // Neues Vlipsy Format
             /vlipsy\.com\/embed\/([a-zA-Z0-9]+)/
         ];
         for (const p of patterns) {
@@ -209,7 +211,6 @@ async function checkGiphyExists(id) {
 
 async function validateInput() {
     const url = document.getElementById('media-url').value.trim();
-    
     currentType = null;
     currentGifId = null;
     currentVlipsyId = null;
@@ -222,7 +223,7 @@ async function validateInput() {
         return;
     }
     
-    // 1) Giphy
+    // 1) Giphy Check
     const gifId = getGiphyId(url);
     if (gifId && await checkGiphyExists(gifId)) {
         currentType = "gif";
@@ -234,7 +235,7 @@ async function validateInput() {
         return;
     }
     
-    // 2) Vlipsy
+    // 2) Vlipsy Check
     const vlipsyId = getVlipsyId(url);
     if (vlipsyId) {
         currentType = "vlipsy";
@@ -246,7 +247,7 @@ async function validateInput() {
         return;
     }
     
-    // 3) MyInstants
+    // 3) MyInstants Check
     if (isMyInstants(url)) {
         currentType = "myinstants";
         currentMyInstantsUrl = url;
@@ -271,7 +272,6 @@ function checkCooldown() {
             let timeLeft = Math.ceil(30 - diff);
             sendBtn.disabled = true;
             sendBtn.style.opacity = "0.5";
-            
             timerInterval = setInterval(() => {
                 timeLeft--;
                 if (timeLeft <= 0) {
@@ -304,22 +304,16 @@ async function getUserIP() {
 
 async function send() {
     const username = document.getElementById('username').value.trim() || "Anonim";
-    
     if (!currentType) return;
     
     let mediaData = null;
     let targetPath = "";
     
-    if (currentType === "gif" && currentGifId) {
-        const exists = await checkGiphyExists(currentGifId);
-        if (!exists) {
-            alert("Hata: GIF bulunamadı!");
-            return;
-        }
+    if (currentType === "gif") {
         mediaData = { gifId: currentGifId, userName: username };
         targetPath = 'activeGifs';
     } 
-    else if (currentType === "vlipsy" && currentVlipsyId) {
+    else if (currentType === "vlipsy") {
         mediaData = {
             embedUrl: `https://vlipsy.com/embed/${currentVlipsyId}`,
             clipName: username + " - Vlipsy",
@@ -327,33 +321,22 @@ async function send() {
         };
         targetPath = 'activeVlipsy';
     } 
-    else if (currentType === "myinstants" && currentMyInstantsUrl) {
+    else if (currentType === "myinstants") {
         mediaData = {
             embedUrl: currentMyInstantsUrl,
             clipName: username + " - MyInstants",
             userName: username
         };
         targetPath = 'activeMyInstants';
-    } 
-    else {
-        return;
     }
     
     const userIP = await getUserIP();
-    
     db.ref('bannedIPs/' + userIP).once('value', snap => {
         if (snap.exists()) {
             statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
-            db.ref('bannedRequests').push({
-                userName: username,
-                userIP: userIP,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
             return;
         }
         
-        // ── FIX: ServerValue.TIMESTAMP verwenden statt Date.now() ──
-        // Damit Overlay den echten Server-Zeitstempel zum Filtern benutzen kann
         const entry = { 
             ...mediaData, 
             userIP: userIP, 
@@ -361,20 +344,11 @@ async function send() {
         };
         
         db.ref(targetPath).push(entry).then(() => {
-            // lastMediaTime NACH dem Push setzen
             db.ref('lastMediaTime').set(Date.now());
-            
             statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
             document.getElementById('media-url').value = "";
             previewImg.style.display = "none";
             currentType = null;
-            currentGifId = null;
-            currentVlipsyId = null;
-            currentMyInstantsUrl = null;
-            
-            const day = new Date().toISOString().split('T')[0];
-            db.ref('stats/daily/' + day + '/' + userIP).set(true);
-            
             sendBtn.disabled = true;
             sendBtn.style.opacity = "0.5";
         }).catch(err => {
