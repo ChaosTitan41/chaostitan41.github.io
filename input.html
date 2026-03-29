@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GIF & Meme Gönder | CHAOSTITAN41</title>
     <link rel="icon" type="image/ico" href="image/favicon.ico">
-
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
     <style>
         body {
             background: #000 url('bg.png') no-repeat center center fixed;
@@ -22,7 +20,6 @@
             align-items: center;
             justify-content: center;
         }
-
         .container {
             width: 100%;
             max-width: 600px;
@@ -32,7 +29,6 @@
             border: 1px solid #ff0000;
             backdrop-filter: blur(10px);
         }
-
         input {
             padding: 15px;
             width: 90%;
@@ -45,7 +41,6 @@
             text-align: center;
             font-family: Arial, sans-serif;
         }
-
         .giphy-search-btn {
             display: inline-block;
             background: #000;
@@ -59,12 +54,10 @@
             font-size: 0.9rem;
             transition: 0.3s;
         }
-
         .giphy-search-btn:hover {
             background: #fff;
             color: #000;
         }
-
         .send-btn {
             background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%);
             color: #fff;
@@ -78,25 +71,21 @@
             font-family: 'Impact';
             transition: 0.3s;
         }
-
         .send-btn:hover {
             background: #ff0000;
             box-shadow: 0 0 20px #ff0000;
         }
-
         .send-btn:disabled {
             background: #333;
             border-color: #555;
             cursor: not-allowed;
         }
-
         #status {
             margin-top: 20px;
             font-family: Arial;
             font-weight: bold;
             min-height: 24px;
         }
-
         #preview {
             max-width: 200px;
             display: none;
@@ -104,17 +93,14 @@
             border: 2px solid red;
             border-radius: 10px;
         }
-
         .logo-link {
             display: inline-block;
         }
-
         .logo-img {
             max-width: 200px;
             margin-bottom: 10px;
             transition: all 0.3s ease;
         }
-
         .logo-link:hover .logo-img {
             transform: scale(1.05);
             filter: drop-shadow(0 0 25px #ff0000);
@@ -122,23 +108,22 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <a href="index.html" class="logo-link">
         <img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo">
     </a><br>
-
+    
     <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA (GIPHY)</a>
     <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA (VLIPSY)</a>
     <a href="https://www.myinstants.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">SOUND (MYINSTANTS)</a>
-
+    
     <input type="text" id="username" placeholder="ADINIZ">
     <input type="text" id="media-url" placeholder="Giphy, Vlipsy oder MyInstants Link..." oninput="validateInput()">
-
+    
     <img id="preview" alt="Vorschau">
-
+    
     <button onclick="send()" class="send-btn" disabled>YAYINA GÖNDER!</button>
-
+    
     <div id="status"></div>
 </div>
 
@@ -156,20 +141,18 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const sendBtn    = document.querySelector('.send-btn');
-const statusDiv  = document.getElementById('status');
+const sendBtn = document.querySelector('.send-btn');
+const statusDiv = document.getElementById('status');
 const previewImg = document.getElementById('preview');
-
 let timerInterval;
 
-// "gif", "vlipsy", "myinstants" oder null
-let currentType          = null;
-let currentGifId         = null;
-let currentVlipsyId      = null;
+// Merker für erkannten Typ
+let currentType = null;
+let currentGifId = null;
+let currentVlipsyId = null;
 let currentMyInstantsUrl = null;
 
-// ─── URL-Erkennung ─────────────────────
-
+// URL-Erkennungsfunktionen
 function getGiphyId(url) {
     try {
         const patterns = [
@@ -188,9 +171,7 @@ function getGiphyId(url) {
         if (last === "giphy.gif") last = parts[parts.length - 2];
         if (last.match(/^[a-zA-Z0-9]+$/)) return last;
         return null;
-    } catch(e) { 
-        return null; 
-    }
+    } catch(e) { return null; }
 }
 
 function getVlipsyId(url) {
@@ -205,20 +186,15 @@ function getVlipsyId(url) {
             if (m && m[1]) return m[1];
         }
         return null;
-    } catch(e) { 
-        return null; 
-    }
+    } catch(e) { return null; }
 }
 
-// MyInstants: /instant/ oder /xx/instant/
 function isMyInstants(url) {
     try {
         const clean = url.split('?')[0];
         return clean.includes("myinstants.com/instant/") ||
                /myinstants\.com\/[a-z]{2}\/instant\//.test(clean);
-    } catch(e) {
-        return false;
-    }
+    } catch(e) { return false; }
 }
 
 async function checkGiphyExists(id) {
@@ -226,33 +202,32 @@ async function checkGiphyExists(id) {
     const testUrl = `https://media.giphy.com/media/${id}/giphy.gif`;
     return new Promise(resolve => {
         const img = new Image();
-        img.onload  = () => resolve(true);
+        img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
-        img.src     = testUrl;
+        img.src = testUrl;
     });
 }
 
-// ─── Eingabe validieren ─────────────────
-
 async function validateInput() {
     const url = document.getElementById('media-url').value.trim();
-
-    currentType          = null;
-    currentGifId         = null;
-    currentVlipsyId      = null;
+    
+    // Reset
+    currentType = null;
+    currentGifId = null;
+    currentVlipsyId = null;
     currentMyInstantsUrl = null;
     previewImg.style.display = 'none';
-
+    
     if (!url) {
         sendBtn.disabled = true;
         sendBtn.style.opacity = "0.5";
         return;
     }
-
-    // 1) Giphy
+    
+    // 1) Giphy prüfen
     const gifId = getGiphyId(url);
     if (gifId && await checkGiphyExists(gifId)) {
-        currentType  = "gif";
+        currentType = "gif";
         currentGifId = gifId;
         previewImg.src = `https://media.giphy.com/media/${gifId}/giphy.gif`;
         previewImg.style.display = 'block';
@@ -260,11 +235,11 @@ async function validateInput() {
         sendBtn.style.opacity = "1";
         return;
     }
-
-    // 2) Vlipsy
+    
+    // 2) Vlipsy prüfen
     const vlipsyId = getVlipsyId(url);
     if (vlipsyId) {
-        currentType     = "vlipsy";
+        currentType = "vlipsy";
         currentVlipsyId = vlipsyId;
         previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+CLIP';
         previewImg.style.display = 'block';
@@ -272,10 +247,10 @@ async function validateInput() {
         sendBtn.style.opacity = "1";
         return;
     }
-
-    // 3) MyInstants
+    
+    // 3) MyInstants prüfen
     if (isMyInstants(url)) {
-        currentType          = "myinstants";
+        currentType = "myinstants";
         currentMyInstantsUrl = url;
         previewImg.src = 'https://via.placeholder.com/200x112/000000/FF007F?text=MYINSTANTS+SOUND';
         previewImg.style.display = 'block';
@@ -283,25 +258,23 @@ async function validateInput() {
         sendBtn.style.opacity = "1";
         return;
     }
-
+    
     // Nichts erkannt
     sendBtn.disabled = true;
     sendBtn.style.opacity = "0.5";
 }
-
-// ─── Cooldown ──────────────────────────
 
 function checkCooldown() {
     db.ref('lastMediaTime').once('value', snap => {
         const lastTime = snap.val() || 0;
         const diff = (Date.now() - lastTime) / 1000;
         clearInterval(timerInterval);
-
+        
         if (diff < 30) {
             let timeLeft = Math.ceil(30 - diff);
             sendBtn.disabled = true;
             sendBtn.style.opacity = "0.5";
-
+            
             timerInterval = setInterval(() => {
                 timeLeft--;
                 if (timeLeft <= 0) {
@@ -324,49 +297,42 @@ function checkCooldown() {
     });
 }
 
-// ─── IP holen ──────────────────────────
-
 async function getUserIP() {
     try {
         const res = await fetch('https://api64.ipify.org?format=json');
         const data = await res.json();
         return data.ip.replace(/\./g, '_');
-    } catch(e) { 
-        return "unknown"; 
-    }
+    } catch(e) { return "unknown"; }
 }
-
-// ─── Senden ────────────────────────────
 
 async function send() {
     const username = document.getElementById('username').value.trim() || "Anonim";
-
+    
     if (!currentType) return;
-
-    let mediaData  = null;
+    
+    let mediaData = null;
     let targetPath = "";
-
-    // GIPHY – unverändert
+    
+    // GIPHY
     if (currentType === "gif" && currentGifId) {
         const exists = await checkGiphyExists(currentGifId);
         if (!exists) {
             alert("Hata: GIF bulunamadı!");
             return;
         }
-        mediaData  = { gifId: currentGifId, userName: username };
+        mediaData = { gifId: currentGifId, userName: username };
         targetPath = 'activeGifs';
     } 
-    // VLIPSY – unverändert
+    // VLIPSY
     else if (currentType === "vlipsy" && currentVlipsyId) {
-        const clipId = currentVlipsyId;
         mediaData = {
-            embedUrl: `https://vlipsy.com/embed/${clipId}`,
+            embedUrl: `https://vlipsy.com/embed/${currentVlipsyId}`,
             clipName: username + " - Vlipsy",
             userName: username
         };
         targetPath = 'activeVlipsy';
     } 
-    // MYINSTANTS – neu, aber gleiche Struktur (embedUrl, clipName, userName)
+    // MYINSTANTS
     else if (currentType === "myinstants" && currentMyInstantsUrl) {
         mediaData = {
             embedUrl: currentMyInstantsUrl,
@@ -378,9 +344,9 @@ async function send() {
     else {
         return;
     }
-
+    
     const userIP = await getUserIP();
-
+    
     db.ref('bannedIPs/' + userIP).once('value', snap => {
         if (snap.exists()) {
             statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
@@ -391,37 +357,37 @@ async function send() {
             });
             return;
         }
-
+        
         const now = Date.now();
         db.ref('lastMediaTime').set(now);
-
+        
         const entry = { 
             ...mediaData, 
             userIP: userIP, 
             timestamp: now 
         };
-
+        
         db.ref(targetPath).push(entry).then(() => {
             statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
             document.getElementById('media-url').value = "";
             previewImg.style.display = "none";
-            currentType          = null;
-            currentGifId         = null;
-            currentVlipsyId      = null;
+            currentType = null;
+            currentGifId = null;
+            currentVlipsyId = null;
             currentMyInstantsUrl = null;
-
+            
             const day = new Date().toISOString().split('T')[0];
             db.ref('stats/daily/' + day + '/' + userIP).set(true);
-
+            
             sendBtn.disabled = true;
             sendBtn.style.opacity = "0.5";
         });
     });
 }
 
+// Initialisierung
 db.ref('lastMediaTime').on('value', () => checkCooldown());
 checkCooldown();
 </script>
-
 </body>
 </html>
