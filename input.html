@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GIF & Meme Gönder | CHAOSTITAN41</title>
     <link rel="icon" type="image/ico" href="image/favicon.ico">
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <style>
-        /* (Dein bestehendes CSS – unverändert) */
         body {
             background: #000 url('bg.png') no-repeat center center fixed;
             background-size: cover;
@@ -32,7 +33,7 @@
             backdrop-filter: blur(10px);
         }
 
-        input, select {
+        input {
             padding: 15px;
             width: 90%;
             border-radius: 8px;
@@ -59,10 +60,10 @@
             transition: 0.3s;
         }
 
-            .giphy-search-btn:hover {
-                background: #fff;
-                color: #000;
-            }
+        .giphy-search-btn:hover {
+            background: #fff;
+            color: #000;
+        }
 
         .send-btn {
             background: linear-gradient(180deg, #8B0000 0%, #4a0000 100%);
@@ -78,16 +79,16 @@
             transition: 0.3s;
         }
 
-            .send-btn:hover {
-                background: #ff0000;
-                box-shadow: 0 0 20px #ff0000;
-            }
+        .send-btn:hover {
+            background: #ff0000;
+            box-shadow: 0 0 20px #ff0000;
+        }
 
-            .send-btn:disabled {
-                background: #333;
-                border-color: #555;
-                cursor: not-allowed;
-            }
+        .send-btn:disabled {
+            background: #333;
+            border-color: #555;
+            cursor: not-allowed;
+        }
 
         #status {
             margin-top: 20px;
@@ -96,18 +97,49 @@
             min-height: 24px;
         }
 
-        #preview {
-            max-width: 200px;
-            display: none;
+        #preview-container {
+            max-width: 300px;
             margin: 15px auto;
+            position: relative;
+            display: none;
+        }
+
+        #preview {
+            max-width: 100%;
             border: 2px solid red;
             border-radius: 10px;
         }
 
+        #preview-video {
+            max-width: 100%;
+            border: 2px solid red;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .play-button::after {
+            content: '▶';
+            color: white;
+            font-size: 24px;
+            margin-left: 4px;
+        }
+
         .logo-link {
             display: inline-block;
-            text-decoration: none;
-            cursor: pointer;
         }
 
         .logo-img {
@@ -120,212 +152,278 @@
             transform: scale(1.05);
             filter: drop-shadow(0 0 25px #ff0000);
         }
-
-        .type-selector {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-            .type-selector label {
-                font-family: Arial;
-                font-size: 1.1rem;
-                cursor: pointer;
-            }
-
-            .type-selector input {
-                width: auto;
-                margin-right: 5px;
-            }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="logo-link"><img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo"></a><br>
-        <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA (GIPHY.COM)</a>
-        <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA (VLIPSY.COM)</a>
-        <div class="type-selector">
-            <label><input type="radio" name="mediaType" value="gif" checked> GIF (Giphy)</label>
-            <label><input type="radio" name="mediaType" value="vlipsy"> Meme (Vlipsy)</label>
-        </div>
-        <input type="text" id="username" placeholder="ADINIZ">
-        <div id="gif-fields"><input type="text" id="media-url" placeholder="Giphy Linkini Buraya Yapıştır..." oninput="updatePreview()"></div>
-        <div id="vlipsy-fields" style="display:none;"><input type="text" id="vlipsy-url" placeholder="Vlipsy Clip Linkini Buraya Yapıştır..." oninput="updatePreview()"><input type="text" id="clip-name" placeholder="Clip Adı (opsiyonel)"></div>
-        <img id="preview" alt="Vorschau">
-        <button onclick="send()" class="send-btn">YAYINA GÖNDER!</button>
-        <div id="status"></div>
+
+<div class="container">
+    <a href="index.html" class="logo-link">
+        <img src="logo.png" class="logo-img">
+    </a><br>
+
+    <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA (GIPHY)</a>
+    <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA</a>
+
+    <input type="text" id="username" placeholder="ADINIZ">
+    <input type="text" id="media-url" placeholder="GIF oder Vlipsy Link..." oninput="validateInput()">
+
+    <div id="preview-container">
+        <img id="preview">
+        <video id="preview-video" loop muted></video>
+        <button class="play-button" onclick="toggleVideoPlay()"></button>
     </div>
 
-    <script>
-        const firebaseConfig = {
-        apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
-        authDomain: "chaostitan41-website.firebaseapp.com",
-        databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "chaostitan41-website",
-        storageBucket: "chaostitan41-website.firebasestorage.app",
-        messagingSenderId: "553158677453",
-        appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const statusDiv = document.getElementById('status');
-        const sendBtn = document.querySelector('.send-btn');
-        let timerInterval;
+    <button onclick="send()" class="send-btn" disabled>YAYINA GÖNDER!</button>
 
-        const radioGif = document.querySelector('input[value="gif"]');
-        const radioVlipsy = document.querySelector('input[value="vlipsy"]');
-        const gifFields = document.getElementById('gif-fields');
-        const vlipsyFields = document.getElementById('vlipsy-fields');
+    <div id="status"></div>
+</div>
 
-        radioGif.addEventListener('change', () => { gifFields.style.display = 'block'; vlipsyFields.style.display = 'none'; updatePreview(); });
-        radioVlipsy.addEventListener('change', () => { gifFields.style.display = 'none'; vlipsyFields.style.display = 'block'; updatePreview(); });
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
+    authDomain: "chaostitan41-website.firebaseapp.com",
+    databaseURL: "https://chaostitan41-website-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "chaostitan41-website",
+    storageBucket: "chaostitan41-website.firebasestorage.app",
+    messagingSenderId: "553158677453",
+    appId: "1:553158677453:web:2cad39890ffdedb98aaa84"
+};
 
-        function getGiphyId(url) {
-        try {
-        // Moderne Giphy-URLs haben oft die ID am Ende oder als letzten Teil
-        // Beispiel: https://media.giphy.com/media/v1.../R6gvnAxj2ISzJdbA63/giphy.gif
-        let id = null;
-        // Versuche zuerst einen Match auf den letzten Teil vor /giphy
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const sendBtn = document.querySelector('.send-btn');
+const statusDiv = document.getElementById('status');
+const previewContainer = document.getElementById('preview-container');
+const previewImg = document.getElementById('preview');
+const previewVideo = document.getElementById('preview-video');
+const playButton = document.querySelector('.play-button');
+
+let currentMediaType = null; // 'gif' oder 'vlipsy'
+let timerInterval;
+
+function getGiphyId(url) {
+    try {
         const match = url.match(/\/media\/[^\/]+\/([a-zA-Z0-9]+)\/giphy/);
         if (match && match[1]) return match[1];
-        // Fallback: alte URL-Struktur
+
         const parts = url.split("/");
         let lastPart = parts[parts.length - 1];
         if (lastPart.includes("?")) lastPart = lastPart.split("?")[0];
         if (lastPart === "giphy.gif") lastPart = parts[parts.length - 2];
-        if (lastPart.match(/^[a-zA-Z0-9]+$/)) id = lastPart;
-        return id;
-        } catch(e) { return null; }
-        }
+        if (lastPart.match(/^[a-zA-Z0-9]+$/)) return lastPart;
+        return null;
+    } catch(e) { return null; }
+}
 
-        function getVlipsyId(url) {
-        const match = url.match(/vlipsy\.com\/clips\/([a-zA-Z0-9]+)/);
-        return match ? match[1] : null;
-        }
+function getVlipsyId(url) {
+    const match = url.match(/vlipsy\.com\/clips\/([a-zA-Z0-9]+)/);
+    return match ? match[1] : null;
+}
 
-        async function checkGiphyExists(id) {
-        if (!id || id.length < 3) return false;
-        const testUrl = `https://media.giphy.com/media/${id}/giphy.gif`;
-        return new Promise(resolve => {
+async function checkGiphyExists(id) {
+    if (!id || id.length < 3) return false;
+    const testUrl = `https://media.giphy.com/media/${id}/giphy.gif`;
+    return new Promise(resolve => {
         const img = new Image();
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
         img.src = testUrl;
-        });
-        }
+    });
+}
 
-        async function updatePreview() {
-        const isGif = radioGif.checked;
-        const previewImg = document.getElementById('preview');
-        if (isGif) {
-        const url = document.getElementById('media-url').value;
-        const id = getGiphyId(url);
-        if (id && await checkGiphyExists(id)) {
-        previewImg.src = `https://media.giphy.com/media/${id}/giphy.gif`;
-        previewImg.style.display = 'block';
-        } else {
-        previewImg.style.display = 'none';
-        }
-        } else {
-        const url = document.getElementById('vlipsy-url').value;
-        const id = getVlipsyId(url);
-        if (id) {
-        previewImg.src = 'https://via.placeholder.com/200x112?text=VLIPSY+CLIP';
-        previewImg.style.display = 'block';
-        } else {
-        previewImg.style.display = 'none';
-        }
-        }
-        }
+function getVlipsyVideoUrl(clipId) {
+    // Vlipsy Video-URL-Struktur: https://vlipsy.com/static/videos/clips_preview/{clipId}.mp4
+    return `https://vlipsy.com/static/videos/clips_preview/${clipId}.mp4`;
+}
 
-        function checkCooldown() {
-        db.ref('lastMediaTime').once('value', snap => {
+async function validateInput() {
+    const url = document.getElementById('media-url').value.trim();
+    
+    // Reset preview
+    previewContainer.style.display = "none";
+    previewImg.style.display = "none";
+    previewVideo.style.display = "none";
+    playButton.style.display = "none";
+    currentMediaType = null;
+
+    let valid = false;
+
+    // Prüfe zuerst Giphy
+    const gifId = getGiphyId(url);
+    if (gifId && await checkGiphyExists(gifId)) {
+        previewImg.src = `https://media.giphy.com/media/${gifId}/giphy.gif`;
+        previewImg.style.display = "block";
+        previewContainer.style.display = "block";
+        currentMediaType = 'gif';
+        valid = true;
+    } else {
+        // Prüfe Vlipsy
+        const clipId = getVlipsyId(url);
+        if (clipId) {
+            const videoUrl = getVlipsyVideoUrl(clipId);
+            
+            // Teste ob Video existiert
+            const videoExists = await checkVideoExists(videoUrl);
+            if (videoExists) {
+                previewVideo.src = videoUrl;
+                previewVideo.style.display = "block";
+                playButton.style.display = "block";
+                previewContainer.style.display = "block";
+                currentMediaType = 'vlipsy';
+                valid = true;
+            }
+        }
+    }
+
+    sendBtn.disabled = !valid;
+    sendBtn.style.opacity = valid ? "1" : "0.5";
+}
+
+async function checkVideoExists(url) {
+    return new Promise(resolve => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('HEAD', url);
+        xhr.onload = () => resolve(xhr.status === 200);
+        xhr.onerror = () => resolve(false);
+        xhr.send();
+    });
+}
+
+function toggleVideoPlay() {
+    if (previewVideo.paused) {
+        previewVideo.play();
+        playButton.style.display = "none";
+    } else {
+        previewVideo.pause();
+        playButton.style.display = "block";
+    }
+}
+
+// Video zurücksetzen wenn angeklickt
+previewVideo.addEventListener('click', function() {
+    this.pause();
+    this.currentTime = 0;
+    playButton.style.display = "block";
+});
+
+function checkCooldown() {
+    db.ref('lastMediaTime').once('value', snap => {
         const lastTime = snap.val() || 0;
         const diff = (Date.now() - lastTime) / 1000;
         clearInterval(timerInterval);
-        if (diff < 60) {
-        let timeLeft = Math.ceil(60 - diff);
-        sendBtn.disabled = true;
-        sendBtn.style.opacity = "0.5";
-        timerInterval = setInterval(() => {
-        timeLeft--;
-        if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        sendBtn.disabled = false;
-        sendBtn.style.opacity = "1";
-        statusDiv.innerHTML = "";
+        
+        if (diff < 30) {
+            let timeLeft = Math.ceil(30 - diff);
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = "0.5";
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (currentMediaType) {
+                        sendBtn.disabled = false;
+                        sendBtn.style.opacity = "1";
+                    }
+                    statusDiv.innerHTML = "";
+                } else {
+                    statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s bekleyin...</span>`;
+                }
+            }, 1000);
         } else {
-        statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s bekleyin...</span>`;
+            if (currentMediaType) {
+                sendBtn.disabled = false;
+                sendBtn.style.opacity = "1";
+            }
         }
-        }, 1000);
-        } else {
-        sendBtn.disabled = false;
-        sendBtn.style.opacity = "1";
-        }
-        });
-        }
-        checkCooldown();
+    });
+}
 
-        async function getUserIP() {
-        try {
+async function getUserIP() {
+    try {
         const res = await fetch('https://api64.ipify.org?format=json');
         const data = await res.json();
         return data.ip.replace(/\./g, '_');
-        } catch(e) { return "unknown"; }
-        }
+    } catch(e) { return "unknown"; }
+}
 
-        async function send() {
-        const isGif = radioGif.checked;
-        const username = document.getElementById('username').value.trim() || "Anonim";
-        let mediaData = null, targetPath = "";
+async function send() {
+    const username = document.getElementById('username').value.trim() || "Anonim";
+    const url = document.getElementById('media-url').value.trim();
 
-        if (isGif) {
-        const url = document.getElementById('media-url').value.trim();
+    let mediaData = null;
+    let targetPath = "";
+
+    if (currentMediaType === 'gif') {
         const gifId = getGiphyId(url);
-        if (!gifId) { alert("Hata: Geçersiz Giphy Linki!"); return; }
-        const exists = await checkGiphyExists(gifId);
-        if (!exists) { alert("Hata: GIF bulunamadı!"); return; }
-        mediaData = { gifId: gifId, userName: username };
+        if (!gifId) return;
+        
+        mediaData = { 
+            gifId: gifId, 
+            userName: username 
+        };
         targetPath = 'activeGifs';
-        } else {
-        const url = document.getElementById('vlipsy-url').value.trim();
+    } else if (currentMediaType === 'vlipsy') {
         const clipId = getVlipsyId(url);
-        if (!clipId) { alert("Hata: Geçersiz Vlipsy Linki!"); return; }
-        const embedUrl = `https://vlipsy.com/embed/${clipId}`;
-        const clipName = document.getElementById('clip-name').value.trim() || username + " - Vlipsy";
+        if (!clipId) return;
+        
         mediaData = {
-        embedUrl: embedUrl,
-        clipName: clipName,
-        userName: username
+            embedUrl: `https://vlipsy.com/embed/${clipId}`,
+            clipName: username + " - Vlipsy",
+            userName: username
         };
         targetPath = 'activeVlipsy';
+    } else {
+        return;
+    }
+
+    const userIP = await getUserIP();
+    
+    // Ban-Check
+    db.ref('bannedIPs/' + userIP).once('value', snap => {
+        if (snap.exists()) {
+            statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
+            db.ref('bannedRequests').push({ 
+                userName: username, 
+                userIP: userIP, 
+                timestamp: firebase.database.ServerValue.TIMESTAMP 
+            });
+            return;
         }
 
-        const userIP = await getUserIP();
-        db.ref('bannedIPs/' + userIP).once('value', snap => {
-        if (snap.exists()) {
-        statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
-        db.ref('bannedRequests').push({ userName: username, userIP: userIP, timestamp: firebase.database.ServerValue.TIMESTAMP });
-        return;
-        }
         const now = Date.now();
         db.ref('lastMediaTime').set(now);
-        const entry = { ...mediaData, userIP: userIP, timestamp: now };
+        
+        const entry = { 
+            ...mediaData, 
+            userIP: userIP, 
+            timestamp: now 
+        };
+        
         db.ref(targetPath).push(entry).then(() => {
-        statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
-        if (isGif) document.getElementById('media-url').value = "";
-        else { document.getElementById('vlipsy-url').value = ""; document.getElementById('clip-name').value = ""; }
-        document.getElementById('preview').style.display = "none";
-        const day = new Date().toISOString().split('T')[0];
-        db.ref('stats/daily/' + day + '/' + userIP).set(true);
+            statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
+            document.getElementById('media-url').value = "";
+            previewContainer.style.display = "none";
+            
+            // Stats tracking
+            const day = new Date().toISOString().split('T')[0];
+            db.ref('stats/daily/' + day + '/' + userIP).set(true);
+            
+            // Button zurücksetzen
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = "0.5";
+            currentMediaType = null;
         });
-        });
-        }
+    });
+}
 
-        db.ref('lastMediaTime').on('value', () => checkCooldown());
-        document.getElementById('media-url').addEventListener('input', updatePreview);
-        document.getElementById('vlipsy-url').addEventListener('input', updatePreview);
-    </script>
+// Cooldown überwachen
+db.ref('lastMediaTime').on('value', () => checkCooldown());
+
+// Initialer Cooldown-Check
+checkCooldown();
+</script>
+
 </body>
 </html>
