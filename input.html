@@ -50,12 +50,12 @@
             background: #000;
             color: #fff;
             border: 1px solid #fff;
-            padding: 10px 20px;
+            padding: 10px 15px;
             border-radius: 5px;
             text-decoration: none;
             margin-bottom: 20px;
             font-family: Arial, sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: 0.3s;
         }
 
@@ -112,8 +112,6 @@
         }
 
         #preview-frame {
-            width: 200px;
-            height: 112px;
             display: none;
             border: 2px solid red;
             border-radius: 10px;
@@ -142,11 +140,12 @@
     <div class="container">
         <a href="index.html" class="logo-link"><img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo"></a><br>
         
-        <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA (GIPHY)</a>
-        <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA (VLIPSY)</a>
+        <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA</a>
+        <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:5px;">MEME ARA</a>
+        <a href="https://www.myinstants.com" target="_blank" class="giphy-search-btn" style="margin-left:5px;">SES ARA (MYINSTANTS)</a>
         
         <input type="text" id="username" placeholder="ADINIZ (Dein Name)">
-        <input type="text" id="media-url" placeholder="Giphy oder Vlipsy Link hier einfügen..." oninput="handleInput()">
+        <input type="text" id="media-url" placeholder="Giphy, Vlipsy oder MyInstants Link hier einfügen..." oninput="handleInput()">
         
         <div id="preview-container">
             <img id="preview-img" alt="GIF Vorschau">
@@ -182,11 +181,11 @@
         // Status Variablen
         let isCooldownActive = false;
         let isLinkValid = false;
-        let currentMediaType = null; // 'giphy' oder 'vlipsy'
+        let currentMediaType = null; // 'giphy', 'vlipsy' oder 'myinstants'
         let currentMediaId = null;
         let timerInterval;
 
-        // Button-Status aktualisieren (Nur wenn Link gültig UND kein Cooldown)
+        // Button-Status aktualisieren
         function updateButtonState() {
             if (isLinkValid && !isCooldownActive) {
                 sendBtn.disabled = false;
@@ -195,15 +194,21 @@
             }
         }
 
-        // Sehr tolerante Erkennung für Giphy IDs
+        // Erkennung für Giphy IDs
         function getGiphyId(url) {
             const match = url.match(/(?:giphy\.com\/(?:gifs|stickers|clips)\/(?:.*-)?|media\.giphy\.com\/media\/(?:v1\.[^\/]+\/)?|giphy\.com\/embed\/)([a-zA-Z0-9]+)/i);
             return match ? match[1] : null;
         }
 
-        // Sehr tolerante Erkennung für Vlipsy IDs (Erkennt /clip/, /clips/ und /embed/)
+        // Erkennung für Vlipsy IDs
         function getVlipsyId(url) {
             const match = url.match(/vlipsy\.com\/(?:clip|clips|embed)\/([a-zA-Z0-9_-]+)/i);
+            return match ? match[1] : null;
+        }
+
+        // NEU: Erkennung für MyInstants IDs
+        function getMyInstantsId(url) {
+            const match = url.match(/myinstants\.com\/(?:[a-z]{2}\/)?instant\/([a-zA-Z0-9_-]+)/i);
             return match ? match[1] : null;
         }
 
@@ -232,14 +237,34 @@
 
             if (!url) return;
 
-            // 1. Prüfe ob es ein Vlipsy Link ist
+            // 1. Prüfe ob es ein MyInstants Link ist (NEU)
+            const myInstantsId = getMyInstantsId(url);
+            if (myInstantsId) {
+                currentMediaType = 'myinstants';
+                currentMediaId = myInstantsId;
+                isLinkValid = true;
+                
+                // MyInstants Embed ist hochkant
+                previewFrame.style.width = '110px';
+                previewFrame.style.height = '200px';
+                previewFrame.src = `https://www.myinstants.com/instant/${myInstantsId}/embed/`;
+                previewFrame.style.display = 'block';
+                previewContainer.style.display = 'flex';
+                
+                updateButtonState();
+                return;
+            }
+
+            // 2. Prüfe ob es ein Vlipsy Link ist
             const vlipsyId = getVlipsyId(url);
             if (vlipsyId) {
                 currentMediaType = 'vlipsy';
                 currentMediaId = vlipsyId;
                 isLinkValid = true;
                 
-                // Vorschau anzeigen
+                // Vlipsy Embed ist quer
+                previewFrame.style.width = '200px';
+                previewFrame.style.height = '112px';
                 previewFrame.src = `https://vlipsy.com/embed/${vlipsyId}`;
                 previewFrame.style.display = 'block';
                 previewContainer.style.display = 'flex';
@@ -248,7 +273,7 @@
                 return;
             }
 
-            // 2. Prüfe ob es ein Giphy Link ist
+            // 3. Prüfe ob es ein Giphy Link ist
             const giphyId = getGiphyId(url);
             if (giphyId) {
                 const exists = await checkGiphyExists(giphyId);
@@ -257,7 +282,6 @@
                     currentMediaId = giphyId;
                     isLinkValid = true;
                     
-                    // Vorschau anzeigen
                     previewImg.src = `https://media.giphy.com/media/${giphyId}/giphy.gif`;
                     previewImg.style.display = 'block';
                     previewContainer.style.display = 'flex';
@@ -267,7 +291,7 @@
             }
         }
 
-        // Cooldown Check (Reduziert auf 30 Sekunden)
+        // Cooldown Check (30 Sekunden)
         function checkCooldown() {
             db.ref('lastMediaTime').once('value', snap => {
                 const lastTime = snap.val() || 0;
@@ -325,6 +349,14 @@
                     userName: username
                 };
                 targetPath = 'activeVlipsy';
+            } else if (currentMediaType === 'myinstants') {
+                mediaData = {
+                    embedUrl: `https://www.myinstants.com/instant/${currentMediaId}/embed/`,
+                    soundId: currentMediaId,
+                    soundName: username + " - MyInstants",
+                    userName: username
+                };
+                targetPath = 'activeMyInstants'; // Neues Ziel in Firebase für Sounds
             }
 
             const userIP = await getUserIP();
@@ -337,16 +369,15 @@
                 }
                 
                 const now = Date.now();
-                db.ref('lastMediaTime').set(now); // Setzt Cooldown für alle
+                db.ref('lastMediaTime').set(now);
                 
                 const entry = { ...mediaData, userIP: userIP, timestamp: now };
                 
                 db.ref(targetPath).push(entry).then(() => {
                     statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
                     
-                    // Reset Felder nach erfolgreichem Senden
                     mediaUrlInput.value = "";
-                    handleInput(); // Versteckt Vorschau und deaktiviert Button
+                    handleInput(); 
                     
                     const day = new Date().toISOString().split('T')[0];
                     db.ref('stats/daily/' + day + '/' + userIP).set(true);
@@ -354,7 +385,7 @@
             });
         }
 
-        // Listener für Cooldown-Updates aus der Datenbank
+        // Listener für Cooldown-Updates
         db.ref('lastMediaTime').on('value', () => checkCooldown());
     </script>
 </body>
