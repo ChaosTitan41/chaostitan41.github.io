@@ -158,27 +158,22 @@
         let timerInterval;
         let isCooldownActive = false;
 
-        // KORRIGIERTE FUNKTIONEN:
-
-        // Giphy ID aus URL extrahieren (unverändert)
+        // ID-Extraktions-Funktionen (unverändert)
         function getGiphyId(url) {
             const match = url.match(/(?:giphy\.com\/(?:gifs|stickers|clips)\/(?:.*-)?|media\.giphy\.com\/media\/(?:v1\.[^\/]+\/)?|giphy\.com\/embed\/)([a-zA-Z0-9]+)/i);
             return match ? match[1] : null;
         }
 
-        // KORRIGIERT: Vlipsy ID - funktioniert jetzt mit /clips/ 
         function getVlipsyId(url) {
             const match = url.match(/vlipsy\.com\/(?:clip|clips|embed)\/([a-zA-Z0-9_-]+)/i);
             return match ? match[1] : null;
         }
 
-        // KORRIGIERT: MyInstants ID - funktioniert mit verschiedenen Sprachen (/de/, /en/, etc.)
         function getMyInstantsId(url) {
             const match = url.match(/myinstants\.com\/(?:[a-z]{2}\/)?instant\/([a-zA-Z0-9_-]+)/i);
             return match ? match[1] : null;
         }
 
-        // Prüfen ob Giphy GIF existiert (unverändert)
         async function checkGiphyExists(id) {
             return new Promise(resolve => {
                 const img = new Image();
@@ -188,7 +183,6 @@
             });
         }
 
-        // Link validieren und Vorschau anzeigen
         async function validateInput() {
             const url = document.getElementById('media-url').value.trim();
             const preview = document.getElementById('preview');
@@ -198,7 +192,6 @@
 
             if (!url) return;
 
-            // 1. Giphy prüfen (mit echter Validierung)
             const giphyId = getGiphyId(url);
             if (giphyId) {
                 const exists = await checkGiphyExists(giphyId);
@@ -210,14 +203,12 @@
                 return;
             }
 
-            // 2. Vlipsy prüfen (Format-Check)
             const vlipsyId = getVlipsyId(url);
             if (vlipsyId) {
                 if (!isCooldownActive) sendBtn.disabled = false;
                 return;
             }
 
-            // 3. MyInstants prüfen (Format-Check)
             const myInstantsId = getMyInstantsId(url);
             if (myInstantsId) {
                 if (!isCooldownActive) sendBtn.disabled = false;
@@ -225,7 +216,6 @@
             }
         }
 
-        // Cooldown prüfen (unverändert)
         function checkCooldown() {
             db.ref('lastMediaTime').once('value', snap => {
                 const lastTime = snap.val() || 0;
@@ -241,7 +231,7 @@
                             clearInterval(timerInterval);
                             isCooldownActive = false;
                             statusDiv.innerHTML = "";
-                            validateInput(); // Button wieder aktivieren wenn Link gültig
+                            validateInput();
                         } else {
                             statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s bekleyin...</span>`;
                         }
@@ -260,7 +250,7 @@
             } catch(e) { return "unknown"; }
         }
 
-        // KORRIGIERT: Senden mit richtigen URLs und Firebase-Pfaden
+        // KORRIGIERT: Senden-Funktion mit richtigen Firebase-Pfaden und Vlipsy-Timing
         async function send() {
             const username = document.getElementById('username').value.trim() || "Anonim";
             const url = document.getElementById('media-url').value.trim();
@@ -279,18 +269,23 @@
                 targetPath = 'activeGifs';
             } else if (vlipsyId) {
                 mediaData = {
-                    embedUrl: `https://vlipsy.com/embed/${vlipsyId}`, // KORRIGIERTE URL
+                    embedUrl: `https://vlipsy.com/embed/${vlipsyId}`,
                     clipName: username + " - Vlipsy",
-                    userName: username
+                    userName: username,
+                    // NEU: Zusätzliche Steuerungsparameter für Vlipsy
+                    maxDuration: 8.5, // Maximale Abspieldauer in Sekunden
+                    loop: false, // Kein Loop
+                    autoStop: true // Automatisches Stoppen
                 };
                 targetPath = 'activeVlipsy';
             } else if (myInstantsId) {
                 mediaData = {
-                    soundUrl: `https://www.myinstants.com/instant/${myInstantsId}/`, // KORREKTE URL
-                    soundName: username + " - MyInstants", 
+                    // KORRIGIERT: Richtige URL-Struktur für MyInstants
+                    embedUrl: `https://www.myinstants.com/instant/${myInstantsId}/embed/`,
+                    soundName: username + " - MyInstants",
                     userName: username
                 };
-                targetPath = 'activeSounds'; // KORRIGIERTER PFAD
+                targetPath = 'activeMyInstants'; // KORRIGIERT: Richtiger Firebase-Pfad
             } else {
                 alert("Ungültiger Link!");
                 return;
