@@ -128,6 +128,7 @@
 </div>
 
 <script>
+// ── FIX: databaseURL auf .app vereinheitlicht (gleich wie overlay.html) ──
 const firebaseConfig = {
     apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
     authDomain: "chaostitan41-website.firebaseapp.com",
@@ -146,13 +147,11 @@ const statusDiv = document.getElementById('status');
 const previewImg = document.getElementById('preview');
 let timerInterval;
 
-// Merker für erkannten Typ
 let currentType = null;
 let currentGifId = null;
 let currentVlipsyId = null;
 let currentMyInstantsUrl = null;
 
-// URL-Erkennungsfunktionen
 function getGiphyId(url) {
     try {
         const patterns = [
@@ -211,7 +210,6 @@ async function checkGiphyExists(id) {
 async function validateInput() {
     const url = document.getElementById('media-url').value.trim();
     
-    // Reset
     currentType = null;
     currentGifId = null;
     currentVlipsyId = null;
@@ -224,7 +222,7 @@ async function validateInput() {
         return;
     }
     
-    // 1) Giphy prüfen
+    // 1) Giphy
     const gifId = getGiphyId(url);
     if (gifId && await checkGiphyExists(gifId)) {
         currentType = "gif";
@@ -236,7 +234,7 @@ async function validateInput() {
         return;
     }
     
-    // 2) Vlipsy prüfen
+    // 2) Vlipsy
     const vlipsyId = getVlipsyId(url);
     if (vlipsyId) {
         currentType = "vlipsy";
@@ -248,7 +246,7 @@ async function validateInput() {
         return;
     }
     
-    // 3) MyInstants prüfen
+    // 3) MyInstants
     if (isMyInstants(url)) {
         currentType = "myinstants";
         currentMyInstantsUrl = url;
@@ -259,7 +257,6 @@ async function validateInput() {
         return;
     }
     
-    // Nichts erkannt
     sendBtn.disabled = true;
     sendBtn.style.opacity = "0.5";
 }
@@ -313,7 +310,6 @@ async function send() {
     let mediaData = null;
     let targetPath = "";
     
-    // GIPHY
     if (currentType === "gif" && currentGifId) {
         const exists = await checkGiphyExists(currentGifId);
         if (!exists) {
@@ -323,7 +319,6 @@ async function send() {
         mediaData = { gifId: currentGifId, userName: username };
         targetPath = 'activeGifs';
     } 
-    // VLIPSY
     else if (currentType === "vlipsy" && currentVlipsyId) {
         mediaData = {
             embedUrl: `https://vlipsy.com/embed/${currentVlipsyId}`,
@@ -332,7 +327,6 @@ async function send() {
         };
         targetPath = 'activeVlipsy';
     } 
-    // MYINSTANTS
     else if (currentType === "myinstants" && currentMyInstantsUrl) {
         mediaData = {
             embedUrl: currentMyInstantsUrl,
@@ -358,16 +352,18 @@ async function send() {
             return;
         }
         
-        const now = Date.now();
-        db.ref('lastMediaTime').set(now);
-        
+        // ── FIX: ServerValue.TIMESTAMP verwenden statt Date.now() ──
+        // Damit Overlay den echten Server-Zeitstempel zum Filtern benutzen kann
         const entry = { 
             ...mediaData, 
             userIP: userIP, 
-            timestamp: now 
+            timestamp: firebase.database.ServerValue.TIMESTAMP
         };
         
         db.ref(targetPath).push(entry).then(() => {
+            // lastMediaTime NACH dem Push setzen
+            db.ref('lastMediaTime').set(Date.now());
+            
             statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
             document.getElementById('media-url').value = "";
             previewImg.style.display = "none";
@@ -381,11 +377,12 @@ async function send() {
             
             sendBtn.disabled = true;
             sendBtn.style.opacity = "0.5";
+        }).catch(err => {
+            statusDiv.innerHTML = "<span style='color:red'>Hata: " + err.message + "</span>";
         });
     });
 }
 
-// Initialisierung
 db.ref('lastMediaTime').on('value', () => checkCooldown());
 checkCooldown();
 </script>
