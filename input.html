@@ -88,7 +88,7 @@
             min-height: 24px;
         }
         #preview {
-            max-width: 200px;
+            max-width: 250px;
             display: none;
             margin: 15px auto;
             border: 2px solid red;
@@ -110,9 +110,11 @@
     <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA (VLIPSY)</a>
     
     <input type="text" id="username" placeholder="ADINIZ">
-    <input type="text" id="media-url" placeholder="Giphy oder Vlipsy Link..." oninput="validateInput()">
+    <input type="text" id="media-url" placeholder="Giphy oder Vlipsy Link yapıştır..." oninput="validateInput()">
     
-    <img id="preview" alt="Vorschau">
+    <div id="preview-container">
+        <img id="preview" alt="Vorschau">
+    </div>
     
     <button onclick="send()" id="submit-btn" class="send-btn" disabled>YAYINA GÖNDER!</button>
     
@@ -120,7 +122,7 @@
 </div>
 
 <script>
-// Firebase Config
+// Firebase Konfiguration
 const firebaseConfig = {
     apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
     authDomain: "chaostitan41-website.firebaseapp.com",
@@ -143,42 +145,33 @@ let currentType = null;
 let currentGifId = null;
 let currentVlipsyId = null;
 
-// Giphy ID Finder
+// Giphy ID Finder (verbessert)
 function getGiphyId(url) {
     if (!url.includes("giphy.com")) return null;
-    try {
-        const patterns = [
-            /\/media\/[^\/]+\/([a-zA-Z0-9]+)\/giphy/,
-            /giphy\.com\/gifs\/(?:[^\/]+\-)?([a-zA-Z0-9]+)/,
-            /giphy\.com\/embed\/([a-zA-Z0-9]+)/,
-            /giphy\.com\/clips\/([a-zA-Z0-9]+)/
-        ];
-        for (const p of patterns) {
-            const m = url.match(p);
-            if (m && m[1]) return m[1];
-        }
-        return null;
-    } catch(e) { return null; }
+    const regex = /(?:giphy\.com\/(?:gifs|clips|media)\/|media\.giphy\.com\/media\/)(?:.*-)?([a-zA-Z0-9]+)/;
+    const match = url.match(regex);
+    return (match && match[1]) ? match[1] : null;
 }
 
-// Vlipsy ID Finder
+// Vlipsy ID Finder (MASSIV VERBESSERT)
 function getVlipsyId(url) {
     if (!url.includes("vlipsy.com")) return null;
-    try {
-        const patterns = [
-            /vlipsy\.com\/clip\/([a-zA-Z0-9]+)/,
-            /vlipsy\.com\/v\/([a-zA-Z0-9]+)/,
-            /vlipsy\.com\/embed\/([a-zA-Z0-9]+)/
-        ];
-        for (const p of patterns) {
-            const m = url.match(p);
-            if (m && m[1]) return m[1];
-        }
-        return null;
-    } catch(e) { return null; }
+    // Erkennt: /v/ID, /clip/ID, /embed/ID und einfache IDs am Ende
+    const patterns = [
+        /vlipsy\.com\/clip\/([a-zA-Z0-9\-]+)/,
+        /vlipsy\.com\/v\/([a-zA-Z0-9\-]+)/,
+        /vlipsy\.com\/embed\/([a-zA-Z0-9\-]+)/,
+        /vlipsy\.com\/([a-zA-Z0-9\-]{5,20})/ // Falls nur die ID nach dem Slash kommt
+    ];
+    
+    for (const p of patterns) {
+        const m = url.match(p);
+        if (m && m[1]) return m[1];
+    }
+    return null;
 }
 
-// Validierung (Wird bei jeder Eingabe aufgerufen)
+// Validierung
 function validateInput() {
     const url = document.getElementById('media-url').value.trim();
     currentType = null;
@@ -198,7 +191,7 @@ function validateInput() {
         currentGifId = gId;
         previewImg.src = `https://media.giphy.com/media/${gId}/giphy.gif`;
         previewImg.style.display = 'block';
-        checkCooldown(); // Prüft ob Cooldown läuft, falls nicht -> freischalten
+        checkCooldown(); 
         return;
     }
     
@@ -207,7 +200,8 @@ function validateInput() {
     if (vId) {
         currentType = "vlipsy";
         currentVlipsyId = vId;
-        previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+CLIP';
+        // Wir zeigen ein Vorschaubild von Vlipsy (falls der Browser es erlaubt)
+        previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+VIDEO+HAZIR';
         previewImg.style.display = 'block';
         checkCooldown();
         return;
@@ -225,11 +219,10 @@ async function getUserIP() {
     } catch(e) { return "unknown"; }
 }
 
-// Senden (Spam-Schutz integriert)
+// Senden
 async function send() {
     if (!currentType || sendBtn.disabled) return;
 
-    // SOFORT SPERREN
     sendBtn.disabled = true;
     statusDiv.innerHTML = "Gönderiliyor...";
 
@@ -277,7 +270,7 @@ async function send() {
     });
 }
 
-// Cooldown Prüfung
+// Cooldown Logik
 function checkCooldown() {
     db.ref('settings/cooldown').once('value', settingsSnap => {
         const dynamicCooldown = settingsSnap.val() || 30;
@@ -295,14 +288,12 @@ function checkCooldown() {
                     if (timeLeft <= 0) {
                         clearInterval(timerInterval);
                         statusDiv.innerHTML = "";
-                        // Nur freischalten wenn auch ein Typ erkannt wurde
                         if(currentType) sendBtn.disabled = false; 
                     } else {
                         statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s</span>`;
                     }
                 }, 1000);
             } else {
-                // Kein Cooldown -> Button freigeben wenn Link gültig
                 if (currentType) {
                     sendBtn.disabled = false;
                     statusDiv.innerHTML = "";
@@ -312,7 +303,6 @@ function checkCooldown() {
     });
 }
 
-// Echtzeit-Update für Cooldown
 db.ref('lastMediaTime').on('value', () => checkCooldown());
 </script>
 </body>
