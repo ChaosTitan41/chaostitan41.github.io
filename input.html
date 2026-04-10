@@ -120,7 +120,7 @@
 </div>
 
 <script>
-// Firebase-Konfiguration
+// Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
     authDomain: "chaostitan41-website.firebaseapp.com",
@@ -143,14 +143,15 @@ let currentType = null;
 let currentGifId = null;
 let currentVlipsyId = null;
 
-// GIPHY ID Extraktion
+// Giphy ID Finder
 function getGiphyId(url) {
     if (!url.includes("giphy.com")) return null;
     try {
         const patterns = [
             /\/media\/[^\/]+\/([a-zA-Z0-9]+)\/giphy/,
             /giphy\.com\/gifs\/(?:[^\/]+\-)?([a-zA-Z0-9]+)/,
-            /giphy\.com\/embed\/([a-zA-Z0-9]+)/
+            /giphy\.com\/embed\/([a-zA-Z0-9]+)/,
+            /giphy\.com\/clips\/([a-zA-Z0-9]+)/
         ];
         for (const p of patterns) {
             const m = url.match(p);
@@ -160,7 +161,7 @@ function getGiphyId(url) {
     } catch(e) { return null; }
 }
 
-// VLIPSY ID Extraktion
+// Vlipsy ID Finder
 function getVlipsyId(url) {
     if (!url.includes("vlipsy.com")) return null;
     try {
@@ -177,20 +178,8 @@ function getVlipsyId(url) {
     } catch(e) { return null; }
 }
 
-// Existenzprüfung für Giphy
-async function checkGiphyExists(id) {
-    if (!id) return false;
-    const testUrl = `https://media.giphy.com/media/${id}/giphy.gif`;
-    return new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
-        img.src = testUrl;
-    });
-}
-
-// Eingabe-Validierung
-async function validateInput() {
+// Validierung (Wird bei jeder Eingabe aufgerufen)
+function validateInput() {
     const url = document.getElementById('media-url').value.trim();
     currentType = null;
     currentGifId = null;
@@ -202,30 +191,32 @@ async function validateInput() {
         return;
     }
     
-    const gifId = getGiphyId(url);
-    if (gifId && await checkGiphyExists(gifId)) {
+    // Giphy Check
+    const gId = getGiphyId(url);
+    if (gId) {
         currentType = "gif";
-        currentGifId = gifId;
-        previewImg.src = `https://media.giphy.com/media/${gifId}/giphy.gif`;
+        currentGifId = gId;
+        previewImg.src = `https://media.giphy.com/media/${gId}/giphy.gif`;
         previewImg.style.display = 'block';
-        sendBtn.disabled = false;
+        checkCooldown(); // Prüft ob Cooldown läuft, falls nicht -> freischalten
         return;
     }
     
-    const vlipsyId = getVlipsyId(url);
-    if (vlipsyId) {
+    // Vlipsy Check
+    const vId = getVlipsyId(url);
+    if (vId) {
         currentType = "vlipsy";
-        currentVlipsyId = vlipsyId;
+        currentVlipsyId = vId;
         previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+CLIP';
         previewImg.style.display = 'block';
-        sendBtn.disabled = false;
+        checkCooldown();
         return;
     }
     
     sendBtn.disabled = true;
 }
 
-// IP Adresse abrufen
+// IP abrufen
 async function getUserIP() {
     try {
         const res = await fetch('https://api64.ipify.org?format=json');
@@ -234,11 +225,11 @@ async function getUserIP() {
     } catch(e) { return "unknown"; }
 }
 
-// SENDEN FUNKTION (BUG-FIX GEGEN SPAM)
+// Senden (Spam-Schutz integriert)
 async function send() {
     if (!currentType || sendBtn.disabled) return;
 
-    // --- KRITISCHER FIX: Sofort sperren gegen Mehrfachklicks ---
+    // SOFORT SPERREN
     sendBtn.disabled = true;
     statusDiv.innerHTML = "Gönderiliyor...";
 
@@ -246,29 +237,25 @@ async function send() {
     const userIP = await getUserIP();
     const safeIPKey = userIP.replace(/\./g, '_'); 
 
-    // Ban-Check
+    // Ban Check
     const banSnap = await db.ref('bannedIPs/' + safeIPKey).get();
     if (banSnap.exists()) {
         statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
-        return; // Button bleibt gesperrt
+        return;
     }
 
     let mediaData = {};
     let targetPath = "";
 
     if (currentType === "gif") {
-        mediaData = { 
-            gifId: currentGifId, 
-            userName: username,
-            userIP: userIP // IP für Admin sichtbar speichern
-        };
+        mediaData = { gifId: currentGifId, userName: username, userIP: userIP };
         targetPath = 'activeGifs';
     } else {
         mediaData = {
             embedUrl: `https://vlipsy.com/embed/${currentVlipsyId}`,
             clipName: username + " - Vlipsy",
             userName: username,
-            userIP: userIP // IP für Admin sichtbar speichern
+            userIP: userIP
         };
         targetPath = 'activeVlipsy';
     }
@@ -284,41 +271,49 @@ async function send() {
         document.getElementById('media-url').value = "";
         previewImg.style.display = "none";
         currentType = null;
-        // Button bleibt deaktiviert, bis checkCooldown ihn wieder freigibt
     }).catch(err => {
         statusDiv.innerHTML = "<span style='color:red'>Hata!</span>";
         sendBtn.disabled = false;
     });
 }
 
-// Cooldown-System
+// Cooldown Prüfung
 function checkCooldown() {
-    db.ref('lastMediaTime').once('value', snap => {
-        const lastTime = snap.val() || 0;
-        const diff = (Date.now() - lastTime) / 1000;
-        clearInterval(timerInterval);
-        
-        if (diff < 30) {
-            let timeLeft = Math.ceil(30 - diff);
-            sendBtn.disabled = true;
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
+    db.ref('settings/cooldown').once('value', settingsSnap => {
+        const dynamicCooldown = settingsSnap.val() || 30;
+
+        db.ref('lastMediaTime').once('value', snap => {
+            const lastTime = snap.val() || 0;
+            const diff = (Date.now() - lastTime) / 1000;
+            clearInterval(timerInterval);
+            
+            if (diff < dynamicCooldown) {
+                let timeLeft = Math.ceil(dynamicCooldown - diff);
+                sendBtn.disabled = true;
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        statusDiv.innerHTML = "";
+                        // Nur freischalten wenn auch ein Typ erkannt wurde
+                        if(currentType) sendBtn.disabled = false; 
+                    } else {
+                        statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s</span>`;
+                    }
+                }, 1000);
+            } else {
+                // Kein Cooldown -> Button freigeben wenn Link gültig
+                if (currentType) {
+                    sendBtn.disabled = false;
                     statusDiv.innerHTML = "";
-                    validateInput(); 
-                } else {
-                    statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s</span>`;
                 }
-            }, 1000);
-        } else {
-            validateInput();
-        }
+            }
+        });
     });
 }
 
+// Echtzeit-Update für Cooldown
 db.ref('lastMediaTime').on('value', () => checkCooldown());
-checkCooldown();
 </script>
 </body>
 </html>
