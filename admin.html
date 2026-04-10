@@ -20,7 +20,9 @@
         .ban-btn { background: #ff0000; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .unban-btn { background: #00FF41; color: #000; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         input { width:100%; padding:15px; margin-bottom:20px; background:#000; color:#fff; border:1px solid #444; text-align:center; border-radius: 8px; }
-        .button-name { color: #ffaa00; font-weight: bold; }
+        .type-badge { padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; margin-right: 5px; }
+        .badge-gif { background: #2196F3; color: white; }
+        .badge-vlipsy { background: #9C27B0; color: white; }
     </style>
 </head>
 <body>
@@ -39,9 +41,9 @@
         </div>
 
         <div class="section">
-            <h2>CANLI AKIŞ (SON GELEN GİFLER)</h2>
+            <h2>CANLI AKIŞ (GIF & VLIPSY)</h2>
             <table>
-                <thead><tr><th>Zaman</th><th>Kullanıcı</th><th>IP Adresi</th><th>İşlem</th></tr></thead>
+                <thead><tr><th>Zaman</th><th>Tür</th><th>Kullanıcı</th><th>IP Adresi</th><th>İşlem</th></tr></thead>
                 <tbody id="l-body"></tbody>
             </table>
         </div>
@@ -69,6 +71,7 @@
                 <tbody id="b-body"></tbody>
             </table>
         </div>
+
         <button onclick="sessionStorage.clear(); location.reload();" style="color:#444; background:none; border:none; cursor:pointer; margin-top:20px;">Güvenli Çıkış</button>
     </div>
 
@@ -84,7 +87,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const MASTER = "Uzuner41!"; // <--- HIER DEIN PASSWORT
+        const MASTER = "Uzuner41!"; 
 
         if(sessionStorage.getItem("admin_auth") === "true") show();
         function checkLogin() { if(document.getElementById('admin-pass').value === MASTER) { sessionStorage.setItem("admin_auth","true"); show(); } else alert("Hata!"); }
@@ -93,7 +96,7 @@
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
 
-            // STATS LOGIC (wie gehabt)
+            // 1. STATS
             db.ref('stats/daily').on('value', snap => {
                 const data = snap.val() || {}; const now = new Date(); const todayStr = now.toISOString().split('T')[0];
                 let todayCount = 0; const weekSet = new Set(), monthSet = new Set(), yearSet = new Set();
@@ -108,71 +111,74 @@
                 document.getElementById('s-month').innerText = monthSet.size; document.getElementById('s-year').innerText = yearSet.size;
             });
 
-            // LIVE GIFS TABLE (wie gehabt)
-            db.ref('activeGifs').limitToLast(15).on('value', s => {
-                const b = document.getElementById('l-body'); b.innerHTML = "";
-                s.forEach(c => { 
-                    const d = c.val(); 
-                    const displayIP = (d.userIP || d.ip || "unknown").replace(/_/g,'.');
-                    const rawIP = (d.userIP || d.ip || "unknown");
-                    b.insertAdjacentHTML('afterbegin', `<tr>
-                        <td>${new Date(d.timestamp).toLocaleTimeString()}</td>
-                        <td>${d.userName || 'Anonim'}</td>
-                        <td class="ip-text">${displayIP}</td>
-                        <td><button class="ban-btn" onclick="bn('${rawIP}')">BANLA</button></td>
-                    </tr>`); 
+            // 2. LIVE FEED (GIF & VLIPSY)
+            const updateLiveFeed = () => {
+                let items = [];
+                db.ref('activeGifs').limitToLast(10).once('value', s1 => {
+                    s1.forEach(c => items.push({...c.val(), type: 'GIF'}));
+                    db.ref('activeVlipsy').limitToLast(10).once('value', s2 => {
+                        s2.forEach(c => items.push({...c.val(), type: 'VLIPSY'}));
+                        items.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+                        const b = document.getElementById('l-body'); b.innerHTML = "";
+                        items.slice(0,15).forEach(d => {
+                            const ip = d.userIP || d.ip || "unknown";
+                            const safeIP = ip.replace(/\./g, '_');
+                            const badge = d.type === 'GIF' ? 'badge-gif' : 'badge-vlipsy';
+                            b.innerHTML += `<tr>
+                                <td>${d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : '-'}</td>
+                                <td><span class="type-badge ${badge}">${d.type}</span></td>
+                                <td>${d.userName || 'Anonim'}</td>
+                                <td class="ip-text">${ip}</td>
+                                <td><button class="ban-btn" onclick="bn('${safeIP}')">BANLA</button></td>
+                            </tr>`;
+                        });
+                    });
                 });
-            });
+            };
+            db.ref('activeGifs').on('value', updateLiveFeed);
+            db.ref('activeVlipsy').on('value', updateLiveFeed);
 
-            // 🔥 NEU: BUTTON CLICKS TABLE
+            // 3. BUTTON CLICKS
             db.ref('buttonClicks').limitToLast(15).on('value', s => {
                 const b = document.getElementById('button-body'); b.innerHTML = "";
                 s.forEach(c => { 
-                    const d = c.val(); 
-                    const displayIP = (d.ip || "unknown").replace(/_/g,'.');
-                    const rawIP = d.ip || "unknown";
-                    const time = d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : '-';
+                    const d = c.val(); const ip = d.ip || "unknown"; const safeIP = ip.replace(/\./g, '_');
                     b.insertAdjacentHTML('afterbegin', `<tr>
-                        <td>${time}</td>
-                        <td class="button-name">${d.buttonName || d.buttonId || '?'}</td>
-                        <td class="ip-text">${displayIP}</td>
-                        <td><button class="ban-btn" onclick="bn('${rawIP}')">BANLA</button></td>
+                        <td>${d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : '-'}</td>
+                        <td style="color:#ffaa00; font-weight:bold;">${d.buttonName || d.buttonId || '?'}</td>
+                        <td class="ip-text">${ip}</td>
+                        <td><button class="ban-btn" onclick="bn('${safeIP}')">BANLA</button></td>
                     </tr>`); 
                 });
             });
 
-            // BLOCKED ATTEMPTS TABLE (wie gehabt)
+            // 4. BLOCKED ATTEMPTS (ENGEL TAKILANLAR)
             db.ref('bannedRequests').limitToLast(10).on('value', s => {
                 const b = document.getElementById('blocked-body'); b.innerHTML = "";
                 s.forEach(c => { 
-                    const d = c.val(); 
-                    const displayIP = (d.userIP || d.ip || "unknown").replace(/_/g,'.');
-                    const rawIP = (d.userIP || d.ip || "unknown");
+                    const d = c.val(); const ip = d.userIP || d.ip || "unknown"; const safeIP = ip.replace(/\./g, '_');
                     b.insertAdjacentHTML('afterbegin', `<tr style="color:#ffaa00; background:rgba(255,170,0,0.05);">
-                        <td>${new Date(d.timestamp).toLocaleTimeString()}</td>
+                        <td>${d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : '-'}</td>
                         <td>${d.userName || 'Anonim'}</td>
-                        <td class="ip-text">${displayIP}</td>
-                        <td><button class="unban-btn" onclick="ubn('${rawIP}')">AFFET</button></td>
+                        <td class="ip-text">${ip}</td>
+                        <td><button class="unban-btn" onclick="ubn('${safeIP}')">AFFET</button></td>
                     </tr>`); 
                 });
             });
 
-            // BAN LIST TABLE (wie gehabt)
+            // 5. BAN LIST
             db.ref('bannedIPs').on('value', s => {
                 const b = document.getElementById('b-body'); b.innerHTML = "";
                 s.forEach(c => { 
                     const displayIP = c.key.replace(/_/g,'.');
-                    b.innerHTML += `<tr>
-                        <td class="ip-text">${displayIP}</td>
-                        <td style="color:red;">YASAKLI</td>
-                        <td><button class="unban-btn" onclick="ubn('${c.key}')">YASAĞI KALDIR</button></td>
-                    </tr>`; 
+                    b.innerHTML += `<tr><td class="ip-text">${displayIP}</td><td style="color:red;">YASAKLI</td>
+                        <td><button class="unban-btn" onclick="ubn('${c.key}')">KALDIR</button></td></tr>`; 
                 });
             });
         }
         
-        function bn(i) { if(i !== "unknown" && confirm(i.replace(/_/g,'.') + " banlansın mı?")) db.ref('bannedIPs/'+i).set(true); }
-        function ubn(i) { if(confirm("Ban kaldırılsın mı?")) db.ref('bannedIPs/'+i).remove(); }
+        function bn(i) { if(i !== "unknown" && confirm(i.replace(/_/g,'.') + " yasaklansın mı?")) db.ref('bannedIPs/'+i).set(true); }
+        function ubn(i) { if(confirm("Yasak kaldırılsın mı?")) db.ref('bannedIPs/'+i).remove(); }
     </script>
 </body>
 </html>
