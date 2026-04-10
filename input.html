@@ -71,7 +71,7 @@
             font-family: 'Impact';
             transition: 0.3s;
         }
-        .send-btn:hover {
+        .send-btn:hover:not(:disabled) {
             background: #ff0000;
             box-shadow: 0 0 20px #ff0000;
         }
@@ -79,6 +79,7 @@
             background: #333;
             border-color: #555;
             cursor: not-allowed;
+            opacity: 0.5;
         }
         #status {
             margin-top: 20px;
@@ -93,41 +94,33 @@
             border: 2px solid red;
             border-radius: 10px;
         }
-        .logo-link {
-            display: inline-block;
-        }
         .logo-img {
             max-width: 200px;
             margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-        .logo-link:hover .logo-img {
-            transform: scale(1.05);
-            filter: drop-shadow(0 0 25px #ff0000);
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <a href="index.html" class="logo-link">
+    <a href="index.html">
         <img src="logo.png" class="logo-img" alt="CHAOSTITAN41 Logo">
     </a><br>
     
     <a href="https://giphy.com" target="_blank" class="giphy-search-btn">GIF ARA (GIPHY)</a>
     <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA (VLIPSY)</a>
     
-    
     <input type="text" id="username" placeholder="ADINIZ">
-    <input type="text" id="media-url" placeholder="Giphy, Vlipsy oder MyInstants Link..." oninput="validateInput()">
+    <input type="text" id="media-url" placeholder="Giphy oder Vlipsy Link..." oninput="validateInput()">
     
     <img id="preview" alt="Vorschau">
     
-    <button onclick="send()" class="send-btn" disabled>YAYINA GÖNDER!</button>
+    <button onclick="send()" id="submit-btn" class="send-btn" disabled>YAYINA GÖNDER!</button>
     
     <div id="status"></div>
 </div>
 
 <script>
+// Firebase-Konfiguration
 const firebaseConfig = {
     apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
     authDomain: "chaostitan41-website.firebaseapp.com",
@@ -141,7 +134,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const sendBtn = document.querySelector('.send-btn');
+const sendBtn = document.getElementById('submit-btn');
 const statusDiv = document.getElementById('status');
 const previewImg = document.getElementById('preview');
 let timerInterval;
@@ -149,37 +142,31 @@ let timerInterval;
 let currentType = null;
 let currentGifId = null;
 let currentVlipsyId = null;
-let currentMyInstantsUrl = null;
 
-// --- FIX: GIPHY-ERKENNUNG VERBESSERT ---
+// GIPHY ID Extraktion
 function getGiphyId(url) {
-    if (!url.includes("giphy.com")) return null; // Verhindert, dass Vlipsy-Links als Giphy erkannt werden
+    if (!url.includes("giphy.com")) return null;
     try {
         const patterns = [
             /\/media\/[^\/]+\/([a-zA-Z0-9]+)\/giphy/,
             /giphy\.com\/gifs\/(?:[^\/]+\-)?([a-zA-Z0-9]+)/,
-            /giphy\.com\/embed\/([a-zA-Z0-9]+)/,
-            /giphy\.com\/clips\/(?:[^\/]+\-)?([a-zA-Z0-9]+)/
+            /giphy\.com\/embed\/([a-zA-Z0-9]+)/
         ];
         for (const p of patterns) {
             const m = url.match(p);
             if (m && m[1]) return m[1];
         }
-        const parts = url.split("/");
-        let last = parts[parts.length - 1];
-        if (last.includes("?")) last = last.split("?")[0];
-        if (last === "giphy.gif") last = parts[parts.length - 2];
-        if (last.match(/^[a-zA-Z0-9]+$/)) return last;
         return null;
     } catch(e) { return null; }
 }
 
+// VLIPSY ID Extraktion
 function getVlipsyId(url) {
+    if (!url.includes("vlipsy.com")) return null;
     try {
         const patterns = [
             /vlipsy\.com\/clip\/([a-zA-Z0-9]+)/,
-            /vlipsy\.com\/clips\/([a-zA-Z0-9]+)/,
-            /vlipsy\.com\/v\/([a-zA-Z0-9]+)/, // Neues Vlipsy Format
+            /vlipsy\.com\/v\/([a-zA-Z0-9]+)/,
             /vlipsy\.com\/embed\/([a-zA-Z0-9]+)/
         ];
         for (const p of patterns) {
@@ -190,16 +177,9 @@ function getVlipsyId(url) {
     } catch(e) { return null; }
 }
 
-function isMyInstants(url) {
-    try {
-        const clean = url.split('?')[0];
-        return clean.includes("myinstants.com/instant/") ||
-               /myinstants\.com\/[a-z]{2}\/instant\//.test(clean);
-    } catch(e) { return false; }
-}
-
+// Existenzprüfung für Giphy
 async function checkGiphyExists(id) {
-    if (!id || id.length < 3) return false;
+    if (!id) return false;
     const testUrl = `https://media.giphy.com/media/${id}/giphy.gif`;
     return new Promise(resolve => {
         const img = new Image();
@@ -209,21 +189,19 @@ async function checkGiphyExists(id) {
     });
 }
 
+// Eingabe-Validierung
 async function validateInput() {
     const url = document.getElementById('media-url').value.trim();
     currentType = null;
     currentGifId = null;
     currentVlipsyId = null;
-    currentMyInstantsUrl = null;
     previewImg.style.display = 'none';
     
     if (!url) {
         sendBtn.disabled = true;
-        sendBtn.style.opacity = "0.5";
         return;
     }
     
-    // 1) Giphy Check
     const gifId = getGiphyId(url);
     if (gifId && await checkGiphyExists(gifId)) {
         currentType = "gif";
@@ -231,11 +209,9 @@ async function validateInput() {
         previewImg.src = `https://media.giphy.com/media/${gifId}/giphy.gif`;
         previewImg.style.display = 'block';
         sendBtn.disabled = false;
-        sendBtn.style.opacity = "1";
         return;
     }
     
-    // 2) Vlipsy Check
     const vlipsyId = getVlipsyId(url);
     if (vlipsyId) {
         currentType = "vlipsy";
@@ -243,25 +219,79 @@ async function validateInput() {
         previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+CLIP';
         previewImg.style.display = 'block';
         sendBtn.disabled = false;
-        sendBtn.style.opacity = "1";
-        return;
-    }
-    
-    // 3) MyInstants Check
-    if (isMyInstants(url)) {
-        currentType = "myinstants";
-        currentMyInstantsUrl = url;
-        previewImg.src = 'https://via.placeholder.com/200x112/000000/FF007F?text=MYINSTANTS+SOUND';
-        previewImg.style.display = 'block';
-        sendBtn.disabled = false;
-        sendBtn.style.opacity = "1";
         return;
     }
     
     sendBtn.disabled = true;
-    sendBtn.style.opacity = "0.5";
 }
 
+// IP Adresse abrufen
+async function getUserIP() {
+    try {
+        const res = await fetch('https://api64.ipify.org?format=json');
+        const data = await res.json();
+        return data.ip; 
+    } catch(e) { return "unknown"; }
+}
+
+// SENDEN FUNKTION (BUG-FIX GEGEN SPAM)
+async function send() {
+    if (!currentType || sendBtn.disabled) return;
+
+    // --- KRITISCHER FIX: Sofort sperren gegen Mehrfachklicks ---
+    sendBtn.disabled = true;
+    statusDiv.innerHTML = "Gönderiliyor...";
+
+    const username = document.getElementById('username').value.trim() || "Anonim";
+    const userIP = await getUserIP();
+    const safeIPKey = userIP.replace(/\./g, '_'); 
+
+    // Ban-Check
+    const banSnap = await db.ref('bannedIPs/' + safeIPKey).get();
+    if (banSnap.exists()) {
+        statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
+        return; // Button bleibt gesperrt
+    }
+
+    let mediaData = {};
+    let targetPath = "";
+
+    if (currentType === "gif") {
+        mediaData = { 
+            gifId: currentGifId, 
+            userName: username,
+            userIP: userIP // IP für Admin sichtbar speichern
+        };
+        targetPath = 'activeGifs';
+    } else {
+        mediaData = {
+            embedUrl: `https://vlipsy.com/embed/${currentVlipsyId}`,
+            clipName: username + " - Vlipsy",
+            userName: username,
+            userIP: userIP // IP für Admin sichtbar speichern
+        };
+        targetPath = 'activeVlipsy';
+    }
+
+    const entry = { 
+        ...mediaData, 
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    db.ref(targetPath).push(entry).then(() => {
+        db.ref('lastMediaTime').set(Date.now());
+        statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
+        document.getElementById('media-url').value = "";
+        previewImg.style.display = "none";
+        currentType = null;
+        // Button bleibt deaktiviert, bis checkCooldown ihn wieder freigibt
+    }).catch(err => {
+        statusDiv.innerHTML = "<span style='color:red'>Hata!</span>";
+        sendBtn.disabled = false;
+    });
+}
+
+// Cooldown-System
 function checkCooldown() {
     db.ref('lastMediaTime').once('value', snap => {
         const lastTime = snap.val() || 0;
@@ -271,89 +301,19 @@ function checkCooldown() {
         if (diff < 30) {
             let timeLeft = Math.ceil(30 - diff);
             sendBtn.disabled = true;
-            sendBtn.style.opacity = "0.5";
             timerInterval = setInterval(() => {
                 timeLeft--;
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    if (currentType !== null) {
-                        sendBtn.disabled = false;
-                        sendBtn.style.opacity = "1";
-                    }
                     statusDiv.innerHTML = "";
+                    validateInput(); 
                 } else {
-                    statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s bekleyin...</span>`;
+                    statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s</span>`;
                 }
             }, 1000);
         } else {
-            if (currentType !== null) {
-                sendBtn.disabled = false;
-                sendBtn.style.opacity = "1";
-            }
+            validateInput();
         }
-    });
-}
-
-async function getUserIP() {
-    try {
-        const res = await fetch('https://api64.ipify.org?format=json');
-        const data = await res.json();
-        return data.ip.replace(/\./g, '_');
-    } catch(e) { return "unknown"; }
-}
-
-async function send() {
-    const username = document.getElementById('username').value.trim() || "Anonim";
-    if (!currentType) return;
-    
-    let mediaData = null;
-    let targetPath = "";
-    
-    if (currentType === "gif") {
-        mediaData = { gifId: currentGifId, userName: username };
-        targetPath = 'activeGifs';
-    } 
-    else if (currentType === "vlipsy") {
-        mediaData = {
-            embedUrl: `https://vlipsy.com/embed/${currentVlipsyId}`,
-            clipName: username + " - Vlipsy",
-            userName: username
-        };
-        targetPath = 'activeVlipsy';
-    } 
-    else if (currentType === "myinstants") {
-        mediaData = {
-            embedUrl: currentMyInstantsUrl,
-            clipName: username + " - MyInstants",
-            userName: username
-        };
-        targetPath = 'activeMyInstants';
-    }
-    
-    const userIP = await getUserIP();
-    db.ref('bannedIPs/' + userIP).once('value', snap => {
-        if (snap.exists()) {
-            statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
-            return;
-        }
-        
-        const entry = { 
-            ...mediaData, 
-            userIP: userIP, 
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
-        
-        db.ref(targetPath).push(entry).then(() => {
-            db.ref('lastMediaTime').set(Date.now());
-            statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
-            document.getElementById('media-url').value = "";
-            previewImg.style.display = "none";
-            currentType = null;
-            sendBtn.disabled = true;
-            sendBtn.style.opacity = "0.5";
-        }).catch(err => {
-            statusDiv.innerHTML = "<span style='color:red'>Hata: " + err.message + "</span>";
-        });
     });
 }
 
