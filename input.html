@@ -88,7 +88,7 @@
             min-height: 24px;
         }
         #preview {
-            max-width: 250px;
+            max-width: 200px;
             display: none;
             margin: 15px auto;
             border: 2px solid red;
@@ -110,11 +110,9 @@
     <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA (VLIPSY)</a>
     
     <input type="text" id="username" placeholder="ADINIZ">
-    <input type="text" id="media-url" placeholder="Giphy oder Vlipsy Link yapıştır..." oninput="validateInput()">
+    <input type="text" id="media-url" placeholder="Giphy oder Vlipsy Link..." oninput="validateInput()">
     
-    <div id="preview-container">
-        <img id="preview" alt="Vorschau">
-    </div>
+    <img id="preview" alt="Vorschau">
     
     <button onclick="send()" id="submit-btn" class="send-btn" disabled>YAYINA GÖNDER!</button>
     
@@ -122,7 +120,7 @@
 </div>
 
 <script>
-// Firebase Konfiguration
+// Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyC4fo69Q0sf7DVgJSDhojAPzLsQ7SDu6cg",
     authDomain: "chaostitan41-website.firebaseapp.com",
@@ -145,72 +143,76 @@ let currentType = null;
 let currentGifId = null;
 let currentVlipsyId = null;
 
-// Giphy ID Finder (verbessert)
+// ID Finder Funktionen (Bleiben gleich)
 function getGiphyId(url) {
     if (!url.includes("giphy.com")) return null;
-    const regex = /(?:giphy\.com\/(?:gifs|clips|media)\/|media\.giphy\.com\/media\/)(?:.*-)?([a-zA-Z0-9]+)/;
-    const match = url.match(regex);
-    return (match && match[1]) ? match[1] : null;
+    try {
+        const patterns = [
+            /\/media\/[^\/]+\/([a-zA-Z0-9]+)\/giphy/,
+            /giphy\.com\/gifs\/(?:[^\/]+\-)?([a-zA-Z0-9]+)/,
+            /giphy\.com\/embed\/([a-zA-Z0-9]+)/,
+            /giphy\.com\/clips\/([a-zA-Z0-9]+)/
+        ];
+        for (const p of patterns) {
+            const m = url.match(p);
+            if (m && m[1]) return m[1];
+        }
+        return null;
+    } catch(e) { return null; }
 }
 
-// Vlipsy ID Finder (MASSIV VERBESSERT)
 function getVlipsyId(url) {
     if (!url.includes("vlipsy.com")) return null;
-    // Erkennt: /v/ID, /clip/ID, /embed/ID und einfache IDs am Ende
-    const patterns = [
-        /vlipsy\.com\/clip\/([a-zA-Z0-9\-]+)/,
-        /vlipsy\.com\/v\/([a-zA-Z0-9\-]+)/,
-        /vlipsy\.com\/embed\/([a-zA-Z0-9\-]+)/,
-        /vlipsy\.com\/([a-zA-Z0-9\-]{5,20})/ // Falls nur die ID nach dem Slash kommt
-    ];
-    
-    for (const p of patterns) {
-        const m = url.match(p);
-        if (m && m[1]) return m[1];
-    }
-    return null;
+    try {
+        const patterns = [
+            /vlipsy\.com\/clip\/([a-zA-Z0-9]+)/,
+            /vlipsy\.com\/v\/([a-zA-Z0-9]+)/,
+            /vlipsy\.com\/embed\/([a-zA-Z0-9]+)/
+        ];
+        for (const p of patterns) {
+            const m = url.match(p);
+            if (m && m[1]) return m[1];
+        }
+        return null;
+    } catch(e) { return null; }
 }
 
-// Validierung
+// Haupt-Validierung
 function validateInput() {
     const url = document.getElementById('media-url').value.trim();
+    
+    // Reset
     currentType = null;
     currentGifId = null;
     currentVlipsyId = null;
     previewImg.style.display = 'none';
+    sendBtn.disabled = true;
     
     if (!url) {
-        sendBtn.disabled = true;
+        statusDiv.innerHTML = "";
         return;
     }
     
-    // Giphy Check
     const gId = getGiphyId(url);
+    const vId = getVlipsyId(url);
+
     if (gId) {
         currentType = "gif";
         currentGifId = gId;
         previewImg.src = `https://media.giphy.com/media/${gId}/giphy.gif`;
         previewImg.style.display = 'block';
         checkCooldown(); 
-        return;
-    }
-    
-    // Vlipsy Check
-    const vId = getVlipsyId(url);
-    if (vId) {
+    } else if (vId) {
         currentType = "vlipsy";
         currentVlipsyId = vId;
-        // Wir zeigen ein Vorschaubild von Vlipsy (falls der Browser es erlaubt)
-        previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+VIDEO+HAZIR';
+        previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+CLIP';
         previewImg.style.display = 'block';
         checkCooldown();
-        return;
+    } else {
+        statusDiv.innerHTML = "<span style='color:red'>Link erkannt, aber ungültig!</span>";
     }
-    
-    sendBtn.disabled = true;
 }
 
-// IP abrufen
 async function getUserIP() {
     try {
         const res = await fetch('https://api64.ipify.org?format=json');
@@ -219,18 +221,51 @@ async function getUserIP() {
     } catch(e) { return "unknown"; }
 }
 
-// Senden
+function checkCooldown() {
+    // Falls gerade kein Link erkannt wurde, gar nichts machen
+    if (!currentType) return;
+
+    db.ref('settings/cooldown').once('value', settingsSnap => {
+        const dynamicCooldown = (settingsSnap.val() || 30) * 1000; // in ms
+
+        db.ref('lastMediaTime').once('value', snap => {
+            const lastTime = snap.val() || 0;
+            const now = Date.now();
+            const diff = now - lastTime;
+            
+            clearInterval(timerInterval);
+            
+            if (diff < dynamicCooldown) {
+                let timeLeft = Math.ceil((dynamicCooldown - diff) / 1000);
+                sendBtn.disabled = true;
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        statusDiv.innerHTML = "";
+                        if (currentType) sendBtn.disabled = false;
+                    } else {
+                        statusDiv.innerHTML = `<span style="color:#ffaa00">BEKLEME: ${timeLeft}s</span>`;
+                    }
+                }, 1000);
+            } else {
+                sendBtn.disabled = false;
+                statusDiv.innerHTML = "";
+            }
+        });
+    });
+}
+
 async function send() {
     if (!currentType || sendBtn.disabled) return;
 
+    const username = document.getElementById('username').value.trim() || "Anonim";
     sendBtn.disabled = true;
     statusDiv.innerHTML = "Gönderiliyor...";
 
-    const username = document.getElementById('username').value.trim() || "Anonim";
     const userIP = await getUserIP();
     const safeIPKey = userIP.replace(/\./g, '_'); 
 
-    // Ban Check
     const banSnap = await db.ref('bannedIPs/' + safeIPKey).get();
     if (banSnap.exists()) {
         statusDiv.innerHTML = "<span style='color:red'>BANLISINIZ!</span>";
@@ -259,6 +294,7 @@ async function send() {
     };
 
     db.ref(targetPath).push(entry).then(() => {
+        // Zeitstempel lokal setzen für sofortigen Cooldown-Effekt
         db.ref('lastMediaTime').set(Date.now());
         statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
         document.getElementById('media-url').value = "";
@@ -270,40 +306,13 @@ async function send() {
     });
 }
 
-// Cooldown Logik
-function checkCooldown() {
-    db.ref('settings/cooldown').once('value', settingsSnap => {
-        const dynamicCooldown = settingsSnap.val() || 30;
-
-        db.ref('lastMediaTime').once('value', snap => {
-            const lastTime = snap.val() || 0;
-            const diff = (Date.now() - lastTime) / 1000;
-            clearInterval(timerInterval);
-            
-            if (diff < dynamicCooldown) {
-                let timeLeft = Math.ceil(dynamicCooldown - diff);
-                sendBtn.disabled = true;
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
-                        statusDiv.innerHTML = "";
-                        if(currentType) sendBtn.disabled = false; 
-                    } else {
-                        statusDiv.innerHTML = `<span style="color:#ffaa00">COOLDOWN: ${timeLeft}s</span>`;
-                    }
-                }, 1000);
-            } else {
-                if (currentType) {
-                    sendBtn.disabled = false;
-                    statusDiv.innerHTML = "";
-                }
-            }
-        });
-    });
-}
-
-db.ref('lastMediaTime').on('value', () => checkCooldown());
+// Überwachung der Datenbank-Zeit (nur triggern wenn Feld nicht leer)
+db.ref('lastMediaTime').on('value', () => {
+    const inputVal = document.getElementById('media-url').value;
+    if (inputVal && inputVal.length > 5) {
+        checkCooldown();
+    }
+});
 </script>
 </body>
 </html>
