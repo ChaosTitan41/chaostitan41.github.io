@@ -110,9 +110,9 @@
     <a href="https://vlipsy.com" target="_blank" class="giphy-search-btn" style="margin-left:10px;">MEME ARA (VLIPSY)</a>
     
     <input type="text" id="username" placeholder="ADINIZ">
-    <input type="text" id="media-url" placeholder="Giphy oder Vlipsy Link..." oninput="validateInput()">
+    <input type="text" id="media-url" placeholder="Giphy veya Vlipsy Linki..." oninput="validateInput()">
     
-    <img id="preview" alt="Vorschau">
+    <img id="preview" alt="Önizleme">
     
     <button onclick="send()" id="submit-btn" class="send-btn" disabled>YAYINA GÖNDER!</button>
     
@@ -143,7 +143,7 @@ let currentType = null;
 let currentGifId = null;
 let currentVlipsyId = null;
 
-// ID Finder Funktionen (Bleiben gleich)
+// Giphy ID Bulucu
 function getGiphyId(url) {
     if (!url.includes("giphy.com")) return null;
     try {
@@ -161,10 +161,12 @@ function getGiphyId(url) {
     } catch(e) { return null; }
 }
 
+// Vlipsy ID Bulucu (Güncellendi: Artık 'clips' yapısını da destekliyor)
 function getVlipsyId(url) {
     if (!url.includes("vlipsy.com")) return null;
     try {
         const patterns = [
+            /vlipsy\.com\/clips\/([a-zA-Z0-9]+)/, // Yeni eklenen yapı
             /vlipsy\.com\/clip\/([a-zA-Z0-9]+)/,
             /vlipsy\.com\/v\/([a-zA-Z0-9]+)/,
             /vlipsy\.com\/embed\/([a-zA-Z0-9]+)/
@@ -177,11 +179,8 @@ function getVlipsyId(url) {
     } catch(e) { return null; }
 }
 
-// Haupt-Validierung
 function validateInput() {
     const url = document.getElementById('media-url').value.trim();
-    
-    // Reset
     currentType = null;
     currentGifId = null;
     currentVlipsyId = null;
@@ -205,11 +204,11 @@ function validateInput() {
     } else if (vId) {
         currentType = "vlipsy";
         currentVlipsyId = vId;
-        previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+CLIP';
+        previewImg.src = 'https://via.placeholder.com/200x112/000000/FFFFFF?text=VLIPSY+VİDEO';
         previewImg.style.display = 'block';
         checkCooldown();
     } else {
-        statusDiv.innerHTML = "<span style='color:red'>Link erkannt, aber ungültig!</span>";
+        statusDiv.innerHTML = "<span style='color:red'>Geçersiz Link!</span>";
     }
 }
 
@@ -222,21 +221,19 @@ async function getUserIP() {
 }
 
 function checkCooldown() {
-    // Falls gerade kein Link erkannt wurde, gar nichts machen
     if (!currentType) return;
 
     db.ref('settings/cooldown').once('value', settingsSnap => {
-        const dynamicCooldown = (settingsSnap.val() || 30) * 1000; // in ms
+        const cooldownSeconds = settingsSnap.val() || 30;
 
         db.ref('lastMediaTime').once('value', snap => {
             const lastTime = snap.val() || 0;
-            const now = Date.now();
-            const diff = now - lastTime;
+            const diff = (Date.now() - lastTime) / 1000;
             
             clearInterval(timerInterval);
             
-            if (diff < dynamicCooldown) {
-                let timeLeft = Math.ceil((dynamicCooldown - diff) / 1000);
+            if (diff < cooldownSeconds) {
+                let timeLeft = Math.ceil(cooldownSeconds - diff);
                 sendBtn.disabled = true;
                 timerInterval = setInterval(() => {
                     timeLeft--;
@@ -245,7 +242,7 @@ function checkCooldown() {
                         statusDiv.innerHTML = "";
                         if (currentType) sendBtn.disabled = false;
                     } else {
-                        statusDiv.innerHTML = `<span style="color:#ffaa00">BEKLEME: ${timeLeft}s</span>`;
+                        statusDiv.innerHTML = `<span style="color:#ffaa00">BEKLEME SÜRESİ: ${timeLeft}sn</span>`;
                     }
                 }, 1000);
             } else {
@@ -294,22 +291,19 @@ async function send() {
     };
 
     db.ref(targetPath).push(entry).then(() => {
-        // Zeitstempel lokal setzen für sofortigen Cooldown-Effekt
         db.ref('lastMediaTime').set(Date.now());
-        statusDiv.innerHTML = "<span style='color:#00ff99'>✅ GÖNDERİLDİ!</span>";
+        statusDiv.innerHTML = "<span style='color:#00ff99'>✅ YAYINA GÖNDERİLDİ!</span>";
         document.getElementById('media-url').value = "";
         previewImg.style.display = "none";
         currentType = null;
     }).catch(err => {
-        statusDiv.innerHTML = "<span style='color:red'>Hata!</span>";
+        statusDiv.innerHTML = "<span style='color:red'>Hata oluştu!</span>";
         sendBtn.disabled = false;
     });
 }
 
-// Überwachung der Datenbank-Zeit (nur triggern wenn Feld nicht leer)
 db.ref('lastMediaTime').on('value', () => {
-    const inputVal = document.getElementById('media-url').value;
-    if (inputVal && inputVal.length > 5) {
+    if (document.getElementById('media-url').value.length > 5) {
         checkCooldown();
     }
 });
